@@ -132,9 +132,9 @@ stock.summary_balls:
   many: "{{.Count}} pelotes en stock."
   other: "{{.Count}} pelotes en stock."
 stock.summary_empty:
-  one: "{{.Count}} bain épuisé reste dans la liste."
-  many: "{{.Count}} bains épuisés restent dans la liste."
-  other: "{{.Count}} bains épuisés restent dans la liste."
+  one: "{{.Count}} coloris épuisé reste dans la liste."
+  many: "{{.Count}} coloris épuisés restent dans la liste."
+  other: "{{.Count}} coloris épuisés restent dans la liste."
 stock.title: Stock
 stock.unknown_brand: Marque inconnue
 stock.unknown_color: Coloris inconnu

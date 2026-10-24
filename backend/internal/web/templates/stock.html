@@ -2,7 +2,7 @@
 <div class="page__head">
   <h1 class="page__title">{{T "stock.title"}}</h1>
   {{if .Brands}}
-  <p class="page__lead">{{Tn "stock.summary_balls" .Balls}}{{if .EmptyLots}} {{Tn "stock.summary_empty" .EmptyLots}}{{end}}</p>
+  <p class="page__lead">{{Tn "stock.summary_balls" .Balls}}{{if .EmptyColors}} {{Tn "stock.summary_empty" .EmptyColors}}{{end}}</p>
   {{end}}
 </div>
 {{if not .Brands}}
@@ -17,21 +17,23 @@
   </h2>
   <ul class="shades">
     {{range .Colors}}
-    <li class="shade">
+    <li class="shade{{if eq .Total 0}} shade--empty{{end}}">
       <div class="shade__id">
         {{if .Code}}<span class="shade__code">{{.Code}}</span>{{end}}
         {{if .Name}}<span class="shade__name">{{.Name}}</span>{{end}}
         {{if not (or .Code .Name)}}<span class="shade__name shade__name--unknown">{{T "stock.unknown_color"}}</span>{{end}}
         <span class="shade__ean">{{range $i, $ean := .EANs}}{{if $i}}, {{end}}{{$ean}}{{end}}</span>
       </div>
+      {{if .Lots}}
       <ul class="lots">
         {{range .Lots}}
-        <li class="lot{{if eq .Quantity 0}} lot--empty{{end}}">
+        <li class="lot">
           {{template "stamp" .DyeLot}}
           <span class="lot__qty"><span aria-hidden="true">{{.Quantity}}</span><span class="visually-hidden">{{Tn "unit.balls" .Quantity}}</span></span>
         </li>
         {{end}}
       </ul>
+      {{end}}
       <span class="shade__total">{{Tn "unit.balls" .Total}}</span>
     </li>
     {{end}}

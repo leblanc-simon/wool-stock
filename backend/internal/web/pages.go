@@ -22,9 +22,10 @@ const (
 
 // stockView est le stock complet, bains épuisés compris.
 type stockView struct {
-	Brands    []brandGroup
-	Balls     int
-	EmptyLots int
+	Brands []brandGroup
+	Balls  int
+	// EmptyColors compte les coloris sans aucune pelote, qui restent dans la liste.
+	EmptyColors int
 }
 
 type brandGroup struct {
@@ -34,8 +35,9 @@ type brandGroup struct {
 	Colors []colorGroup
 }
 
-// colorGroup réunit les bains d'un coloris (n° et nom) ; deux qualités d'une marque
-// peuvent partager un coloris, d'où plusieurs EAN possibles.
+// colorGroup réunit les bains en stock d'un coloris (n° et nom) ; deux qualités
+// d'une marque peuvent partager un coloris, d'où plusieurs EAN possibles. Un coloris
+// épuisé garde sa place, sans bain.
 type colorGroup struct {
 	Code  string
 	Name  string
@@ -53,7 +55,8 @@ func (a *App) stock(w http.ResponseWriter, r *http.Request) {
 	a.render(w, r, http.StatusOK, "stock", "stock", "stock.title", groupStock(items))
 }
 
-// groupStock regroupe par marque puis coloris, dans l'ordre du store (marque, n°, nom, EAN, bain).
+// groupStock regroupe par marque puis coloris, dans l'ordre du store (marque, n°, nom,
+// EAN, bain). Les bains épuisés disparaissent, pas les coloris.
 func groupStock(items []store.StockItem) stockView {
 	var view stockView
 	brands := map[string]int{}
@@ -84,12 +87,18 @@ func groupStock(items []store.StockItem) stockView {
 		if len(c.EANs) == 0 || c.EANs[len(c.EANs)-1] != item.EAN {
 			c.EANs = append(c.EANs, item.EAN)
 		}
-		c.Lots = append(c.Lots, item)
+		if item.Quantity > 0 {
+			c.Lots = append(c.Lots, item)
+		}
 		c.Total += item.Quantity
 		b.Total += item.Quantity
 		view.Balls += item.Quantity
-		if item.Quantity == 0 {
-			view.EmptyLots++
+	}
+	for _, b := range view.Brands {
+		for _, c := range b.Colors {
+			if c.Total == 0 {
+				view.EmptyColors++
+			}
 		}
 	}
 	return view

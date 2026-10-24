@@ -40,21 +40,27 @@ func TestGroupStock(t *testing.T) {
 		{EAN: "1", DyeLot: "B", Quantity: 0, Brand: ptr("Katia"), ColorCode: ptr("1"), ColorName: ptr("blanc")},
 		{EAN: "2", DyeLot: "C", Quantity: 1, Brand: ptr("katia"), ColorCode: ptr("1"), ColorName: ptr("blanc")},
 		{EAN: "3", DyeLot: "D", Quantity: 4, Brand: ptr("Katia"), ColorCode: ptr("7")},
+		{EAN: "5", DyeLot: "E", Quantity: 0, Brand: ptr("Katia"), ColorCode: ptr("9")},
 		{EAN: "4", DyeLot: "", Quantity: 3},
 	})
-	if view.Balls != 10 || view.EmptyLots != 1 || len(view.Brands) != 2 {
+	if view.Balls != 10 || view.EmptyColors != 1 || len(view.Brands) != 2 {
 		t.Fatalf("view = %+v", view)
 	}
 	katia := view.Brands[0]
-	if katia.Total != 7 || len(katia.Colors) != 2 {
+	if katia.Total != 7 || len(katia.Colors) != 3 {
 		t.Fatalf("katia = %+v", katia)
 	}
-	// Deux qualités au même coloris : un seul groupe, deux EAN.
+	// Deux qualités au même coloris : un seul groupe, deux EAN ; le bain épuisé disparaît.
 	if katia.Brand != "Katia" {
 		t.Fatalf("brand spelling = %q", katia.Brand)
 	}
-	if white := katia.Colors[0]; len(white.Lots) != 3 || len(white.EANs) != 2 || white.Total != 3 {
+	if white := katia.Colors[0]; len(white.Lots) != 2 || white.Lots[0].DyeLot != "A" || white.Lots[1].DyeLot != "C" ||
+		len(white.EANs) != 2 || white.Total != 3 {
 		t.Fatalf("white = %+v", white)
+	}
+	// Un coloris épuisé reste, sans bain.
+	if empty := katia.Colors[2]; empty.Code != "9" || empty.Total != 0 || len(empty.Lots) != 0 {
+		t.Fatalf("empty shade = %+v", empty)
 	}
 	if unknown := view.Brands[1]; unknown.Brand != "" || unknown.Colors[0].Code != "" {
 		t.Fatalf("unknown = %+v", unknown)
@@ -162,6 +168,9 @@ func TestPages(t *testing.T) {
 		{Kind: store.KindIn, EAN: "8435407948594", DyeLot: "81790", Quantity: 1},
 		{Kind: store.KindOut, EAN: "8435407948594", DyeLot: "81790", Quantity: 1, Recipient: "Marie", Author: "Simon"},
 		{Kind: store.KindOut, EAN: "8435407948594", DyeLot: "81784", Quantity: 2, Recipient: "Marie"},
+		{Kind: store.KindIn, EAN: "3664263018102", DyeLot: "A12", Quantity: 2,
+			Reference: &store.ReferenceFields{Brand: ptr("Bergère de France"), ColorCode: ptr("10")}},
+		{Kind: store.KindOut, EAN: "3664263018102", DyeLot: "A12", Quantity: 2, Recipient: "Léa"},
 	} {
 		if _, _, _, err := st.Record(ctx, in); err != nil {
 			t.Fatal(err)
@@ -172,15 +181,23 @@ func TestPages(t *testing.T) {
 	if status != http.StatusOK || !strings.Contains(header.Get("Content-Security-Policy"), "default-src 'none'") {
 		t.Fatalf("stock: status %d, headers %v", status, header)
 	}
-	for _, want := range []string{`lang="fr"`, `rel="icon" type="image/svg+xml" href="/static/logo.svg?v=`, `class="masthead__logo"`, "Katia", "blanc", "81784", `class="lot lot--empty"`, "1 pelote en stock.", "1 bain épuisé reste dans la liste.", `aria-current="page"`,
+	for _, want := range []string{`lang="fr"`, `rel="icon" type="image/svg+xml" href="/static/logo.svg?v=`, `class="masthead__logo"`, "Katia", "blanc", "81784", "1 pelote en stock.", "1 coloris épuisé reste dans la liste.", `aria-current="page"`,
+		"Bergère de France", `class="shade shade--empty"`, "0 pelote",
 		`<form class="account" method="post" action="/logout">`, `title="simon@example.com">Simon</span>`, "Se déconnecter"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("stock: %q missing", want)
 		}
 	}
 
+	// Les bains épuisés (81790, A12) ne s'affichent plus ; leur coloris, si.
+	for _, gone := range []string{"81790", "A12"} {
+		if strings.Contains(body, gone) {
+			t.Errorf("stock: empty dye lot %s listed", gone)
+		}
+	}
+
 	_, _, body = get(t, srv, "/entries", "en")
-	for _, want := range []string{"Entries", "Simon", "anonymous", "4 balls added over this period."} {
+	for _, want := range []string{"Entries", "Simon", "anonymous", "6 balls added over this period."} {
 		if !strings.Contains(body, want) {
 			t.Errorf("entries: %q missing", want)
 		}

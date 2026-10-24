@@ -122,8 +122,8 @@ stock.summary_balls:
   one: "{{.Count}} ball in stock."
   other: "{{.Count}} balls in stock."
 stock.summary_empty:
-  one: "{{.Count}} dye lot has run out and stays listed."
-  other: "{{.Count}} dye lots have run out and stay listed."
+  one: "{{.Count}} shade has run out and stays listed."
+  other: "{{.Count}} shades have run out and stay listed."
 stock.title: Stock
 stock.unknown_brand: Unknown brand
 stock.unknown_color: Unknown colour
