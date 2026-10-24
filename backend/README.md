@@ -108,6 +108,7 @@ Toutes les réponses sont en JSON. Un EAN accepte 8, 12, 13 ou 14 chiffres ; un 
 | `GET` | `/api/references/{ean}` | une référence, ou 404 |
 | `PUT` | `/api/references/{ean}` | crée ou remplace marque / coloris : `{"brand","color_code","color_name"}` |
 | `GET` | `/api/stock` | bains en stock : `{"items":[…]}` ; `?ean=` pour une référence, `?include_empty=true` pour garder les bains épuisés |
+| `GET` | `/api/export` | classeur Excel (`.xlsx`) du stock et du suivi des distributions, le même que `/stock/export` ; titres et nom de fichier dans la langue de `Accept-Language` |
 | `POST` | `/api/movements` | entrée ou sortie de pelotes (voir ci-dessous) |
 | `GET` | `/api/movements` | historique, du plus récent au plus ancien : `?ean=`, `?limit=` (1 à 500, 50 par défaut) |
 | `GET` | `/api/inventories/current` | inventaire en cours et ses bains comptés, ou 404 |

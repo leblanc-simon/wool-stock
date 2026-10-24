@@ -4,6 +4,7 @@ import androidx.annotation.Keep
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -15,6 +16,8 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,8 +31,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -52,6 +57,7 @@ import androidx.navigation.toRoute
 import eu.leblancsimon.woolstock.R
 import eu.leblancsimon.woolstock.WoolStockApp
 import eu.leblancsimon.woolstock.confirm.ConfirmScreen
+import eu.leblancsimon.woolstock.data.api.ApiException
 import eu.leblancsimon.woolstock.data.api.StockLot
 import eu.leblancsimon.woolstock.inventory.InventoryScreen
 import eu.leblancsimon.woolstock.login.LoginScreen
@@ -59,9 +65,11 @@ import eu.leblancsimon.woolstock.scan.CameraScreen
 import eu.leblancsimon.woolstock.scan.CapturedLabel
 import eu.leblancsimon.woolstock.settings.SettingsScreen
 import eu.leblancsimon.woolstock.settings.UsersScreen
+import eu.leblancsimon.woolstock.stock.StockExport
 import eu.leblancsimon.woolstock.stock.StockScreen
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import java.io.IOException
 import kotlin.reflect.KClass
 
 /** Ce que l'on fait d'une étiquette scannée ; argument de navigation. */
@@ -161,12 +169,31 @@ private enum class Tab(
 @Composable
 fun WoolStockNavHost() {
     val navController = rememberNavController()
-    val settings = (LocalContext.current.applicationContext as WoolStockApp).container.settings
+    val context = LocalContext.current
+    val container = (context.applicationContext as WoolStockApp).container
+    val settings = container.settings
     val session by settings.session.collectAsStateWithLifecycle()
     val startRoute: Any = remember { if (settings.session.value != null) StockRoute else LoginRoute }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val resources = LocalResources.current
+    // Export Excel lancé depuis l'en-tête : il continue si l'on change d'onglet entre-temps.
+    var exporting by remember { mutableStateOf(false) }
+    val exportStock: () -> Unit = {
+        exporting = true
+        scope.launch {
+            val failure = try {
+                StockExport.share(context, container.stockRepository.export(), resources.getString(R.string.stock_export_chooser))
+                null
+            } catch (e: ApiException) {
+                e
+            } catch (e: IOException) {
+                e
+            }
+            exporting = false
+            failure?.let { snackbarHostState.showSnackbar(it.toErrorMessage().text(resources)) }
+        }
+    }
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentTab = Tab.entries.firstOrNull { tab ->
         backStackEntry?.destination?.hierarchy?.any { it.hasRoute(tab.routeClass) } == true
@@ -184,7 +211,7 @@ fun WoolStockNavHost() {
         // Chaque écran gère la barre d'état : la caméra s'affiche dessous.
         contentWindowInsets = WindowInsets(0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        // En-tête commun aux onglets : logo, nom de l'application, réglages.
+        // En-tête commun aux onglets : logo, nom de l'application, export (onglet Stock), réglages.
         topBar = {
             if (currentTab != null) {
                 TopAppBar(
@@ -195,6 +222,7 @@ fun WoolStockNavHost() {
                         }
                     },
                     actions = {
+                        if (currentTab == Tab.STOCK) ExportAction(exporting, onExport = exportStock)
                         IconButton(onClick = { navController.navigate(SettingsRoute) }) {
                             Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_title))
                         }
@@ -288,6 +316,20 @@ fun WoolStockNavHost() {
             composable<UsersRoute> {
                 UsersScreen(onBack = { navController.popBackStack() })
             }
+        }
+    }
+}
+
+/** Export Excel du stock : l'icône de partage, ou une roue pendant le téléchargement. */
+@Composable
+private fun ExportAction(exporting: Boolean, onExport: () -> Unit) {
+    if (exporting) {
+        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+        }
+    } else {
+        IconButton(onClick = onExport) {
+            Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.stock_export))
         }
     }
 }

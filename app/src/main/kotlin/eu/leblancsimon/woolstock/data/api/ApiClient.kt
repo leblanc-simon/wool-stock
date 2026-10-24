@@ -6,6 +6,7 @@ import kotlinx.serialization.json.Json
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
 
@@ -79,20 +80,40 @@ class ApiClient(
     suspend fun count(inventoryId: Long, request: CountRequest): CountResponse =
         send("POST", "/api/inventories/$inventoryId/counts", json.encodeToString(request))
 
+    /** Classeur Excel du stock et des distributions, titré dans la langue du téléphone. */
+    suspend fun export(): ExportFile = request("GET", "/api/export", null, accept = ExportFile.TYPE) { connection ->
+        ExportFile(
+            name = attachmentName(connection.getHeaderField("Content-Disposition")) ?: ExportFile.DEFAULT_NAME,
+            bytes = connection.inputStream.use { it.readBytes() },
+        )
+    }
+
     private suspend inline fun <reified T> get(path: String): T = json.decodeFromString(execute("GET", path, null))
 
     private suspend inline fun <reified T> send(method: String, path: String, body: String): T =
         json.decodeFromString(execute(method, path, body))
 
-    private suspend fun execute(method: String, path: String, body: String?): String = withContext(Dispatchers.IO) {
+    private suspend fun execute(method: String, path: String, body: String?): String =
+        request(method, path, body, accept = "application/json") { connection ->
+            connection.inputStream.bufferedReader().use { it.readText() }
+        }
+
+    /** Envoie une requête et lit une réponse réussie avec [read] ; une erreur reste au format JSON de l'API. */
+    private suspend fun <T> request(
+        method: String,
+        path: String,
+        body: String?,
+        accept: String,
+        read: (HttpURLConnection) -> T,
+    ): T = withContext(Dispatchers.IO) {
         try {
             val connection = URL(baseUrl().trim().trimEnd('/') + path).openConnection() as HttpURLConnection
             try {
                 connection.requestMethod = method
                 connection.connectTimeout = CONNECT_TIMEOUT_MS
                 connection.readTimeout = READ_TIMEOUT_MS
-                connection.setRequestProperty("Accept", "application/json")
-                // Le serveur traduit ses messages d'erreur dans la langue du téléphone.
+                connection.setRequestProperty("Accept", accept)
+                // Le serveur traduit ses messages d'erreur (et l'export) dans la langue du téléphone.
                 connection.setRequestProperty("Accept-Language", Locale.getDefault().toLanguageTag())
                 token()?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
                 if (body != null) {
@@ -101,15 +122,13 @@ class ApiClient(
                     connection.outputStream.use { it.write(body.toByteArray()) }
                 }
                 val status = connection.responseCode
-                val success = status in 200..299
-                val text = (if (success) connection.inputStream else connection.errorStream)
-                    ?.bufferedReader()?.use { it.readText() }.orEmpty()
-                if (!success) {
+                if (status !in 200..299) {
+                    val text = connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
                     // Session inconnue du serveur (compte supprimé, base remise à zéro) : on se déconnecte.
                     if (status == HttpURLConnection.HTTP_UNAUTHORIZED) onUnauthorized()
                     throw ApiException.Server(status, runCatching { json.decodeFromString<ApiErrorBody>(text).error }.getOrNull())
                 }
-                text
+                read(connection)
             } finally {
                 connection.disconnect()
             }
@@ -126,6 +145,22 @@ class ApiClient(
     companion object {
         private const val CONNECT_TIMEOUT_MS = 5_000
         private const val READ_TIMEOUT_MS = 10_000
+
+        private val ENCODED_FILENAME = Regex("""filename\*=UTF-8''([^;\s]+)""", RegexOption.IGNORE_CASE)
+        private val PLAIN_FILENAME = Regex("""filename="?([^";]+)"?""", RegexOption.IGNORE_CASE)
+
+        /**
+         * Nom de fichier d'un en-tête Content-Disposition (« attachment; filename=stock.xlsx », ou
+         * sa forme encodée filename*=UTF-8''…), sans chemin ; null s'il n'y en a pas.
+         */
+        internal fun attachmentName(header: String?): String? {
+            if (header == null) return null
+            val encoded = ENCODED_FILENAME.find(header)?.groupValues?.get(1)
+                ?.let { runCatching { URLDecoder.decode(it, Charsets.UTF_8.name()) }.getOrNull() }
+            val name = (encoded ?: PLAIN_FILENAME.find(header)?.groupValues?.get(1))
+                ?.substringAfterLast('/')?.substringAfterLast('\\')?.trim()
+            return name?.takeIf { it.isNotEmpty() && it != "." && it != ".." }
+        }
 
         val json = Json {
             ignoreUnknownKeys = true

@@ -132,6 +132,8 @@
     <string name="stock_dye_lot">Dye lot %1$s</string>
     <string name="stock_no_dye_lot">No dye lot</string>
     <string name="stock_exit">Take out</string>
+    <string name="stock_export">Export to Excel</string>
+    <string name="stock_export_chooser">Send the workbook</string>
     <plurals name="stock_balls">
         <item quantity="one">%d ball</item>
         <item quantity="other">%d balls</item>

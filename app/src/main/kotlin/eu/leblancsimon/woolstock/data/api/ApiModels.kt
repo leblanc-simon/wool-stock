@@ -175,3 +175,13 @@ internal data class UsersResponse(val users: List<User>)
 
 @Serializable
 internal data class NewUserRequest(val email: String, val name: String, val role: String)
+
+/** Classeur Excel téléchargé (GET /api/export) : le nom proposé par le serveur et son contenu. */
+class ExportFile(val name: String, val bytes: ByteArray) {
+    companion object {
+        const val TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+        /** Nom de secours si le serveur n'en propose pas. */
+        const val DEFAULT_NAME = "wool-stock.xlsx"
+    }
+}

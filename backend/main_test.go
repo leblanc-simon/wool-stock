@@ -95,3 +95,51 @@ func TestLoginRateLimit(t *testing.T) {
 		}
 	}
 }
+
+// L'app télécharge par l'API le même classeur que les pages, branché dans main.
+func TestAPIExport(t *testing.T) {
+	ctx := context.Background()
+	st, err := store.Open(ctx, "file:"+filepath.Join(t.TempDir(), "export.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { st.Close() })
+	bundle, err := i18n.NewFS(locales.FS, ".", "fr")
+	if err != nil {
+		t.Fatal(err)
+	}
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	app := &api.App{Store: st, I18n: bundle, Logger: logger, Version: "test"}
+	site, err := web.New(st, bundle, logger)
+	if err != nil {
+		t.Fatal(err)
+	}
+	app.Export = site.Workbook
+	general, _ := ratelimit.New(100, nil)
+	login, _ := ratelimit.New(100, nil)
+	srv := httptest.NewServer(routes(app, site, general, login))
+	t.Cleanup(srv.Close)
+
+	user, err := st.CreateUser(ctx, "marie@example.org", "Marie", store.RoleManager, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	token, err := st.OpenSession(ctx, user.ID, "Pixel")
+	if err != nil {
+		t.Fatal(err)
+	}
+	req, _ := http.NewRequest(http.MethodGet, srv.URL+"/api/export", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Accept-Language", "en")
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+	// Un classeur .xlsx est une archive zip ; le nom suit la langue du téléphone.
+	if res.StatusCode != http.StatusOK || res.Header.Get("Content-Type") != web.XLSXType || !strings.HasPrefix(string(body), "PK") ||
+		!strings.Contains(res.Header.Get("Content-Disposition"), "yarn-stock-") {
+		t.Fatalf("export: %d %v (%d bytes)", res.StatusCode, res.Header, len(body))
+	}
+}

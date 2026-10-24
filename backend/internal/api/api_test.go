@@ -31,6 +31,7 @@ func newBundle(t *testing.T) *i18n.Bundle {
 // testServer est une API de test, avec la session d'un admin utilisée par défaut.
 type testServer struct {
 	*httptest.Server
+	app   *App
 	store *store.Store
 	token string
 }
@@ -54,7 +55,7 @@ func newServer(t *testing.T) *testServer {
 	app := &App{Store: st, I18n: newBundle(t), Logger: slog.New(slog.NewTextHandler(io.Discard, nil)), Version: "test"}
 	srv := httptest.NewServer(app.Handler())
 	t.Cleanup(srv.Close)
-	return &testServer{Server: srv, store: st, token: token}
+	return &testServer{Server: srv, app: app, store: st, token: token}
 }
 
 type response struct {

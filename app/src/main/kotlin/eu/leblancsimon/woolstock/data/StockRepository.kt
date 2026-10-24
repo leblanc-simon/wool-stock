@@ -6,6 +6,7 @@ import eu.leblancsimon.woolstock.data.api.ApiException
 import eu.leblancsimon.woolstock.data.api.CountMode
 import eu.leblancsimon.woolstock.data.api.CountRequest
 import eu.leblancsimon.woolstock.data.api.CountResponse
+import eu.leblancsimon.woolstock.data.api.ExportFile
 import eu.leblancsimon.woolstock.data.api.HealthResponse
 import eu.leblancsimon.woolstock.data.api.InventoryScope
 import eu.leblancsimon.woolstock.data.api.InventoryState
@@ -102,6 +103,9 @@ class StockRepository(
     }
 
     suspend fun stock(): List<StockLot> = api.stock()
+
+    /** Classeur Excel du stock et des distributions, le même que l'export des pages web. */
+    suspend fun export(): ExportFile = api.export()
 
     /** Bains d'une référence, pour choisir celui d'une saisie ; [includeEmpty] garde les bains épuisés. */
     suspend fun lots(ean: String, includeEmpty: Boolean = false): List<StockLot> = api.stock(ean, includeEmpty)

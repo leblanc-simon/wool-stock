@@ -100,6 +100,8 @@ func run(cfg config.Config) error {
 	if err != nil {
 		return fmt.Errorf("templates: %w", err)
 	}
+	// L'app télécharge le même classeur que les pages.
+	app.Export = site.Workbook
 	onLimit := limited(app, site)
 	general, err := ratelimit.New(cfg.Web.RateLimit, cfg.Web.TrustedProxies, ratelimit.WithLimitHandler(onLimit))
 	if err != nil {

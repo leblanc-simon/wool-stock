@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"math"
 	"mime"
 	"net/http"
@@ -44,37 +45,46 @@ func cmWidth(cm float64) float64 {
 // en tête, ni plus de 15 chiffres.
 var plainNumber = regexp.MustCompile(`^[1-9][0-9]{0,14}$`)
 
-// export envoie le classeur : le stock du jour, chaque bain reçu avec sa quantité
-// (0 s'il est épuisé), et toutes les sorties, regroupées par jour et par destinataire.
+// XLSXType est le type MIME du classeur exporté.
+const XLSXType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+// export envoie le classeur au navigateur (lien « Exporter en Excel »).
 func (a *App) export(w http.ResponseWriter, r *http.Request) {
-	items, err := a.Store.Stock(r.Context(), store.StockFilter{IncludeEmpty: true})
+	body, name, err := a.Workbook(r.Context(), a.I18n.FromRequest(r))
 	if err != nil {
 		a.serverError(w, r, err)
 		return
 	}
-	exits, err := a.Store.Movements(r.Context(), store.MovementFilter{Kind: store.KindOut})
+	w.Header().Set("Content-Type", XLSXType)
+	w.Header().Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{"filename": name}))
+	_, _ = w.Write(body)
+}
+
+// Workbook construit le classeur dans la langue de loc et renvoie son contenu et son nom
+// de fichier : le stock du jour, chaque bain reçu avec sa quantité (0 s'il est épuisé),
+// et toutes les sorties, regroupées par jour et par destinataire. Les pages et l'API
+// (GET /api/export) le servent tel quel ; tout est écrit en mémoire avant l'envoi, une
+// erreur laisse donc encore répondre une erreur.
+func (a *App) Workbook(ctx context.Context, loc *i18n.Localizer) ([]byte, string, error) {
+	items, err := a.Store.Stock(ctx, store.StockFilter{IncludeEmpty: true})
 	if err != nil {
-		a.serverError(w, r, err)
-		return
+		return nil, "", err
 	}
-	loc := a.I18n.FromRequest(r)
+	exits, err := a.Store.Movements(ctx, store.MovementFilter{Kind: store.KindOut})
+	if err != nil {
+		return nil, "", err
+	}
 	now := a.Now().In(a.Location)
 	book, err := workbook(loc, now, groupStock(items), distributions(exits, a.Location, loc.Lang()))
 	if err != nil {
-		a.serverError(w, r, err)
-		return
+		return nil, "", err
 	}
 	defer book.Close()
-	// Écrit d'abord en mémoire : une erreur donne encore une page d'erreur.
 	var buf bytes.Buffer
 	if err := book.Write(&buf); err != nil {
-		a.serverError(w, r, err)
-		return
+		return nil, "", err
 	}
-	name := loc.T("export.filename", map[string]any{"Date": now.Format(time.DateOnly)})
-	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	w.Header().Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{"filename": name}))
-	_, _ = buf.WriteTo(w)
+	return buf.Bytes(), loc.T("export.filename", map[string]any{"Date": now.Format(time.DateOnly)}), nil
 }
 
 // distribution est une ligne du suivi : ce qu'une personne a reçu un jour donné.

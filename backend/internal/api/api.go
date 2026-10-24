@@ -1,6 +1,7 @@
 // Package api expose en JSON le cache des codes-barres, le stock global, les
-// entrées / sorties de pelotes et les inventaires. On s'y connecte par adresse
-// email seule ; chaque mouvement porte le nom du compte connecté.
+// entrées / sorties de pelotes et les inventaires, et en Excel l'export du stock.
+// On s'y connecte par adresse email seule ; chaque mouvement porte le nom du compte
+// connecté.
 package api
 
 import (
@@ -66,6 +67,8 @@ type App struct {
 	I18n    *i18n.Bundle
 	Logger  *slog.Logger
 	Version string
+	// Export construit le classeur Excel de GET /api/export ; nil, la route répond 404.
+	Export Exporter
 }
 
 // Handler renvoie les routes de l'API. Seules health et la connexion sont ouvertes ;
@@ -82,6 +85,7 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("GET /api/references/{ean}", a.authenticate(a.getReference))
 	mux.HandleFunc("PUT /api/references/{ean}", a.authenticate(a.putReference))
 	mux.HandleFunc("GET /api/stock", a.authenticate(a.listStock))
+	mux.HandleFunc("GET /api/export", a.authenticate(a.export))
 	mux.HandleFunc("GET /api/movements", a.authenticate(a.listMovements))
 	mux.HandleFunc("POST /api/movements", a.authenticate(a.createMovement))
 	mux.HandleFunc("GET /api/inventories/current", a.authenticate(a.currentInventory))

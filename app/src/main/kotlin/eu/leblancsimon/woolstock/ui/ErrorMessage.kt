@@ -1,5 +1,6 @@
 package eu.leblancsimon.woolstock.ui
 
+import android.content.res.Resources
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
@@ -22,6 +23,13 @@ sealed interface ErrorMessage {
 fun ErrorMessage.text(): String = when (this) {
     is ErrorMessage.Resource -> stringResource(id, *args.toTypedArray())
     is ErrorMessage.Plural -> pluralStringResource(id, count, count)
+    is ErrorMessage.Text -> text
+}
+
+/** Le même message hors composition, pour une barre de messages lancée depuis une coroutine. */
+fun ErrorMessage.text(resources: Resources): String = when (this) {
+    is ErrorMessage.Resource -> resources.getString(id, *args.toTypedArray())
+    is ErrorMessage.Plural -> resources.getQuantityString(id, count, count)
     is ErrorMessage.Text -> text
 }
 
