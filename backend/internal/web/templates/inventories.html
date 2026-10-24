@@ -39,37 +39,39 @@
       <h2 class="section-title" id="history-title">{{T "inventories.history_title"}}</h2>
     </div>
     {{if .Inventories}}
-    <table class="ledger">
-      <thead>
-        <tr>
-          <th scope="col">{{T "inventories.col_started"}}</th>
-          <th scope="col">{{T "inventories.col_scope"}}</th>
-          <th scope="col">{{T "inventories.col_status"}}</th>
-          <th scope="col" class="ledger__num">{{T "inventories.col_counted"}}</th>
-          <th scope="col" class="ledger__num">{{T "inventories.col_anomalies"}}</th>
-          <th scope="col" class="ledger__num">{{T "inventories.col_net"}}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{range .Inventories}}
-        <tr>
-          <td data-label="{{T "inventories.col_started"}}">
-            <div>
-              <a href="/inventories/{{.ID}}"><time datetime="{{iso .StartedAt}}">{{dateTime .StartedAt}}</time></a>
-              {{with .StartedBy}}<span class="ledger__ean">{{T "inventories.by" (dict "Author" (deref .))}}</span>{{end}}
-            </div>
-          </td>
-          <td data-label="{{T "inventories.col_scope"}}">{{T (print "scope." .Scope)}}</td>
-          <td data-label="{{T "inventories.col_status"}}">
-            {{with .ClosedAt}}{{T "inventories.closed_on" (dict "Date" (dateTime .))}}{{else}}<a class="status" href="/inventories/{{.ID}}/count">{{T "inventories.in_progress"}}</a>{{end}}
-          </td>
-          <td data-label="{{T "inventories.col_counted"}}" class="ledger__num">{{.Counted}}{{if .Zeroed}}<span class="ledger__ean">{{Tn "inventories.zeroed" .Zeroed}}</span>{{end}}</td>
-          <td data-label="{{T "inventories.col_anomalies"}}" class="ledger__num">{{if .Anomalies}}<a href="/inventories/{{.ID}}">{{.Anomalies}}</a>{{else}}0{{end}}</td>
-          <td data-label="{{T "inventories.col_net"}}" class="ledger__num"><span class="gap {{gapClass .Net}}">{{signedBalls .Net}}</span></td>
-        </tr>
-        {{end}}
-      </tbody>
-    </table>
+    <div class="desk__scroll">
+      <table class="ledger">
+        <thead>
+          <tr>
+            <th scope="col">{{T "inventories.col_started"}}</th>
+            <th scope="col">{{T "inventories.col_scope"}}</th>
+            <th scope="col">{{T "inventories.col_status"}}</th>
+            <th scope="col" class="ledger__num">{{T "inventories.col_counted"}}</th>
+            <th scope="col" class="ledger__num">{{T "inventories.col_anomalies"}}</th>
+            <th scope="col" class="ledger__num">{{T "inventories.col_net"}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .Inventories}}
+          <tr>
+            <td data-label="{{T "inventories.col_started"}}">
+              <div>
+                <a href="/inventories/{{.ID}}"><time datetime="{{iso .StartedAt}}">{{dateTime .StartedAt}}</time></a>
+                {{with .StartedBy}}<span class="ledger__ean">{{T "inventories.by" (dict "Author" (deref .))}}</span>{{end}}
+              </div>
+            </td>
+            <td data-label="{{T "inventories.col_scope"}}">{{T (print "scope." .Scope)}}</td>
+            <td data-label="{{T "inventories.col_status"}}">
+              {{with .ClosedAt}}{{T "inventories.closed_on" (dict "Date" (dateTime .))}}{{else}}<a class="status" href="/inventories/{{.ID}}/count">{{T "inventories.in_progress"}}</a>{{end}}
+            </td>
+            <td data-label="{{T "inventories.col_counted"}}" class="ledger__num">{{.Counted}}{{if .Zeroed}}<span class="ledger__ean">{{Tn "inventories.zeroed" .Zeroed}}</span>{{end}}</td>
+            <td data-label="{{T "inventories.col_anomalies"}}" class="ledger__num">{{if .Anomalies}}<a href="/inventories/{{.ID}}">{{.Anomalies}}</a>{{else}}0{{end}}</td>
+            <td data-label="{{T "inventories.col_net"}}" class="ledger__num"><span class="gap {{gapClass .Net}}">{{signedBalls .Net}}</span></td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
     {{else}}
     <p class="empty">{{T "inventories.empty"}}</p>
     {{end}}

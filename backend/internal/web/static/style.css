@@ -986,6 +986,13 @@ h4 {
     min-width: 0;
   }
 
+  /* Juste au-dessus de 64rem, la colonne est étroite : le registre défile plutôt
+     que d'élargir la page. Seule la table défile, les contours de focus des
+     champs de période restent entiers. */
+  .desk__scroll {
+    overflow-x: auto;
+  }
+
   .desk__head {
     display: grid;
     gap: 0.75rem;
