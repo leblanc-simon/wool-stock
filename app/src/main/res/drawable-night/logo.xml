@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Logo de l’en-tête (thème sombre) : pelote indigo clair. Mêmes tracés que backend/internal/web/static/logo.svg. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+    <group
+        android:translateX="-3"
+        android:translateY="2.5">
+        <path
+            android:pathData="M16,33 L41.5,3.6 M44,33 L18.5,3.6"
+            android:strokeWidth="3.2"
+            android:strokeColor="#C08A55"
+            android:strokeLineCap="round" />
+        <path
+            android:fillColor="#8F5A2C"
+            android:pathData="M39,2.6 a3.4,3.4 0 1,0 6.8,0 a3.4,3.4 0 1,0 -6.8,0 Z M14.2,2.6 a3.4,3.4 0 1,0 6.8,0 a3.4,3.4 0 1,0 -6.8,0 Z" />
+        <path
+            android:fillColor="#A9B8FF"
+            android:pathData="M10,40 a20,20 0 1,0 40,0 a20,20 0 1,0 -40,0 Z" />
+        <group>
+            <clip-path android:pathData="M10,40 a20,20 0 1,0 40,0 a20,20 0 1,0 -40,0 Z" />
+            <path
+                android:pathData="M10,43 C18,32 32,25 49,26 M11,52 C21,40 36,33 51,35 M17,59 C28,49 40,44 51,45 M22,21 C31,32 35,46 33,61"
+                android:strokeWidth="2.2"
+                android:strokeColor="#2E3F8F"
+                android:strokeLineCap="round" />
+        </group>
+        <path
+            android:pathData="M45,53 C50,59 56,60 59,56"
+            android:strokeWidth="2.6"
+            android:strokeColor="#A9B8FF"
+            android:strokeLineCap="round" />
+    </group>
+</vector>

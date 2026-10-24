@@ -1,0 +1,357 @@
+{
+  "id": "it-bagno-multi-frames",
+  "source": "synthetic",
+  "description": "Adriafil (italien) : tampon lu différemment selon les frames (1185, 1I85, 7185, rien) ; le vote doit retenir 1185.",
+  "frames": [
+    {
+      "lines": [
+        {
+          "text": "ADRIAFIL",
+          "box": {
+            "left": 320,
+            "top": 60,
+            "right": 680,
+            "bottom": 140
+          }
+        },
+        {
+          "text": "Regina",
+          "box": {
+            "left": 400,
+            "top": 160,
+            "right": 600,
+            "bottom": 205
+          }
+        },
+        {
+          "text": "Colore 012",
+          "box": {
+            "left": 120,
+            "top": 280,
+            "right": 400,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "Bagno",
+          "box": {
+            "left": 540,
+            "top": 280,
+            "right": 680,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "1185",
+          "box": {
+            "left": 545,
+            "top": 335,
+            "right": 665,
+            "bottom": 380
+          }
+        },
+        {
+          "text": "50 g - 125 m",
+          "box": {
+            "left": 300,
+            "top": 430,
+            "right": 700,
+            "bottom": 470
+          }
+        }
+      ],
+      "text": "ADRIAFIL\nRegina\nColore 012\nBagno\n1185\n50 g - 125 m"
+    },
+    {
+      "lines": [
+        {
+          "text": "ADRIAFIL",
+          "box": {
+            "left": 320,
+            "top": 60,
+            "right": 680,
+            "bottom": 140
+          }
+        },
+        {
+          "text": "Regina",
+          "box": {
+            "left": 400,
+            "top": 160,
+            "right": 600,
+            "bottom": 205
+          }
+        },
+        {
+          "text": "Colore 012",
+          "box": {
+            "left": 120,
+            "top": 280,
+            "right": 400,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "Bagno",
+          "box": {
+            "left": 540,
+            "top": 280,
+            "right": 680,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "7185",
+          "box": {
+            "left": 545,
+            "top": 335,
+            "right": 665,
+            "bottom": 380
+          }
+        },
+        {
+          "text": "50 g - 125 m",
+          "box": {
+            "left": 300,
+            "top": 430,
+            "right": 700,
+            "bottom": 470
+          }
+        }
+      ],
+      "text": "ADRIAFIL\nRegina\nColore 012\nBagno\n7185\n50 g - 125 m"
+    },
+    {
+      "lines": [
+        {
+          "text": "ADRIAFIL",
+          "box": {
+            "left": 320,
+            "top": 60,
+            "right": 680,
+            "bottom": 140
+          }
+        },
+        {
+          "text": "Regina",
+          "box": {
+            "left": 400,
+            "top": 160,
+            "right": 600,
+            "bottom": 205
+          }
+        },
+        {
+          "text": "Colore 012",
+          "box": {
+            "left": 120,
+            "top": 280,
+            "right": 400,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "Bagno",
+          "box": {
+            "left": 540,
+            "top": 280,
+            "right": 680,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "1I85",
+          "box": {
+            "left": 545,
+            "top": 335,
+            "right": 665,
+            "bottom": 380
+          }
+        },
+        {
+          "text": "50 g - 125 m",
+          "box": {
+            "left": 300,
+            "top": 430,
+            "right": 700,
+            "bottom": 470
+          }
+        }
+      ],
+      "text": "ADRIAFIL\nRegina\nColore 012\nBagno\n1I85\n50 g - 125 m"
+    },
+    {
+      "lines": [
+        {
+          "text": "ADRIAFIL",
+          "box": {
+            "left": 320,
+            "top": 60,
+            "right": 680,
+            "bottom": 140
+          }
+        },
+        {
+          "text": "Regina",
+          "box": {
+            "left": 400,
+            "top": 160,
+            "right": 600,
+            "bottom": 205
+          }
+        },
+        {
+          "text": "Colore 012",
+          "box": {
+            "left": 120,
+            "top": 280,
+            "right": 400,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "Bagno",
+          "box": {
+            "left": 540,
+            "top": 280,
+            "right": 680,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "50 g - 125 m",
+          "box": {
+            "left": 300,
+            "top": 430,
+            "right": 700,
+            "bottom": 470
+          }
+        }
+      ],
+      "text": "ADRIAFIL\nRegina\nColore 012\nBagno\n50 g - 125 m"
+    },
+    {
+      "lines": [
+        {
+          "text": "ADRIAFIL",
+          "box": {
+            "left": 320,
+            "top": 60,
+            "right": 680,
+            "bottom": 140
+          }
+        },
+        {
+          "text": "Regina",
+          "box": {
+            "left": 400,
+            "top": 160,
+            "right": 600,
+            "bottom": 205
+          }
+        },
+        {
+          "text": "Colore 012",
+          "box": {
+            "left": 120,
+            "top": 280,
+            "right": 400,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "Bagno",
+          "box": {
+            "left": 540,
+            "top": 280,
+            "right": 680,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "7185",
+          "box": {
+            "left": 545,
+            "top": 335,
+            "right": 665,
+            "bottom": 380
+          }
+        },
+        {
+          "text": "50 g - 125 m",
+          "box": {
+            "left": 300,
+            "top": 430,
+            "right": 700,
+            "bottom": 470
+          }
+        }
+      ],
+      "text": "ADRIAFIL\nRegina\nColore 012\nBagno\n7185\n50 g - 125 m"
+    },
+    {
+      "lines": [
+        {
+          "text": "ADRIAFIL",
+          "box": {
+            "left": 320,
+            "top": 60,
+            "right": 680,
+            "bottom": 140
+          }
+        },
+        {
+          "text": "Regina",
+          "box": {
+            "left": 400,
+            "top": 160,
+            "right": 600,
+            "bottom": 205
+          }
+        },
+        {
+          "text": "Colore 012",
+          "box": {
+            "left": 120,
+            "top": 280,
+            "right": 400,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "Bagno",
+          "box": {
+            "left": 540,
+            "top": 280,
+            "right": 680,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "1185",
+          "box": {
+            "left": 545,
+            "top": 335,
+            "right": 665,
+            "bottom": 380
+          }
+        },
+        {
+          "text": "50 g - 125 m",
+          "box": {
+            "left": 300,
+            "top": 430,
+            "right": 700,
+            "bottom": 470
+          }
+        }
+      ],
+      "text": "ADRIAFIL\nRegina\nColore 012\nBagno\n1185\n50 g - 125 m"
+    }
+  ],
+  "expected": {
+    "dyeLot": "1185",
+    "brand": "Adriafil",
+    "colorCode": "012"
+  }
+}

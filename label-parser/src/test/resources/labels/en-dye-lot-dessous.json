@@ -1,0 +1,98 @@
+{
+  "id": "en-dye-lot-dessous",
+  "source": "synthetic",
+  "description": "Drops : en-têtes « Shade » et « Dye lot » côte à côte, valeurs sur la ligne du dessous.",
+  "frames": [
+    {
+      "lines": [
+        {
+          "text": "DROPS",
+          "box": {
+            "left": 380,
+            "top": 60,
+            "right": 620,
+            "bottom": 150
+          }
+        },
+        {
+          "text": "BABY MERINO",
+          "box": {
+            "left": 330,
+            "top": 170,
+            "right": 670,
+            "bottom": 215
+          }
+        },
+        {
+          "text": "100% Wool",
+          "box": {
+            "left": 400,
+            "top": 225,
+            "right": 600,
+            "bottom": 265
+          }
+        },
+        {
+          "text": "50 g = 175 m",
+          "box": {
+            "left": 380,
+            "top": 280,
+            "right": 620,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "Shade",
+          "box": {
+            "left": 120,
+            "top": 380,
+            "right": 260,
+            "bottom": 420
+          }
+        },
+        {
+          "text": "Dye lot",
+          "box": {
+            "left": 560,
+            "top": 380,
+            "right": 740,
+            "bottom": 420
+          }
+        },
+        {
+          "text": "16",
+          "box": {
+            "left": 140,
+            "top": 435,
+            "right": 190,
+            "bottom": 475
+          }
+        },
+        {
+          "text": "583921",
+          "box": {
+            "left": 570,
+            "top": 435,
+            "right": 720,
+            "bottom": 475
+          }
+        },
+        {
+          "text": "Needles 3 mm",
+          "box": {
+            "left": 350,
+            "top": 520,
+            "right": 650,
+            "bottom": 560
+          }
+        }
+      ],
+      "text": "DROPS\nBABY MERINO\n100% Wool\n50 g = 175 m\nShade\nDye lot\n16\n583921\nNeedles 3 mm"
+    }
+  ],
+  "expected": {
+    "dyeLot": "583921",
+    "brand": "Drops",
+    "colorCode": "16"
+  }
+}

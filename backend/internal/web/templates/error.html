@@ -1,0 +1,7 @@
+{{/* Page d'erreur : la donnée est la clé du message (page introuvable, accès refusé). */}}
+{{define "content"}}
+<div class="page__head">
+  <h1 class="page__title">{{T .}}</h1>
+  <p class="page__lead"><a href="/stock">{{T "error.back_to_stock"}}</a></p>
+</div>
+{{end}}

@@ -1,0 +1,82 @@
+{
+  "id": "fr-bain-meme-ligne",
+  "source": "synthetic",
+  "description": "Phildar : « Bain : 4512 » sur la même ligne, coloris code + nom, EAN imprimé sous le code-barre.",
+  "ean": "3614090123456",
+  "frames": [
+    {
+      "lines": [
+        {
+          "text": "PHILDAR",
+          "box": {
+            "left": 300,
+            "top": 80,
+            "right": 700,
+            "bottom": 170
+          }
+        },
+        {
+          "text": "PHIL PARTNER 3,5",
+          "box": {
+            "left": 250,
+            "top": 200,
+            "right": 750,
+            "bottom": 245
+          }
+        },
+        {
+          "text": "50 g - 77 m",
+          "box": {
+            "left": 350,
+            "top": 260,
+            "right": 650,
+            "bottom": 300
+          }
+        },
+        {
+          "text": "Coloris : 0012 Marine",
+          "box": {
+            "left": 150,
+            "top": 340,
+            "right": 650,
+            "bottom": 380
+          }
+        },
+        {
+          "text": "Bain : 4512",
+          "box": {
+            "left": 150,
+            "top": 400,
+            "right": 450,
+            "bottom": 440
+          }
+        },
+        {
+          "text": "Aiguilles 3,5 mm",
+          "box": {
+            "left": 150,
+            "top": 460,
+            "right": 550,
+            "bottom": 500
+          }
+        },
+        {
+          "text": "3 614090 123456",
+          "box": {
+            "left": 200,
+            "top": 560,
+            "right": 800,
+            "bottom": 600
+          }
+        }
+      ],
+      "text": "PHILDAR\nPHIL PARTNER 3,5\n50 g - 77 m\nColoris : 0012 Marine\nBain : 4512\nAiguilles 3,5 mm\n3 614090 123456"
+    }
+  ],
+  "expected": {
+    "dyeLot": "4512",
+    "brand": "Phildar",
+    "colorCode": "0012",
+    "colorName": "Marine"
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "id": "es-color-lote-tableau",
+  "source": "synthetic",
+  "description": "Katia (espagnol) : en-tête de tableau « Color Lote » sur une ligne, valeurs « 52 7812 » dessous, avec boîtes de mots.",
+  "frames": [
+    {
+      "lines": [
+        {
+          "text": "KATIA",
+          "box": {
+            "left": 400,
+            "top": 60,
+            "right": 600,
+            "bottom": 140
+          }
+        },
+        {
+          "text": "Merino Sport",
+          "box": {
+            "left": 350,
+            "top": 160,
+            "right": 650,
+            "bottom": 205
+          }
+        },
+        {
+          "text": "Color Lote",
+          "box": {
+            "left": 120,
+            "top": 300,
+            "right": 680,
+            "bottom": 340
+          },
+          "words": [
+            {
+              "text": "Color",
+              "box": {
+                "left": 120,
+                "top": 300,
+                "right": 260,
+                "bottom": 340
+              }
+            },
+            {
+              "text": "Lote",
+              "box": {
+                "left": 560,
+                "top": 300,
+                "right": 680,
+                "bottom": 340
+              }
+            }
+          ]
+        },
+        {
+          "text": "52 7812",
+          "box": {
+            "left": 130,
+            "top": 355,
+            "right": 690,
+            "bottom": 395
+          },
+          "words": [
+            {
+              "text": "52",
+              "box": {
+                "left": 130,
+                "top": 355,
+                "right": 190,
+                "bottom": 395
+              }
+            },
+            {
+              "text": "7812",
+              "box": {
+                "left": 570,
+                "top": 355,
+                "right": 690,
+                "bottom": 395
+              }
+            }
+          ]
+        },
+        {
+          "text": "100 g = 150 m",
+          "box": {
+            "left": 300,
+            "top": 450,
+            "right": 700,
+            "bottom": 490
+          }
+        }
+      ],
+      "text": "KATIA\nMerino Sport\nColor Lote\n52 7812\n100 g = 150 m"
+    }
+  ],
+  "expected": {
+    "dyeLot": "7812",
+    "brand": "Katia",
+    "colorCode": "52"
+  }
+}

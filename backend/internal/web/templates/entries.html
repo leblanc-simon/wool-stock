@@ -1,0 +1,34 @@
+{{define "content"}}
+<div class="page__head">
+  <h1 class="page__title">{{T "entries.title"}}</h1>
+  {{template "period" .}}
+  {{if .Movements}}<p class="page__lead">{{Tn "entries.summary" .Total}}</p>{{end}}
+</div>
+{{template "truncated" .}}
+{{if .Movements}}
+<table class="ledger">
+  <thead>
+    <tr>
+      <th scope="col">{{T "entries.col_when"}}</th>
+      <th scope="col">{{T "entries.col_who"}}</th>
+      <th scope="col">{{T "entries.col_what"}}</th>
+      <th scope="col">{{T "entries.col_dye_lot"}}</th>
+      <th scope="col" class="ledger__num">{{T "entries.col_quantity"}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{range .Movements}}
+    <tr>
+      <td data-label="{{T "entries.col_when"}}"><time datetime="{{iso .CreatedAt}}">{{dateTime .CreatedAt}}</time></td>
+      <td data-label="{{T "entries.col_who"}}">{{with .Author}}{{deref .}}{{else}}<span class="muted">{{T "common.anonymous"}}</span>{{end}}</td>
+      <td data-label="{{T "entries.col_what"}}"><div>{{template "yarn" .}}<span class="ledger__ean">{{.EAN}}</span></div></td>
+      <td data-label="{{T "entries.col_dye_lot"}}">{{template "stamp" .DyeLot}}</td>
+      <td data-label="{{T "entries.col_quantity"}}" class="ledger__num">{{.Quantity}}</td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+{{else}}
+<p class="empty">{{T "entries.empty"}}</p>
+{{end}}
+{{end}}

@@ -1,0 +1,34 @@
+# Wool Stock — configuration d'exemple. Copier en config.yaml.
+#
+# Toute clé peut être fournie par une variable d'environnement préfixée WS_
+# (voir `wool-stock --help`). Sans fichier config.yaml, seules les variables
+# d'environnement et les valeurs par défaut s'appliquent.
+
+web:
+  # 0.0.0.0 pour que les téléphones du réseau local joignent le serveur ;
+  # 127.0.0.1 derrière un reverse proxy (ou avec `adb reverse` en développement).
+  host: 0.0.0.0
+  port: 8080
+  # Requêtes par minute et par IP cliente ; 0 désactive la limite.
+  rate_limit: 100
+  # CIDR du reverse proxy, pour que la limite porte sur les vrais clients.
+  trusted_proxies: []
+
+logging:
+  level: info
+  format: text
+  source: false
+
+i18n:
+  # Langue des messages d'erreur quand ni ?lang= ni Accept-Language ne
+  # désignent une langue disponible (en, fr).
+  default_language: fr
+
+database:
+  # Fichier SQLite : cache des codes-barres, stock par bain, journal des mouvements.
+  path: data/wool-stock.db
+
+login:
+  # Tentatives de connexion par minute et par IP cliente, l'app et les pages web
+  # confondues, en plus de web.rate_limit ; 0 désactive cette limite.
+  rate_limit: 5

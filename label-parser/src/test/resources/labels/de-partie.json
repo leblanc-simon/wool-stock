@@ -1,0 +1,99 @@
+{
+  "id": "de-partie",
+  "source": "synthetic",
+  "description": "Schachenmayr (étiquette allemande) : « Farbe » et « Partie », marque mal lue (rn pour m), aiguilles 3-4 mm.",
+  "ean": "4053859123457",
+  "frames": [
+    {
+      "lines": [
+        {
+          "text": "Schachenrnayr",
+          "box": {
+            "left": 250,
+            "top": 60,
+            "right": 750,
+            "bottom": 140
+          }
+        },
+        {
+          "text": "Catania",
+          "box": {
+            "left": 380,
+            "top": 160,
+            "right": 620,
+            "bottom": 210
+          }
+        },
+        {
+          "text": "100% Baumwolle",
+          "box": {
+            "left": 330,
+            "top": 225,
+            "right": 670,
+            "bottom": 265
+          }
+        },
+        {
+          "text": "50 g ~ 125 m",
+          "box": {
+            "left": 380,
+            "top": 280,
+            "right": 620,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "Farbe 00110",
+          "box": {
+            "left": 120,
+            "top": 370,
+            "right": 420,
+            "bottom": 410
+          }
+        },
+        {
+          "text": "Partie 63521",
+          "box": {
+            "left": 560,
+            "top": 370,
+            "right": 880,
+            "bottom": 410
+          }
+        },
+        {
+          "text": "Nadel 3-4 mm",
+          "box": {
+            "left": 120,
+            "top": 450,
+            "right": 420,
+            "bottom": 490
+          }
+        },
+        {
+          "text": "30°",
+          "box": {
+            "left": 600,
+            "top": 450,
+            "right": 680,
+            "bottom": 490
+          }
+        },
+        {
+          "text": "4 053859 123457",
+          "box": {
+            "left": 250,
+            "top": 560,
+            "right": 750,
+            "bottom": 600
+          }
+        }
+      ],
+      "text": "Schachenrnayr\nCatania\n100% Baumwolle\n50 g ~ 125 m\nFarbe 00110\nPartie 63521\nNadel 3-4 mm\n30°\n4 053859 123457"
+    }
+  ],
+  "expected": {
+    "dyeLot": "63521",
+    "brand": "Schachenmayr",
+    "colorCode": "00110"
+  }
+}

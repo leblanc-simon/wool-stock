@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fond de l'icône : le lin des pages du serveur. -->
+    <color name="ic_launcher_background">#F1F2EF</color>
+</resources>

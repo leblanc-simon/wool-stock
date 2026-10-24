@@ -1,0 +1,71 @@
+{
+  "id": "fr-tampon-o-pour-zero",
+  "source": "synthetic",
+  "description": "Cheval Blanc : tampon « 4O71 » (O au lieu de 0) sous « Bain », et « Lot de 10 pelotes » ambigu.",
+  "frames": [
+    {
+      "lines": [
+        {
+          "text": "CHEVAL BLANC",
+          "box": {
+            "left": 250,
+            "top": 60,
+            "right": 750,
+            "bottom": 140
+          }
+        },
+        {
+          "text": "Lot de 10 pelotes",
+          "box": {
+            "left": 300,
+            "top": 160,
+            "right": 700,
+            "bottom": 200
+          }
+        },
+        {
+          "text": "Coloris 033",
+          "box": {
+            "left": 120,
+            "top": 280,
+            "right": 400,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "Bain",
+          "box": {
+            "left": 520,
+            "top": 280,
+            "right": 640,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "4O71",
+          "box": {
+            "left": 530,
+            "top": 335,
+            "right": 650,
+            "bottom": 380
+          }
+        },
+        {
+          "text": "50 g / 125 m",
+          "box": {
+            "left": 300,
+            "top": 420,
+            "right": 700,
+            "bottom": 460
+          }
+        }
+      ],
+      "text": "CHEVAL BLANC\nLot de 10 pelotes\nColoris 033\nBain\n4O71\n50 g / 125 m"
+    }
+  ],
+  "expected": {
+    "dyeLot": "4071",
+    "brand": "Cheval Blanc",
+    "colorCode": "033"
+  }
+}

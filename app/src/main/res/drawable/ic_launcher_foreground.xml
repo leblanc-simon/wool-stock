@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Logo (pelote indigo, aiguilles en bois), repris de backend/internal/web/static/logo.svg :
+     mêmes tracés, ramenés dans la zone sûre de 66 dp de l'icône adaptative. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.85"
+        android:scaleY="0.85"
+        android:translateX="24.25"
+        android:translateY="28.925">
+        <path
+            android:pathData="M16,33 L41.5,3.6"
+            android:strokeWidth="3.2"
+            android:strokeColor="#C08A55"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M44,33 L18.5,3.6"
+            android:strokeWidth="3.2"
+            android:strokeColor="#C08A55"
+            android:strokeLineCap="round" />
+        <path
+            android:fillColor="#8F5A2C"
+            android:pathData="M39,2.6 a3.4,3.4 0 1,0 6.8,0 a3.4,3.4 0 1,0 -6.8,0 Z" />
+        <path
+            android:fillColor="#8F5A2C"
+            android:pathData="M14.2,2.6 a3.4,3.4 0 1,0 6.8,0 a3.4,3.4 0 1,0 -6.8,0 Z" />
+        <path
+            android:fillColor="#2E3F8F"
+            android:pathData="M10,40 a20,20 0 1,0 40,0 a20,20 0 1,0 -40,0 Z" />
+        <group>
+            <clip-path android:pathData="M10,40 a20,20 0 1,0 40,0 a20,20 0 1,0 -40,0 Z" />
+            <path
+                android:pathData="M10,43 C18,32 32,25 49,26"
+                android:strokeWidth="2.2"
+                android:strokeColor="#9AA9EC"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M11,52 C21,40 36,33 51,35"
+                android:strokeWidth="2.2"
+                android:strokeColor="#9AA9EC"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M17,59 C28,49 40,44 51,45"
+                android:strokeWidth="2.2"
+                android:strokeColor="#9AA9EC"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M22,21 C31,32 35,46 33,61"
+                android:strokeWidth="2.2"
+                android:strokeColor="#9AA9EC"
+                android:strokeLineCap="round" />
+        </group>
+        <path
+            android:pathData="M45,53 C50,59 56,60 59,56"
+            android:strokeWidth="2.6"
+            android:strokeColor="#2E3F8F"
+            android:strokeLineCap="round" />
+    </group>
+</vector>

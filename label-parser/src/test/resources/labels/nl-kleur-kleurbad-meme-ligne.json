@@ -1,0 +1,62 @@
+{
+  "id": "nl-kleur-kleurbad-meme-ligne",
+  "source": "synthetic",
+  "description": "Scheepjes (néerlandais) : coloris et bain côte à côte sur une seule ligne OCR.",
+  "frames": [
+    {
+      "lines": [
+        {
+          "text": "Scheepjes",
+          "box": {
+            "left": 330,
+            "top": 60,
+            "right": 670,
+            "bottom": 140
+          }
+        },
+        {
+          "text": "Catona",
+          "box": {
+            "left": 400,
+            "top": 160,
+            "right": 600,
+            "bottom": 205
+          }
+        },
+        {
+          "text": "Kleur 106 Kleurbad 4417",
+          "box": {
+            "left": 120,
+            "top": 280,
+            "right": 760,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "50 gr - 125 m",
+          "box": {
+            "left": 300,
+            "top": 350,
+            "right": 700,
+            "bottom": 390
+          }
+        },
+        {
+          "text": "Naald 2,5-3 mm",
+          "box": {
+            "left": 300,
+            "top": 410,
+            "right": 700,
+            "bottom": 450
+          }
+        }
+      ],
+      "text": "Scheepjes\nCatona\nKleur 106 Kleurbad 4417\n50 gr - 125 m\nNaald 2,5-3 mm"
+    }
+  ],
+  "expected": {
+    "dyeLot": "4417",
+    "brand": "Scheepjes",
+    "colorCode": "106"
+  }
+}

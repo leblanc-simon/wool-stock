@@ -1,0 +1,43 @@
+{{/* Référence : marque, puis n° et nom du coloris. */}}
+{{define "yarn"}}<span class="yarn"><span class="yarn__brand">{{with .Brand}}{{deref .}}{{else}}{{T "stock.unknown_brand"}}{{end}}</span>{{if or .ColorCode .ColorName}} <span class="yarn__shade">{{with .ColorCode}}{{deref .}}{{end}}{{if and .ColorCode .ColorName}} {{end}}{{with .ColorName}}{{deref .}}{{end}}</span>{{end}}</span>{{end}}
+
+{{/* Numéro de bain, présenté comme le tampon de l'étiquette. */}}
+{{define "stamp"}}<span class="stamp"><span class="visually-hidden">{{T "stock.dye_lot_label"}} </span>{{if .}}{{.}}{{else}}{{T "stock.no_dye_lot"}}{{end}}</span>{{end}}
+
+{{/* Choix de la période, commun aux entrées et aux sorties. */}}
+{{define "period"}}
+<form class="period" method="get">
+  <label class="period__field"><span class="period__label">{{T "filter.from"}}</span> <input type="date" name="from" value="{{isoDate .From}}"></label>
+  <label class="period__field"><span class="period__label">{{T "filter.to"}}</span> <input type="date" name="to" value="{{isoDate .To}}"></label>
+  <button class="period__submit" type="submit">{{T "filter.submit"}}</button>
+</form>
+{{end}}
+
+{{define "truncated"}}{{if .Truncated}}<p class="notice">{{T "movements.truncated" .}}</p>{{end}}{{end}}
+
+{{/* Champs d'un compte : adresse, nom, droit. Reçoit dict "Form" … "NameOptional" … "ShowRole" …. */}}
+{{define "accountFields"}}
+{{$f := .Form}}
+<div class="field">
+  <label class="field__label" for="email">{{T "account.email"}}</label>
+  <input class="field__input" id="email" name="email" type="email" value="{{$f.Email}}" autocomplete="off" required{{if index $f.Errors "email"}} aria-invalid="true" aria-describedby="email-error"{{end}}>
+  {{with index $f.Errors "email"}}<p class="field__error" id="email-error">{{T .Key .Data}}</p>{{end}}
+</div>
+<div class="field">
+  <label class="field__label" for="name">{{T "account.name"}}</label>
+  <input class="field__input" id="name" name="name" type="text" value="{{$f.Name}}" maxlength="100" autocomplete="off"{{if not .NameOptional}} required{{end}}{{if index $f.Errors "name"}} aria-invalid="true" aria-describedby="name-error"{{else if .NameOptional}} aria-describedby="name-help"{{end}}>
+  {{with index $f.Errors "name"}}<p class="field__error" id="name-error">{{T .Key .Data}}</p>{{else}}{{if .NameOptional}}<p class="field__help" id="name-help">{{T "account.name_help"}}</p>{{end}}{{end}}
+</div>
+{{if .ShowRole}}
+<fieldset class="field"{{if index $f.Errors "role"}} aria-describedby="role-error"{{end}}>
+  <legend class="field__label">{{T "account.role"}}</legend>
+  {{range $role := list "manager" "admin"}}
+  <label class="role">
+    <input type="radio" name="role" value="{{$role}}"{{if eq $f.Role $role}} checked{{end}}{{if index $f.Errors "role"}} aria-invalid="true"{{end}}>
+    <span><span class="role__name">{{T (print "role." $role)}}</span><span class="role__help">{{T (print "role." $role "_help")}}</span></span>
+  </label>
+  {{end}}
+  {{with index $f.Errors "role"}}<p class="field__error" id="role-error">{{T .Key .Data}}</p>{{end}}
+</fieldset>
+{{end}}
+{{end}}

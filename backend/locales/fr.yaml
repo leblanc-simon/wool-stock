@@ -1,0 +1,207 @@
+account.email: "Adresse email"
+account.name: "Nom"
+account.name_help: "Laissez vide pour le déduire de l’adresse : marie.dupont@… donne Marie Dupont."
+account.role: "Droit"
+common.anonymous: anonyme
+entries.col_dye_lot: Bain
+entries.col_quantity: Pelotes
+entries.col_what: Laine
+entries.col_when: Quand
+entries.col_who: Saisie par
+entries.empty: Aucune pelote ajoutée au stock sur cette période.
+entries.summary:
+  one: "{{.Count}} pelote ajoutée sur cette période."
+  many: "{{.Count}} pelotes ajoutées sur cette période."
+  other: "{{.Count}} pelotes ajoutées sur cette période."
+entries.title: Entrées
+error.already_counted:
+  one: "Ce bain a déjà été compté dans cet inventaire : {{.Count}} pelote"
+  many: "Ce bain a déjà été compté dans cet inventaire : {{.Count}} pelotes"
+  other: "Ce bain a déjà été compté dans cet inventaire : {{.Count}} pelotes"
+error.back_to_stock: Retour au stock
+error.cross_origin: 'Requête refusée : ce formulaire n’a pas été envoyé depuis ce site.'
+error.email_not_allowed: Cette adresse n’est pas autorisée. Demandez à un administrateur de l’ajouter.
+error.email_taken: Cette adresse a déjà un compte
+error.forbidden: Seul un administrateur peut faire cela
+error.insufficient_stock:
+  one: "Stock insuffisant pour ce bain : il reste {{.Count}} pelote"
+  many: "Stock insuffisant pour ce bain : il reste {{.Count}} pelotes"
+  other: "Stock insuffisant pour ce bain : il reste {{.Count}} pelotes"
+error.internal: Erreur interne, réessayez
+error.invalid_json: Le corps de la requête n’est pas un JSON valide
+error.inventory_closed: Cet inventaire est terminé
+error.inventory_open: Un inventaire est déjà en cours
+error.last_admin: "Il doit rester au moins un administrateur."
+error.not_found: Introuvable
+error.page_not_found: Cette page n’existe pas
+error.rate_limit: Trop de requêtes, réessayez dans une minute
+error.unauthorized: Reconnectez-vous
+exits.empty: Aucune pelote sortie du stock sur cette période.
+exits.summary:
+  one: "{{.Count}} pelote sortie sur cette période, par destinataire puis par jour."
+  many: "{{.Count}} pelotes sorties sur cette période, par destinataire puis par jour."
+  other: "{{.Count}} pelotes sorties sur cette période, par destinataire puis par jour."
+exits.title: Sorties
+filter.from: Du
+filter.submit: Afficher
+filter.to: Au
+format.date: 02/01/2006
+format.date_time: '{{.Date}} à {{.Time}}'
+format.day_heading: '{{.Weekday}} {{.Date}}'
+format.time: '15:04'
+format.weekday.0: Dimanche
+format.weekday.1: Lundi
+format.weekday.2: Mardi
+format.weekday.3: Mercredi
+format.weekday.4: Jeudi
+format.weekday.5: Vendredi
+format.weekday.6: Samedi
+inventories.by: par {{.Author}}
+inventories.closed_on: Terminé le {{.Date}}
+inventories.col_anomalies: Anomalies
+inventories.col_counted: Bains comptés
+inventories.col_net: Écart net
+inventories.col_scope: Type
+inventories.col_started: Lancé
+inventories.col_status: État
+inventories.empty: Aucun inventaire pour l’instant. Lancez-en un depuis l’onglet Inventaire de l’application.
+inventories.in_progress: En cours
+inventories.lead: Chaque inventaire, partiel ou complet, avec les bains dont le comptage diffère du stock connu.
+inventories.title: Inventaires
+inventories.zeroed:
+  one: "{{.Count}} remis à 0"
+  many: "{{.Count}} remis à 0"
+  other: "{{.Count}} remis à 0"
+inventory.anomalies_title: Anomalies
+inventory.back: Tous les inventaires
+inventory.closed_at: Terminé le {{.Date}}.
+inventory.closed_by: Terminé par {{.Author}} le {{.Date}}.
+inventory.col_counted: Compté
+inventory.col_dye_lot: Bain
+inventory.col_gap: Écart
+inventory.col_known: Stock connu
+inventory.col_what: Laine
+inventory.conform:
+  one: "{{.Count}} bain conforme au stock"
+  many: "{{.Count}} bains conformes au stock"
+  other: "{{.Count}} bains conformes au stock"
+inventory.no_anomalies: 'Aucun écart : chaque bain compté correspond au stock connu.'
+inventory.started_at: Lancé le {{.Date}}.
+inventory.started_by: Lancé par {{.Author}} le {{.Date}}.
+inventory.summary_counted:
+  one: "{{.Count}} bain compté."
+  many: "{{.Count}} bains comptés."
+  other: "{{.Count}} bains comptés."
+inventory.summary_uncounted:
+  one: "{{.Count}} bain en stock n’est pas encore compté : il sera remis à 0 à la clôture."
+  many: "{{.Count}} bains en stock ne sont pas encore comptés : ils seront remis à 0 à la clôture."
+  other: "{{.Count}} bains en stock ne sont pas encore comptés : ils seront remis à 0 à la clôture."
+inventory.summary_zeroed:
+  one: "{{.Count}} bain non compté a été remis à 0."
+  many: "{{.Count}} bains non comptés ont été remis à 0."
+  other: "{{.Count}} bains non comptés ont été remis à 0."
+inventory.title_full: Inventaire complet du {{.Date}}
+inventory.title_partial: Inventaire partiel du {{.Date}}
+inventory.zeroed: non compté, remis à 0
+layout.app_name: Stock de laine
+layout.logout: Se déconnecter
+layout.nav_entries: Entrées
+layout.nav_exits: Sorties
+layout.nav_inventories: Inventaires
+layout.nav_label: Rubriques
+layout.nav_stock: Stock
+layout.nav_users: "Utilisateurs"
+login.email: Adresse email
+login.intro: Saisissez l’adresse email qu’un administrateur a autorisée.
+login.submit: Se connecter
+login.title: Connexion
+movements.recorded_at: Saisie à {{.Time}}
+movements.recorded_by: Saisie par {{.Author}} à {{.Time}}
+movements.truncated: Seuls les {{.Limit}} plus récents sont affichés. Resserrez la période pour voir les autres.
+role.admin: "Administrateur"
+role.admin_help: "Comme un gestionnaire, et gère en plus les comptes."
+role.manager: "Gestionnaire"
+role.manager_help: "Entrées, sorties, inventaires et consultation du stock."
+scope.full: Complet
+scope.partial: Partiel
+stock.dye_lot_label: Bain
+stock.empty: Aucune laine enregistrée. Les pelotes ajoutées depuis l’onglet Entrée de l’application apparaissent ici.
+stock.no_dye_lot: sans bain
+stock.summary_balls:
+  one: "{{.Count}} pelote en stock."
+  many: "{{.Count}} pelotes en stock."
+  other: "{{.Count}} pelotes en stock."
+stock.summary_empty:
+  one: "{{.Count}} bain épuisé reste dans la liste."
+  many: "{{.Count}} bains épuisés restent dans la liste."
+  other: "{{.Count}} bains épuisés restent dans la liste."
+stock.title: Stock
+stock.unknown_brand: Marque inconnue
+stock.unknown_color: Coloris inconnu
+unit.balls:
+  one: "{{.Count}} pelote"
+  many: "{{.Count}} pelotes"
+  other: "{{.Count}} pelotes"
+unit.balls_signed:
+  one: "{{.Signed}} pelote"
+  many: "{{.Signed}} pelotes"
+  other: "{{.Signed}} pelotes"
+user.added_on: "Compte ajouté le {{.Date}}."
+user.back: "Tous les utilisateurs"
+user.cannot_remove_self: "Vous ne pouvez pas retirer votre propre accès."
+user.close_own_sessions: "Ce navigateur sera aussi déconnecté."
+user.close_sessions:
+  one: "Fermer la session"
+  many: "Fermer les {{.Count}} sessions"
+  other: "Fermer les {{.Count}} sessions"
+user.edit_title: "Adresse, nom et droit"
+user.own_role: "Vous ne pouvez pas changer votre propre droit ; un autre administrateur peut le faire."
+user.remove_confirm: "Oui, retirer l’accès de {{.Name}}"
+user.remove_help: "{{.Name}} ne pourra plus se connecter et ses appareils seront déconnectés. Son nom reste sur les entrées, sorties et inventaires déjà saisis."
+user.remove_open: "Retirer l’accès…"
+user.remove_title: "Retirer l’accès"
+user.save: "Enregistrer"
+user.saved: "Modifications enregistrées."
+user.self: "C’est votre compte."
+user.sessions_closed:
+  one: "{{.Count}} session fermée."
+  many: "{{.Count}} sessions fermées."
+  other: "{{.Count}} sessions fermées."
+user.sessions_help: "Chaque téléphone ou navigateur connecté ouvre une session, sans limite de durée. Les fermer déconnecte ces appareils ; l’adresse reste autorisée."
+user.sessions_title: "Appareils connectés"
+user.title: "Compte"
+users.add_title: "Ajouter un compte"
+users.col_activity: "Activité"
+users.col_email: "Adresse email"
+users.col_name: "Nom"
+users.col_role: "Droit"
+users.count:
+  one: "{{.Count}} compte"
+  many: "{{.Count}} comptes"
+  other: "{{.Count}} comptes"
+users.created: "{{.Name}} peut maintenant se connecter, à l’application comme à ces pages."
+users.last_seen: "Dernière activité le {{.When}}"
+users.lead: "Les adresses autorisées à se connecter. Il suffit de saisir l’adresse, sans mot de passe : n’ajoutez que des personnes de confiance."
+users.no_session: "Aucune session ouverte"
+users.removed: "Accès retiré : le compte et ses sessions sont supprimés."
+users.sessions:
+  one: "{{.Count}} session ouverte"
+  many: "{{.Count}} sessions ouvertes"
+  other: "{{.Count}} sessions ouvertes"
+users.submit: "Ajouter"
+users.title: "Utilisateurs"
+users.you: "(vous)"
+validation.count: Nombre entier entre 0 et 10 000
+validation.ean_format: 8, 12, 13 ou 14 chiffres attendus
+validation.ean_required: L’EAN est obligatoire
+validation.email: Saisissez une adresse email valide
+validation.kind: 'Le type doit valoir « in » ou « out »'
+validation.limit: La limite doit être comprise entre 1 et 500
+validation.mode: 'Le mode doit valoir « new », « add » ou « set »'
+validation.name_required: Le nom est obligatoire
+validation.quantity: Nombre entier entre 1 et 10 000
+validation.recipient_required: Indiquez pour qui les pelotes sont sorties
+validation.role: 'Le droit doit valoir « admin » ou « manager »'
+validation.role_required: "Choisissez un droit"
+validation.scope: 'Le type doit valoir « partial » ou « full »'
+validation.too_long: '{{.Max}} caractères au maximum'

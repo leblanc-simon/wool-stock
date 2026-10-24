@@ -1,0 +1,90 @@
+{
+  "id": "en-poids-metrage-ignores",
+  "source": "synthetic",
+  "description": "Stylecraft : « 100 g / 295 m » juste sous « Dye lot: », le tampon est loin à droite ; « Shade 1001 White » plus bas.",
+  "frames": [
+    {
+      "lines": [
+        {
+          "text": "Stylecraft",
+          "box": {
+            "left": 330,
+            "top": 60,
+            "right": 670,
+            "bottom": 140
+          }
+        },
+        {
+          "text": "Special DK",
+          "box": {
+            "left": 370,
+            "top": 160,
+            "right": 630,
+            "bottom": 205
+          }
+        },
+        {
+          "text": "Dye lot:",
+          "box": {
+            "left": 120,
+            "top": 300,
+            "right": 320,
+            "bottom": 340
+          }
+        },
+        {
+          "text": "2291",
+          "box": {
+            "left": 600,
+            "top": 302,
+            "right": 720,
+            "bottom": 342
+          }
+        },
+        {
+          "text": "100 g / 295 m",
+          "box": {
+            "left": 120,
+            "top": 355,
+            "right": 460,
+            "bottom": 395
+          }
+        },
+        {
+          "text": "Shade 1001 White",
+          "box": {
+            "left": 120,
+            "top": 450,
+            "right": 560,
+            "bottom": 490
+          }
+        },
+        {
+          "text": "Needles 4 mm",
+          "box": {
+            "left": 120,
+            "top": 510,
+            "right": 420,
+            "bottom": 550
+          }
+        },
+        {
+          "text": "40°C",
+          "box": {
+            "left": 600,
+            "top": 510,
+            "right": 700,
+            "bottom": 550
+          }
+        }
+      ],
+      "text": "Stylecraft\nSpecial DK\nDye lot:\n2291\n100 g / 295 m\nShade 1001 White\nNeedles 4 mm\n40°C"
+    }
+  ],
+  "expected": {
+    "dyeLot": "2291",
+    "brand": "Stylecraft",
+    "colorCode": "1001",
+    "colorName": "White"
+  }
+}

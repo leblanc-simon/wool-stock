@@ -1,0 +1,190 @@
+account.email: "Email address"
+account.name: "Name"
+account.name_help: "Leave empty to derive it from the address: marie.dupont@… gives Marie Dupont."
+account.role: "Role"
+common.anonymous: anonymous
+entries.col_dye_lot: Dye lot
+entries.col_quantity: Balls
+entries.col_what: Yarn
+entries.col_when: When
+entries.col_who: Recorded by
+entries.empty: No ball was added to the stock over this period.
+entries.summary:
+  one: "{{.Count}} ball added over this period."
+  other: "{{.Count}} balls added over this period."
+entries.title: Entries
+error.already_counted:
+  one: "This dye lot was already counted in this inventory: {{.Count}} ball"
+  other: "This dye lot was already counted in this inventory: {{.Count}} balls"
+error.back_to_stock: Back to the stock
+error.cross_origin: 'Request refused: this form was not sent from this site.'
+error.email_not_allowed: This email address is not allowed. Ask an administrator to add it.
+error.email_taken: This email address already has an account
+error.forbidden: Only an administrator can do this
+error.insufficient_stock:
+  one: "Not enough stock in this dye lot: {{.Count}} ball left"
+  other: "Not enough stock in this dye lot: {{.Count}} balls left"
+error.internal: Internal error, please try again
+error.invalid_json: The request body is not valid JSON
+error.inventory_closed: This inventory is finished
+error.inventory_open: An inventory is already in progress
+error.last_admin: "At least one administrator must remain."
+error.not_found: Not found
+error.page_not_found: This page does not exist
+error.rate_limit: Too many requests, please try again in a minute
+error.unauthorized: Sign in again
+exits.empty: No ball was taken out of the stock over this period.
+exits.summary:
+  one: "{{.Count}} ball taken out over this period, grouped by recipient, then by day."
+  other: "{{.Count}} balls taken out over this period, grouped by recipient, then by day."
+exits.title: Exits
+filter.from: From
+filter.submit: Show
+filter.to: To
+format.date: 2 Jan 2006
+format.date_time: '{{.Date}}, {{.Time}}'
+format.day_heading: '{{.Weekday}} {{.Date}}'
+format.time: '15:04'
+format.weekday.0: Sunday
+format.weekday.1: Monday
+format.weekday.2: Tuesday
+format.weekday.3: Wednesday
+format.weekday.4: Thursday
+format.weekday.5: Friday
+format.weekday.6: Saturday
+inventories.by: by {{.Author}}
+inventories.closed_on: Finished on {{.Date}}
+inventories.col_anomalies: Anomalies
+inventories.col_counted: Dye lots counted
+inventories.col_net: Net gap
+inventories.col_scope: Type
+inventories.col_started: Started
+inventories.col_status: Status
+inventories.empty: No inventory yet. Start one from the app’s Inventory tab.
+inventories.in_progress: In progress
+inventories.lead: Every inventory, partial or full, with the dye lots whose count differs from the known stock.
+inventories.title: Inventories
+inventories.zeroed:
+  one: "{{.Count}} reset to 0"
+  other: "{{.Count}} reset to 0"
+inventory.anomalies_title: Anomalies
+inventory.back: All inventories
+inventory.closed_at: Finished on {{.Date}}.
+inventory.closed_by: Finished by {{.Author}} on {{.Date}}.
+inventory.col_counted: Counted
+inventory.col_dye_lot: Dye lot
+inventory.col_gap: Gap
+inventory.col_known: Known stock
+inventory.col_what: Yarn
+inventory.conform:
+  one: "{{.Count}} dye lot matches the stock"
+  other: "{{.Count}} dye lots match the stock"
+inventory.no_anomalies: 'No gap: every counted dye lot matches the known stock.'
+inventory.started_at: Started on {{.Date}}.
+inventory.started_by: Started by {{.Author}} on {{.Date}}.
+inventory.summary_counted:
+  one: "{{.Count}} dye lot counted."
+  other: "{{.Count}} dye lots counted."
+inventory.summary_uncounted:
+  one: "{{.Count}} dye lot in stock is not counted yet: it will be reset to 0 when the inventory is finished."
+  other: "{{.Count}} dye lots in stock are not counted yet: they will be reset to 0 when the inventory is finished."
+inventory.summary_zeroed:
+  one: "{{.Count}} dye lot that was not counted was reset to 0."
+  other: "{{.Count}} dye lots that were not counted were reset to 0."
+inventory.title_full: Full inventory of {{.Date}}
+inventory.title_partial: Partial inventory of {{.Date}}
+inventory.zeroed: not counted, reset to 0
+layout.app_name: Wool Stock
+layout.logout: Sign out
+layout.nav_entries: Entries
+layout.nav_exits: Exits
+layout.nav_inventories: Inventories
+layout.nav_label: Sections
+layout.nav_stock: Stock
+layout.nav_users: "Users"
+login.email: Email address
+login.intro: Enter the email address an administrator has allowed.
+login.submit: Sign in
+login.title: Sign in
+movements.recorded_at: Recorded at {{.Time}}
+movements.recorded_by: Recorded by {{.Author}} at {{.Time}}
+movements.truncated: Only the {{.Limit}} most recent are shown. Narrow the period to see the others.
+role.admin: "Administrator"
+role.admin_help: "Same as a manager, and also manages accounts."
+role.manager: "Manager"
+role.manager_help: "Entries, exits, inventories and stock pages."
+scope.full: Full
+scope.partial: Partial
+stock.dye_lot_label: Dye lot
+stock.empty: No yarn recorded yet. Balls added from the app’s Entry tab show up here.
+stock.no_dye_lot: no lot
+stock.summary_balls:
+  one: "{{.Count}} ball in stock."
+  other: "{{.Count}} balls in stock."
+stock.summary_empty:
+  one: "{{.Count}} dye lot has run out and stays listed."
+  other: "{{.Count}} dye lots have run out and stay listed."
+stock.title: Stock
+stock.unknown_brand: Unknown brand
+stock.unknown_color: Unknown colour
+unit.balls:
+  one: "{{.Count}} ball"
+  other: "{{.Count}} balls"
+unit.balls_signed:
+  one: "{{.Signed}} ball"
+  other: "{{.Signed}} balls"
+user.added_on: "Account added on {{.Date}}."
+user.back: "All users"
+user.cannot_remove_self: "You cannot remove your own access."
+user.close_own_sessions: "This browser will be signed out too."
+user.close_sessions:
+  one: "Close the session"
+  other: "Close the {{.Count}} sessions"
+user.edit_title: "Address, name and role"
+user.own_role: "You cannot change your own role; another administrator can."
+user.remove_confirm: "Yes, remove {{.Name}}’s access"
+user.remove_help: "{{.Name}} will no longer be able to sign in, and their devices will be signed out. Their name stays on entries, exits and inventories already recorded."
+user.remove_open: "Remove access…"
+user.remove_title: "Remove access"
+user.save: "Save"
+user.saved: "Changes saved."
+user.self: "This is your account."
+user.sessions_closed:
+  one: "{{.Count}} session closed."
+  other: "{{.Count}} sessions closed."
+user.sessions_help: "Each signed-in phone or browser opens a session that never expires. Closing them signs these devices out; the address stays allowed."
+user.sessions_title: "Signed-in devices"
+user.title: "Account"
+users.add_title: "Add an account"
+users.col_activity: "Activity"
+users.col_email: "Email address"
+users.col_name: "Name"
+users.col_role: "Role"
+users.count:
+  one: "{{.Count}} account"
+  other: "{{.Count}} accounts"
+users.created: "{{.Name}} can now sign in, to the app and to these pages."
+users.last_seen: "Last active on {{.When}}"
+users.lead: "The addresses allowed to sign in. Entering the address is enough, with no password: only add people you trust."
+users.no_session: "No open session"
+users.removed: "Access removed: the account and its sessions are deleted."
+users.sessions:
+  one: "{{.Count}} open session"
+  other: "{{.Count}} open sessions"
+users.submit: "Add"
+users.title: "Users"
+users.you: "(you)"
+validation.count: Whole number between 0 and 10,000
+validation.ean_format: 8, 12, 13 or 14 digits expected
+validation.ean_required: The EAN is required
+validation.email: Enter a valid email address
+validation.kind: 'The kind must be "in" or "out"'
+validation.limit: The limit must be between 1 and 500
+validation.mode: 'The mode must be "new", "add" or "set"'
+validation.name_required: The name is required
+validation.quantity: Whole number between 1 and 10,000
+validation.recipient_required: Say who the balls are taken out for
+validation.role: 'The role must be "admin" or "manager"'
+validation.role_required: "Choose a role"
+validation.scope: 'The scope must be "partial" or "full"'
+validation.too_long: '{{.Max}} characters at most'

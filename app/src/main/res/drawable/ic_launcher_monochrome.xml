@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icône à thème (Android 13+) : seul l'alpha compte, la pelote passe en traits. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.85"
+        android:scaleY="0.85"
+        android:translateX="24.25"
+        android:translateY="28.925">
+        <path
+            android:pathData="M16,33 L41.5,3.6 M44,33 L18.5,3.6"
+            android:strokeWidth="3.2"
+            android:strokeColor="#FF000000"
+            android:strokeLineCap="round" />
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M39,2.6 a3.4,3.4 0 1,0 6.8,0 a3.4,3.4 0 1,0 -6.8,0 Z M14.2,2.6 a3.4,3.4 0 1,0 6.8,0 a3.4,3.4 0 1,0 -6.8,0 Z" />
+        <path
+            android:pathData="M11.5,40 a18.5,18.5 0 1,0 37,0 a18.5,18.5 0 1,0 -37,0 Z"
+            android:strokeWidth="3"
+            android:strokeColor="#FF000000" />
+        <group>
+            <clip-path android:pathData="M10,40 a20,20 0 1,0 40,0 a20,20 0 1,0 -40,0 Z" />
+            <path
+                android:pathData="M10,43 C18,32 32,25 49,26 M11,52 C21,40 36,33 51,35 M17,59 C28,49 40,44 51,45 M22,21 C31,32 35,46 33,61"
+                android:strokeWidth="2.4"
+                android:strokeColor="#FF000000"
+                android:strokeLineCap="round" />
+        </group>
+        <path
+            android:pathData="M45,53 C50,59 56,60 59,56"
+            android:strokeWidth="2.6"
+            android:strokeColor="#FF000000"
+            android:strokeLineCap="round" />
+    </group>
+</vector>

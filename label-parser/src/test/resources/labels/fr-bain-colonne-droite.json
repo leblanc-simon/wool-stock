@@ -1,0 +1,81 @@
+{
+  "id": "fr-bain-colonne-droite",
+  "source": "synthetic",
+  "description": "Bergère de France : « N° Bain » et « Coloris » à gauche, valeurs dans une colonne à droite ; « 50 g » juste sous le bain.",
+  "frames": [
+    {
+      "lines": [
+        {
+          "text": "BERGERE DE FRANCE",
+          "box": {
+            "left": 200,
+            "top": 60,
+            "right": 800,
+            "bottom": 130
+          }
+        },
+        {
+          "text": "Coton Fifty",
+          "box": {
+            "left": 350,
+            "top": 150,
+            "right": 650,
+            "bottom": 195
+          }
+        },
+        {
+          "text": "Coloris",
+          "box": {
+            "left": 120,
+            "top": 260,
+            "right": 300,
+            "bottom": 300
+          }
+        },
+        {
+          "text": "10285 Galet",
+          "box": {
+            "left": 520,
+            "top": 262,
+            "right": 800,
+            "bottom": 302
+          }
+        },
+        {
+          "text": "N° Bain",
+          "box": {
+            "left": 120,
+            "top": 330,
+            "right": 300,
+            "bottom": 370
+          }
+        },
+        {
+          "text": "27654",
+          "box": {
+            "left": 520,
+            "top": 333,
+            "right": 680,
+            "bottom": 373
+          }
+        },
+        {
+          "text": "50 g = 140 m env.",
+          "box": {
+            "left": 300,
+            "top": 420,
+            "right": 700,
+            "bottom": 460
+          }
+        }
+      ],
+      "text": "BERGERE DE FRANCE\nCoton Fifty\nColoris\n10285 Galet\nN° Bain\n27654\n50 g = 140 m env."
+    }
+  ],
+  "expected": {
+    "dyeLot": "27654",
+    "brand": "Bergère de France",
+    "colorCode": "10285",
+    "colorName": "Galet"
+  }
+}

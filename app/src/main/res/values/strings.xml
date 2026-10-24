@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Wool Stock</string>
+
+    <!-- Transverse: navigation and actions -->
+    <string name="common_back">Back</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_retry">Retry</string>
+    <string name="nav_stock">Stock</string>
+    <string name="nav_entry">Entry</string>
+    <string name="nav_exit">Exit</string>
+    <string name="nav_inventory">Inventory</string>
+
+    <!-- Transverse: where a field value comes from -->
+    <string name="source_barcode">barcode</string>
+    <string name="source_cache">cache</string>
+    <string name="source_ocr">OCR</string>
+    <string name="source_stock">stock</string>
+    <string name="source_manual">edited</string>
+    <string name="source_empty">empty</string>
+
+    <!-- Transverse: validation messages (also the server's validation.* codes) -->
+    <string name="validation_ean_required">The EAN is required</string>
+    <string name="validation_ean_format">8, 12, 13 or 14 digits expected</string>
+    <string name="validation_quantity">Whole number between 1 and 10,000</string>
+    <string name="validation_recipient_required">Say who the balls are for</string>
+    <string name="validation_count">Whole number between 0 and 10,000</string>
+    <string name="validation_email">Enter a valid email address</string>
+    <string name="validation_name_required">The name is required</string>
+    <string name="validation_url">Address starting with http:// or https://</string>
+
+    <!-- Transverse: server and network errors (the server's error.* codes) -->
+    <string name="error_network">Server unreachable. Check its address in Settings and the phone’s network.</string>
+    <string name="error_server">Server error (HTTP %1$d)</string>
+    <string name="error_unexpected">Unexpected error</string>
+    <string name="error_inventory_closed">This inventory is finished.</string>
+    <string name="error_email_not_allowed">This email address is not allowed. Ask an administrator to add it.</string>
+    <string name="error_email_taken">This email address already has an account.</string>
+    <string name="error_forbidden">Only an administrator can do this.</string>
+    <string name="error_unauthorized">Sign in again.</string>
+
+    <!-- Transverse: account roles -->
+    <string name="role_admin">Administrator</string>
+    <string name="role_manager">Manager</string>
+
+    <!-- Login screen -->
+    <string name="login_intro">Sign in with your email address. An administrator must have added it beforehand; you then stay signed in on this phone.</string>
+    <string name="login_email">Email address</string>
+    <string name="login_submit">Sign in</string>
+    <string name="login_server">Server: %1$s</string>
+    <string name="login_change_server">Change the server address</string>
+    <plurals name="error_insufficient_stock">
+        <item quantity="one">Not enough stock in this dye lot: %d ball left</item>
+        <item quantity="other">Not enough stock in this dye lot: %d balls left</item>
+    </plurals>
+
+    <!-- Transverse: formats -->
+    <string name="format_votes">%1$d/%2$d frames</string>
+    <string name="format_raw_to_value">%1$s → %2$s</string>
+    <string name="format_lot_quantity">%1$s · %2$s</string>
+
+    <!-- Permission screen -->
+    <string name="permission_title">Camera access</string>
+    <string name="permission_rationale">The camera reads the barcode and the dye lot on the label. Images are analysed on the phone and never sent.</string>
+    <string name="permission_grant">Allow the camera</string>
+    <string name="permission_settings">Open settings</string>
+
+    <!-- Camera screen -->
+    <string name="camera_mode_entry">Stock entry · aim at the label</string>
+    <string name="camera_mode_exit">Stock exit · aim at the label</string>
+    <string name="camera_mode_inventory">Inventory · aim at the label</string>
+    <string name="camera_searching_barcode">Looking for a barcode…</string>
+    <string name="camera_ean">EAN: %1$s</string>
+    <string name="camera_dye_lot">Dye lot: %1$s</string>
+    <string name="camera_dye_lot_missing">Dye lot: not read yet</string>
+    <string name="camera_brand">Brand: %1$s</string>
+    <string name="camera_color">Colour: %1$s</string>
+    <string name="camera_capture">Capture</string>
+    <string name="camera_debug">Debug</string>
+    <string name="camera_torch">Light</string>
+    <string name="camera_export">Export JSON</string>
+    <string name="camera_export_chooser">Share the OCR dump</string>
+    <string name="camera_export_empty">No OCR frame to export yet</string>
+    <string name="camera_auto_capture_off">Auto-capture paused in debug mode</string>
+
+    <!-- Confirmation screen -->
+    <string name="confirm_title_entry">Stock entry</string>
+    <string name="confirm_title_exit">Stock exit</string>
+    <string name="confirm_title_inventory">Count</string>
+    <string name="confirm_ean">EAN</string>
+    <string name="confirm_brand">Brand</string>
+    <string name="confirm_color_code">Colour number</string>
+    <string name="confirm_color_name">Colour name</string>
+    <string name="confirm_dye_lot">Dye lot</string>
+    <string name="confirm_quantity">Quantity</string>
+    <string name="confirm_counted_quantity">Balls counted</string>
+    <string name="confirm_recipient">For whom</string>
+    <string name="confirm_recipient_help">The person the balls are taken out for</string>
+    <string name="confirm_source">Source: %1$s</string>
+    <string name="confirm_raw_value">Source: %1$s · read as “%2$s”</string>
+    <string name="confirm_known_reference">Known reference: brand and colour filled in from the cache.</string>
+    <string name="confirm_lots_in_stock">Dye lots in stock</string>
+    <string name="confirm_no_stock">No ball of this reference in stock</string>
+    <string name="confirm_lot_not_in_stock">This dye lot is not in stock</string>
+    <string name="confirm_save_entry">Add to stock</string>
+    <string name="confirm_save_exit">Take out</string>
+    <string name="confirm_save_inventory">Save the count</string>
+    <string name="confirm_duplicate_title">Dye lot already counted</string>
+    <plurals name="confirm_duplicate_text">
+        <item quantity="one">This dye lot was already counted in this inventory: %d ball. Add the new count to it, or start again from the new count?</item>
+        <item quantity="other">This dye lot was already counted in this inventory: %d balls. Add the new count to it, or start again from the new count?</item>
+    </plurals>
+    <string name="confirm_duplicate_add">Add to the count (%1$d in total)</string>
+    <string name="confirm_duplicate_replace">Replace with %1$d</string>
+    <plurals name="confirm_saved_entry">
+        <item quantity="one">%1$d ball added (dye lot %2$s)</item>
+        <item quantity="other">%1$d balls added (dye lot %2$s)</item>
+    </plurals>
+    <plurals name="confirm_saved_inventory">
+        <item quantity="one">%1$d ball counted (dye lot %2$s)</item>
+        <item quantity="other">%1$d balls counted (dye lot %2$s)</item>
+    </plurals>
+    <plurals name="confirm_saved_exit">
+        <item quantity="one">%1$d ball taken out for %3$s (dye lot %2$s)</item>
+        <item quantity="other">%1$d balls taken out for %3$s (dye lot %2$s)</item>
+    </plurals>
+
+    <!-- Stock screen -->
+    <string name="stock_empty">No yarn in stock yet. Scan a label in Entry to start.</string>
+    <string name="stock_unknown_brand">Unknown brand</string>
+    <string name="stock_unknown_color">Unknown colour</string>
+    <string name="stock_dye_lot">Dye lot %1$s</string>
+    <string name="stock_no_dye_lot">No dye lot</string>
+    <string name="stock_exit">Take out</string>
+    <plurals name="stock_balls">
+        <item quantity="one">%d ball</item>
+        <item quantity="other">%d balls</item>
+    </plurals>
+
+    <!-- Inventory screen -->
+    <string name="inventory_none">No inventory in progress</string>
+    <string name="inventory_intro">Scan each dye lot and enter the number of balls you count: the stock takes that number right away. Several phones can count the same inventory.</string>
+    <string name="inventory_start">Start an inventory</string>
+    <string name="inventory_scope_partial">Partial</string>
+    <string name="inventory_scope_partial_help">Only the dye lots you scan are updated.</string>
+    <string name="inventory_scope_full">Full</string>
+    <string name="inventory_scope_full_help">When the inventory is finished, every dye lot that was not scanned is reset to 0.</string>
+    <string name="inventory_in_progress_partial">Partial inventory in progress</string>
+    <string name="inventory_in_progress_full">Full inventory in progress</string>
+    <plurals name="inventory_uncounted">
+        <item quantity="one">%d dye lot in stock not counted yet</item>
+        <item quantity="other">%d dye lots in stock not counted yet</item>
+    </plurals>
+    <string name="inventory_started_by">Started by %1$s on %2$s</string>
+    <string name="inventory_started_at">Started on %1$s</string>
+    <string name="inventory_scan">Scan a label</string>
+    <string name="inventory_close">Finish the inventory</string>
+    <string name="inventory_close_title">Finish the inventory?</string>
+    <string name="inventory_close_text">Dye lots that were not counted keep their current quantity.</string>
+    <string name="inventory_close_text_full_none">Every dye lot in stock has been counted.</string>
+    <plurals name="inventory_close_text_full">
+        <item quantity="one">%d dye lot in stock was not counted: it will be reset to 0.</item>
+        <item quantity="other">%d dye lots in stock were not counted: they will be reset to 0.</item>
+    </plurals>
+    <string name="inventory_close_confirm">Finish</string>
+    <string name="inventory_no_counts">Nothing counted yet</string>
+    <string name="inventory_previous">before: %1$d</string>
+    <plurals name="inventory_counted">
+        <item quantity="one">%d dye lot counted</item>
+        <item quantity="other">%d dye lots counted</item>
+    </plurals>
+    <plurals name="inventory_closed">
+        <item quantity="one">Inventory finished: %d dye lot counted.</item>
+        <item quantity="other">Inventory finished: %d dye lots counted.</item>
+    </plurals>
+    <plurals name="inventory_closed_zeroed">
+        <item quantity="one">%d dye lot that was not counted was reset to 0.</item>
+        <item quantity="other">%d dye lots that were not counted were reset to 0.</item>
+    </plurals>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_account">Account</string>
+    <string name="settings_account_detail">%1$s · %2$s</string>
+    <string name="settings_account_help">Your name is recorded with each entry, exit and count made on this phone.</string>
+    <string name="settings_users">Manage users</string>
+    <string name="settings_logout">Sign out</string>
+    <string name="settings_server">Server</string>
+    <string name="settings_server_url">Server address</string>
+    <string name="settings_server_url_help">For example http://192.168.1.10:8080</string>
+    <string name="settings_test">Test</string>
+    <string name="settings_test_ok">Connected · server %1$s</string>
+    <string name="settings_save">Save</string>
+
+    <!-- Users screen (administrators) -->
+    <string name="users_title">Users</string>
+    <string name="users_add">Add a user</string>
+    <string name="users_email">Email address</string>
+    <string name="users_name">Name</string>
+    <string name="users_name_help">Guessed from the address; you can change it</string>
+    <string name="users_role_manager_help">Entries, exits and inventories.</string>
+    <string name="users_role_admin_help">Like a manager, and can add users.</string>
+    <string name="users_submit">Add</string>
+    <string name="users_created">%1$s can now sign in.</string>
+    <string name="users_list">Allowed accounts</string>
+</resources>

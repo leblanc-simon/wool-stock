@@ -1,0 +1,76 @@
+{{define "content"}}
+<div class="page__head">
+  <a class="page__back" href="/inventories">{{T "inventory.back"}}</a>
+  <h1 class="page__title">{{T (print "inventory.title_" .Scope) (dict "Date" (date .StartedAt))}}</h1>
+  <p class="page__lead">
+    {{with .StartedBy}}{{T "inventory.started_by" (dict "Author" (deref .) "Date" (dateTime $.StartedAt))}}{{else}}{{T "inventory.started_at" (dict "Date" (dateTime .StartedAt))}}{{end}}
+    {{with .ClosedAt}}
+      {{with $.ClosedBy}}{{T "inventory.closed_by" (dict "Author" (deref .) "Date" (dateTime $.ClosedAt))}}{{else}}{{T "inventory.closed_at" (dict "Date" (dateTime $.ClosedAt))}}{{end}}
+    {{else}}
+      <span class="status">{{T "inventories.in_progress"}}</span>
+    {{end}}
+  </p>
+  <p class="page__lead">
+    {{Tn "inventory.summary_counted" .Counted}}
+    {{if .Zeroed}}{{Tn "inventory.summary_zeroed" .Zeroed}}{{end}}
+    {{if .Uncounted}}{{Tn "inventory.summary_uncounted" .Uncounted}}{{end}}
+  </p>
+</div>
+
+<section class="anomalies">
+  <h2 class="anomalies__head">
+    <span>{{T "inventory.anomalies_title"}}</span>
+    <span class="anomalies__net gap {{gapClass .Net}}">{{signedBalls .Net}}</span>
+  </h2>
+  {{if .Anomalies}}
+  <table class="ledger">
+    <thead>
+      <tr>
+        <th scope="col">{{T "inventory.col_what"}}</th>
+        <th scope="col">{{T "inventory.col_dye_lot"}}</th>
+        <th scope="col" class="ledger__num">{{T "inventory.col_known"}}</th>
+        <th scope="col" class="ledger__num">{{T "inventory.col_counted"}}</th>
+        <th scope="col" class="ledger__num">{{T "inventory.col_gap"}}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Anomalies}}
+      <tr>
+        <td data-label="{{T "inventory.col_what"}}"><div>{{template "yarn" .}}<span class="ledger__ean">{{.EAN}}</span></div></td>
+        <td data-label="{{T "inventory.col_dye_lot"}}">{{template "stamp" .DyeLot}}</td>
+        <td data-label="{{T "inventory.col_known"}}" class="ledger__num ledger__plain">{{.PreviousQuantity}}</td>
+        <td data-label="{{T "inventory.col_counted"}}" class="ledger__num ledger__plain"><div>{{.Quantity}}{{if .Zeroed}}<span class="ledger__ean">{{T "inventory.zeroed"}}</span>{{end}}</div></td>
+        <td data-label="{{T "inventory.col_gap"}}" class="ledger__num"><span class="gap {{gapClass .Gap}}">{{signed .Gap}}</span></td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+  {{else}}
+  <p class="empty">{{T "inventory.no_anomalies"}}</p>
+  {{end}}
+</section>
+
+{{if .Conform}}
+<details class="conform">
+  <summary class="conform__summary">{{Tn "inventory.conform" (len .Conform)}}</summary>
+  <table class="ledger">
+    <thead>
+      <tr>
+        <th scope="col">{{T "inventory.col_what"}}</th>
+        <th scope="col">{{T "inventory.col_dye_lot"}}</th>
+        <th scope="col" class="ledger__num">{{T "inventory.col_counted"}}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Conform}}
+      <tr>
+        <td data-label="{{T "inventory.col_what"}}"><div>{{template "yarn" .}}<span class="ledger__ean">{{.EAN}}</span></div></td>
+        <td data-label="{{T "inventory.col_dye_lot"}}">{{template "stamp" .DyeLot}}</td>
+        <td data-label="{{T "inventory.col_counted"}}" class="ledger__num">{{.Quantity}}</td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+</details>
+{{end}}
+{{end}}

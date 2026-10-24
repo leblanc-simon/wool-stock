@@ -1,0 +1,45 @@
+{{define "content"}}
+<div class="page__head">
+  <h1 class="page__title">{{T "users.title"}}</h1>
+  <p class="page__lead">{{T "users.lead"}}</p>
+</div>
+{{with .Created}}<p class="notice" role="status">{{T "users.created" (dict "Name" .)}}</p>{{end}}
+{{if .Removed}}<p class="notice" role="status">{{T "users.removed"}}</p>{{end}}
+<div class="accounts">
+  <section class="accounts__list" aria-labelledby="accounts-title">
+    <h2 class="section-title" id="accounts-title">{{Tn "users.count" (len .Accounts)}}</h2>
+    <table class="ledger">
+      <thead>
+        <tr>
+          <th scope="col">{{T "users.col_name"}}</th>
+          <th scope="col">{{T "users.col_email"}}</th>
+          <th scope="col">{{T "users.col_role"}}</th>
+          <th scope="col">{{T "users.col_activity"}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Accounts}}
+        <tr>
+          <td data-label="{{T "users.col_name"}}"><div><a href="/users/{{.ID}}">{{.Name}}</a>{{if eq .ID $.Me}} <span class="muted">{{T "users.you"}}</span>{{end}}</div></td>
+          <td data-label="{{T "users.col_email"}}"><div class="ledger__wrap">{{.Email}}</div></td>
+          <td data-label="{{T "users.col_role"}}">{{T (print "role." .Role)}}</td>
+          <td data-label="{{T "users.col_activity"}}">
+            <div>
+              {{if .Sessions}}{{Tn "users.sessions" .Sessions}}{{else}}<span class="muted">{{T "users.no_session"}}</span>{{end}}
+              {{with .LastSeenAt}}<span class="ledger__ean">{{T "users.last_seen" (dict "When" (dateTime .))}}</span>{{end}}
+            </div>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </section>
+  <section class="card" aria-labelledby="new-title">
+    <h2 class="section-title" id="new-title">{{T "users.add_title"}}</h2>
+    <form class="form" method="post" action="/users">
+      {{template "accountFields" (dict "Form" .Form "NameOptional" true "ShowRole" true)}}
+      <button class="button" type="submit">{{T "users.submit"}}</button>
+    </form>
+  </section>
+</div>
+{{end}}

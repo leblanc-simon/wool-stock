@@ -1,0 +1,42 @@
+{{define "content"}}
+<div class="page__head">
+  <h1 class="page__title">{{T "stock.title"}}</h1>
+  {{if .Brands}}
+  <p class="page__lead">{{Tn "stock.summary_balls" .Balls}}{{if .EmptyLots}} {{Tn "stock.summary_empty" .EmptyLots}}{{end}}</p>
+  {{end}}
+</div>
+{{if not .Brands}}
+<p class="empty">{{T "stock.empty"}}</p>
+{{end}}
+<div class="brands">
+{{range .Brands}}
+<section class="brand">
+  <h2 class="brand__head">
+    <span class="brand__name">{{if .Brand}}{{.Brand}}{{else}}{{T "stock.unknown_brand"}}{{end}}</span>
+    <span class="brand__total">{{Tn "unit.balls" .Total}}</span>
+  </h2>
+  <ul class="shades">
+    {{range .Colors}}
+    <li class="shade">
+      <div class="shade__id">
+        {{if .Code}}<span class="shade__code">{{.Code}}</span>{{end}}
+        {{if .Name}}<span class="shade__name">{{.Name}}</span>{{end}}
+        {{if not (or .Code .Name)}}<span class="shade__name shade__name--unknown">{{T "stock.unknown_color"}}</span>{{end}}
+        <span class="shade__ean">{{range $i, $ean := .EANs}}{{if $i}}, {{end}}{{$ean}}{{end}}</span>
+      </div>
+      <ul class="lots">
+        {{range .Lots}}
+        <li class="lot{{if eq .Quantity 0}} lot--empty{{end}}">
+          {{template "stamp" .DyeLot}}
+          <span class="lot__qty"><span aria-hidden="true">{{.Quantity}}</span><span class="visually-hidden">{{Tn "unit.balls" .Quantity}}</span></span>
+        </li>
+        {{end}}
+      </ul>
+      <span class="shade__total">{{Tn "unit.balls" .Total}}</span>
+    </li>
+    {{end}}
+  </ul>
+</section>
+{{end}}
+</div>
+{{end}}

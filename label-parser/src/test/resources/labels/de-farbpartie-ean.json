@@ -1,0 +1,81 @@
+{
+  "id": "de-farbpartie-ean",
+  "source": "synthetic",
+  "description": "Lana Grossa : « Farbpartie » avec les chiffres de l'EAN juste dessous (à ignorer) et la valeur à droite ; coloris « Fb. ».",
+  "ean": "4033493158432",
+  "frames": [
+    {
+      "lines": [
+        {
+          "text": "LANA GROSSA",
+          "box": {
+            "left": 300,
+            "top": 60,
+            "right": 700,
+            "bottom": 140
+          }
+        },
+        {
+          "text": "Cool Wool",
+          "box": {
+            "left": 380,
+            "top": 160,
+            "right": 620,
+            "bottom": 205
+          }
+        },
+        {
+          "text": "Fb. 2034",
+          "box": {
+            "left": 120,
+            "top": 280,
+            "right": 330,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "Farbpartie",
+          "box": {
+            "left": 120,
+            "top": 360,
+            "right": 380,
+            "bottom": 400
+          }
+        },
+        {
+          "text": "812",
+          "box": {
+            "left": 640,
+            "top": 362,
+            "right": 730,
+            "bottom": 402
+          }
+        },
+        {
+          "text": "4 033493 158432",
+          "box": {
+            "left": 120,
+            "top": 410,
+            "right": 600,
+            "bottom": 450
+          }
+        },
+        {
+          "text": "50 g ≈ 160 m",
+          "box": {
+            "left": 120,
+            "top": 500,
+            "right": 450,
+            "bottom": 540
+          }
+        }
+      ],
+      "text": "LANA GROSSA\nCool Wool\nFb. 2034\nFarbpartie\n812\n4 033493 158432\n50 g ≈ 160 m"
+    }
+  ],
+  "expected": {
+    "dyeLot": "812",
+    "brand": "Lana Grossa",
+    "colorCode": "2034"
+  }
+}

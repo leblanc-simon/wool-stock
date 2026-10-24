@@ -1,0 +1,35 @@
+{{define "layout"}}<!doctype html>
+<html lang="{{.Lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>{{T .Title}} – {{T "layout.app_name"}}</title>
+<link rel="icon" type="image/svg+xml" href="{{asset "logo.svg"}}">
+<link rel="stylesheet" href="{{asset "style.css"}}">
+</head>
+<body>
+{{if .User}}
+<header class="masthead">
+  <div class="masthead__inner">
+    <a class="masthead__name" href="/stock"><img class="masthead__logo" src="{{asset "logo.svg"}}" alt="" width="32" height="32">{{T "layout.app_name"}}</a>
+    <nav class="tabs" aria-label="{{T "layout.nav_label"}}">
+      <a class="tabs__link" href="/stock"{{if eq .Nav "stock"}} aria-current="page"{{end}}>{{T "layout.nav_stock"}}</a>
+      <a class="tabs__link" href="/entries"{{if eq .Nav "entries"}} aria-current="page"{{end}}>{{T "layout.nav_entries"}}</a>
+      <a class="tabs__link" href="/exits"{{if eq .Nav "exits"}} aria-current="page"{{end}}>{{T "layout.nav_exits"}}</a>
+      <a class="tabs__link" href="/inventories"{{if eq .Nav "inventories"}} aria-current="page"{{end}}>{{T "layout.nav_inventories"}}</a>
+      {{if .User.IsAdmin}}<a class="tabs__link" href="/users"{{if eq .Nav "users"}} aria-current="page"{{end}}>{{T "layout.nav_users"}}</a>{{end}}
+    </nav>
+    <form class="account" method="post" action="/logout">
+      <span class="account__name" title="{{.User.Email}}">{{.User.Name}}</span>
+      <button class="account__logout" type="submit">{{T "layout.logout"}}</button>
+    </form>
+  </div>
+</header>
+{{end}}
+<main class="page">
+{{template "content" .Data}}
+</main>
+</body>
+</html>
+{{end}}

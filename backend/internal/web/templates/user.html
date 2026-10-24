@@ -1,0 +1,49 @@
+{{define "content"}}
+<div class="page__head">
+  <a class="page__back" href="/users">{{T "user.back"}}</a>
+  <h1 class="page__title">{{.Account.Name}}</h1>
+  <p class="page__lead">{{T "user.added_on" (dict "Date" (date .Account.CreatedAt))}}{{if .Self}} {{T "user.self"}}{{end}}</p>
+</div>
+{{if .Saved}}<p class="notice" role="status">{{T "user.saved"}}</p>{{end}}
+{{with .Closed}}<p class="notice" role="status">{{Tn "user.sessions_closed" .}}</p>{{end}}
+{{with .Error}}<p class="notice notice--error" role="alert">{{T .}}</p>{{end}}
+<div class="sheet">
+  <section class="card" aria-labelledby="edit-title">
+    <h2 class="section-title" id="edit-title">{{T "user.edit_title"}}</h2>
+    <form class="form" method="post" action="/users/{{.Account.ID}}">
+      {{with index .Form.Errors "form"}}<p class="form__error" role="alert">{{T .Key .Data}}</p>{{end}}
+      {{template "accountFields" (dict "Form" .Form "NameOptional" false "ShowRole" (not .Self))}}
+      {{if .Self}}<p class="form__note">{{T "user.own_role"}}</p>{{end}}
+      <button class="button" type="submit">{{T "user.save"}}</button>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="sessions-title">
+    <h2 class="section-title" id="sessions-title">{{T "user.sessions_title"}}</h2>
+    <p>
+      {{if .Account.Sessions}}{{Tn "users.sessions" .Account.Sessions}}{{else}}{{T "users.no_session"}}{{end}}
+      {{with .Account.LastSeenAt}}<span class="muted">{{T "users.last_seen" (dict "When" (dateTime .))}}</span>{{end}}
+    </p>
+    <p class="muted">{{T "user.sessions_help"}}</p>
+    {{if .Account.Sessions}}
+    <form class="form" method="post" action="/users/{{.Account.ID}}/sessions">
+      <button class="button button--secondary" type="submit">{{Tn "user.close_sessions" .Account.Sessions}}</button>
+      {{if .Self}}<p class="form__note">{{T "user.close_own_sessions"}}</p>{{end}}
+    </form>
+    {{end}}
+  </section>
+
+  {{if not .Self}}
+  <section class="card card--danger" aria-labelledby="remove-title">
+    <h2 class="section-title" id="remove-title">{{T "user.remove_title"}}</h2>
+    <p>{{T "user.remove_help" (dict "Name" .Account.Name)}}</p>
+    <details class="confirm">
+      <summary class="confirm__summary">{{T "user.remove_open"}}</summary>
+      <form method="post" action="/users/{{.Account.ID}}/delete">
+        <button class="button button--danger" type="submit">{{T "user.remove_confirm" (dict "Name" .Account.Name)}}</button>
+      </form>
+    </details>
+  </section>
+  {{end}}
+</div>
+{{end}}

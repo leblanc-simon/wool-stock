@@ -1,0 +1,14 @@
+{{define "content"}}
+<section class="login" aria-labelledby="login-title">
+  <img class="login__logo" src="{{asset "logo.svg"}}" alt="" width="96" height="96">
+  <h1 class="login__title" id="login-title">{{T "layout.app_name"}}</h1>
+  <p class="login__lead">{{T "login.intro"}}</p>
+  <form class="login__form" method="post" action="/login">
+    <input type="hidden" name="next" value="{{.Next}}">
+    <label class="login__label" for="email">{{T "login.email"}}</label>
+    <input class="login__input" id="email" name="email" type="email" value="{{.Email}}" autocomplete="email" required autofocus{{if .Error}} aria-invalid="true" aria-describedby="login-error"{{end}}>
+    {{with .Error}}<p class="login__error" id="login-error">{{T .}}</p>{{end}}
+    <button class="login__submit" type="submit">{{T "login.submit"}}</button>
+  </form>
+</section>
+{{end}}

@@ -1,0 +1,44 @@
+{{define "content"}}
+<div class="page__head">
+  <h1 class="page__title">{{T "exits.title"}}</h1>
+  {{template "period" .}}
+  {{if .Recipients}}<p class="page__lead">{{Tn "exits.summary" .Total}}</p>{{end}}
+</div>
+{{template "truncated" .}}
+{{if not .Recipients}}
+<p class="empty">{{T "exits.empty"}}</p>
+{{end}}
+{{range .Recipients}}
+<section class="recipient">
+  <h2 class="recipient__head">
+    <span class="recipient__name">{{.Name}}</span>
+    <span class="recipient__total">{{Tn "unit.balls" .Total}}</span>
+  </h2>
+  {{range .Days}}
+  <div class="day">
+    <h3 class="day__head">
+      <time datetime="{{isoDate .Day}}">{{dayHeading .Day}}</time>
+      <span class="day__total">{{Tn "unit.balls" .Total}}</span>
+    </h3>
+    <ul class="takes">
+      {{range .Items}}
+      <li class="take">
+        <div class="take__what">{{template "yarn" .}} {{template "stamp" .DyeLot}}</div>
+        <span class="take__total">{{Tn "unit.balls" .Total}}</span>
+        {{$several := gt (len .Movements) 1}}
+        <ul class="take__moves">
+          {{range .Movements}}
+          <li class="move">
+            <time class="move__by" datetime="{{iso .CreatedAt}}">{{recordedBy .Author .CreatedAt}}</time>
+            {{if $several}}<span class="move__qty">{{Tn "unit.balls" .Quantity}}</span>{{end}}
+          </li>
+          {{end}}
+        </ul>
+      </li>
+      {{end}}
+    </ul>
+  </div>
+  {{end}}
+</section>
+{{end}}
+{{end}}

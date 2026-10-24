@@ -1,0 +1,72 @@
+{
+  "id": "fr-coloris-bain-meme-case",
+  "source": "synthetic",
+  "description": "Plassard : « Coloris/Bain » dans la même case, valeurs « 052/7812 » dessous ; « lavage à la main » ne doit pas passer pour « bain ».",
+  "frames": [
+    {
+      "lines": [
+        {
+          "text": "PLASSARD",
+          "box": {
+            "left": 320,
+            "top": 60,
+            "right": 680,
+            "bottom": 140
+          }
+        },
+        {
+          "text": "Bambouline",
+          "box": {
+            "left": 350,
+            "top": 160,
+            "right": 650,
+            "bottom": 205
+          }
+        },
+        {
+          "text": "Coloris/Bain",
+          "box": {
+            "left": 150,
+            "top": 280,
+            "right": 450,
+            "bottom": 320
+          }
+        },
+        {
+          "text": "052/7812",
+          "box": {
+            "left": 170,
+            "top": 335,
+            "right": 400,
+            "bottom": 375
+          }
+        },
+        {
+          "text": "Lavage à la main 30°",
+          "box": {
+            "left": 150,
+            "top": 420,
+            "right": 650,
+            "bottom": 460
+          }
+        },
+        {
+          "text": "50 g - 118 m",
+          "box": {
+            "left": 150,
+            "top": 480,
+            "right": 500,
+            "bottom": 520
+          }
+        }
+      ],
+      "text": "PLASSARD\nBambouline\nColoris/Bain\n052/7812\nLavage à la main 30°\n50 g - 118 m"
+    }
+  ],
+  "expected": {
+    "dyeLot": "7812",
+    "brand": "Plassard",
+    "colorCode": "052",
+    "colorName": ""
+  }
+}

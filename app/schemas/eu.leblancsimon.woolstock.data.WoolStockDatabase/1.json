@@ -1,0 +1,150 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "9a218e86b2a2beda64f04422d5e2602d",
+    "entities": [
+      {
+        "tableName": "yarn_reference",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ean` TEXT NOT NULL, `brand` TEXT, `colorCode` TEXT, `colorName` TEXT, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`ean`))",
+        "fields": [
+          {
+            "fieldPath": "ean",
+            "columnName": "ean",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "brand",
+            "columnName": "brand",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "colorCode",
+            "columnName": "colorCode",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "colorName",
+            "columnName": "colorName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "ean"
+          ]
+        }
+      },
+      {
+        "tableName": "yarn_lot",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `ean` TEXT NOT NULL, `dyeLot` TEXT NOT NULL, FOREIGN KEY(`ean`) REFERENCES `yarn_reference`(`ean`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ean",
+            "columnName": "ean",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dyeLot",
+            "columnName": "dyeLot",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_yarn_lot_ean_dyeLot",
+            "unique": true,
+            "columnNames": [
+              "ean",
+              "dyeLot"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_yarn_lot_ean_dyeLot` ON `${TABLE_NAME}` (`ean`, `dyeLot`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "yarn_reference",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "ean"
+            ],
+            "referencedColumns": [
+              "ean"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "stock_entry",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`lotId` INTEGER NOT NULL, `quantity` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`lotId`), FOREIGN KEY(`lotId`) REFERENCES `yarn_lot`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "lotId",
+            "columnName": "lotId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "quantity",
+            "columnName": "quantity",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "lotId"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "yarn_lot",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "lotId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9a218e86b2a2beda64f04422d5e2602d')"
+    ]
+  }
+}
