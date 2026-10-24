@@ -1,6 +1,6 @@
-// Package web sert les pages HTML de consultation, en lecture seule : le stock,
-// les entrées, les sorties et les inventaires, réservés aux comptes connectés.
-// Les textes passent par les traductions du serveur.
+// Package web sert les pages HTML, réservées aux comptes connectés : le stock, les
+// entrées, les sorties et les inventaires, à consulter comme à saisir. Les pages se
+// passent de JavaScript ; les textes passent par les traductions du serveur.
 package web
 
 import (
@@ -28,7 +28,7 @@ var templateFiles embed.FS
 var staticFiles embed.FS
 
 // pageNames liste les pages rendues dans la mise en page commune.
-var pageNames = []string{"login", "stock", "entries", "exits", "inventories", "inventory", "users", "user", "error"}
+var pageNames = []string{"login", "stock", "entries", "exits", "inventories", "inventory", "count", "users", "user", "error"}
 
 // App porte les dépendances des pages.
 type App struct {
@@ -79,9 +79,15 @@ func (a *App) Handler() http.Handler {
 	}))
 	mux.HandleFunc("GET /stock", a.signedIn(a.stock))
 	mux.HandleFunc("GET /entries", a.signedIn(a.entries))
+	mux.HandleFunc("POST /entries", a.signedIn(a.createEntry))
 	mux.HandleFunc("GET /exits", a.signedIn(a.exits))
+	mux.HandleFunc("POST /exits", a.signedIn(a.createExit))
 	mux.HandleFunc("GET /inventories", a.signedIn(a.inventories))
+	mux.HandleFunc("POST /inventories", a.signedIn(a.startInventory))
 	mux.HandleFunc("GET /inventories/{id}", a.signedIn(a.inventory))
+	mux.HandleFunc("GET /inventories/{id}/count", a.signedIn(a.countSheet))
+	mux.HandleFunc("POST /inventories/{id}/count", a.signedIn(a.count))
+	mux.HandleFunc("POST /inventories/{id}/close", a.signedIn(a.closeInventory))
 	mux.HandleFunc("GET /users", a.adminOnly(a.users))
 	mux.HandleFunc("POST /users", a.adminOnly(a.createUser))
 	mux.HandleFunc("GET /users/{id}", a.adminOnly(a.user))
@@ -213,8 +219,17 @@ func (a *App) funcs(loc *i18n.Localizer) template.FuncMap {
 		"asset": func(name string) string { return a.assets[name] },
 		"T":     t,
 		"Tn":    tn,
-		"date":  date,
-		"clock": clock,
+		// message traduit une erreur de formulaire, au pluriel quand elle compte des pelotes.
+		"message": func(e *fieldError) string {
+			if e.Count != nil {
+				return tn(e.Key, *e.Count)
+			}
+			return t(e.Key, e.Data)
+		},
+		// newRequestID donne à chaque formulaire de saisie son identifiant (voir formRequestID).
+		"newRequestID": newRequestID,
+		"date":         date,
+		"clock":        clock,
 		"dateTime": func(at time.Time) string {
 			return t("format.date_time", map[string]any{"Date": date(at), "Time": clock(at)})
 		},

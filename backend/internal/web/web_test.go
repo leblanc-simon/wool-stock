@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"errors"
 	"io"
 	"io/fs"
 	"log/slog"
@@ -235,6 +236,13 @@ func TestEveryKeyIsTranslated(t *testing.T) {
 		"validation.name_required": false, "validation.too_long": false, "validation.role_required": false,
 		"user.cannot_remove_self": false, "users.title": false, "user.title": false,
 		"role.admin": false, "role.manager": false, "role.admin_help": false, "role.manager_help": false,
+		"validation.ean_required": false, "validation.ean_format": false, "validation.quantity": false,
+		"validation.count": false, "validation.mode": false, "validation.lot_required": false,
+		"validation.recipient_required": false, "validation.scope_required": false,
+		"error.insufficient_stock": true, "error.already_counted": true, "error.inventory_open": false,
+		"error.inventory_closed": false, "scope.partial_help": false, "scope.full_help": false,
+		"count.title": false, "count.closed": false, "count.lead_partial": false, "count.lead_full": false,
+		"count.close_help_partial": false, "count.close_help_full": false,
 	}
 	for d := 0; d < 7; d++ {
 		keys["format.weekday."+string(rune('0'+d))] = false
@@ -615,5 +623,483 @@ func TestStaticAssets(t *testing.T) {
 		if res.StatusCode != http.StatusOK || !strings.HasPrefix(res.Header.Get("Content-Type"), want) {
 			t.Errorf("%s: status %d, type %q", path, res.StatusCode, res.Header.Get("Content-Type"))
 		}
+	}
+}
+
+// post envoie un formulaire avec la session de token (aucune si vide), sans suivre les redirections.
+func post(t *testing.T, srv *testSite, token, path string, form url.Values) (int, http.Header, string) {
+	t.Helper()
+	req, _ := http.NewRequest(http.MethodPost, srv.URL+path, strings.NewReader(form.Encode()))
+	req.Header.Set("Accept-Language", "fr")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if token != "" {
+		req.AddCookie(&http.Cookie{Name: sessionCookie, Value: token})
+	}
+	return send(t, req)
+}
+
+// lotIDs donne l'identifiant de chaque bain, par numéro de bain.
+func lotIDs(t *testing.T, st *store.Store) map[string]string {
+	t.Helper()
+	items, err := st.Stock(context.Background(), store.StockFilter{IncludeEmpty: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ids := map[string]string{}
+	for _, item := range items {
+		ids[item.DyeLot] = strconv.FormatInt(item.LotID, 10)
+	}
+	return ids
+}
+
+func TestGroupShelf(t *testing.T) {
+	brands := groupShelf([]store.StockItem{
+		{LotID: 1, EAN: "1", DyeLot: "A", Quantity: 2, Brand: ptr("katia"), ColorCode: ptr("1"), ColorName: ptr("blanc")},
+		{LotID: 2, EAN: "1", DyeLot: "B", Quantity: 0, Brand: ptr("Katia"), ColorCode: ptr("1"), ColorName: ptr("Blanc")},
+		{LotID: 3, EAN: "2", DyeLot: "C", Quantity: 1, Brand: ptr("Katia"), ColorCode: ptr("1"), ColorName: ptr("blanc")},
+		{LotID: 4, EAN: "4", Quantity: 3},
+	}, map[int64]store.InventoryCount{2: {LotID: 2, Quantity: 5}})
+	if len(brands) != 2 || brands[0].Brand != "Katia" || brands[1].Brand != "" {
+		t.Fatalf("brands = %+v", brands)
+	}
+	// Le bain épuisé reste ; deux qualités au même coloris donnent un seul coloris, deux EAN.
+	white := brands[0].Shades
+	if len(white) != 1 || len(white[0].Lots) != 3 || len(white[0].EANs) != 2 || white[0].Label() != "1 blanc" {
+		t.Fatalf("white = %+v", white)
+	}
+	if lots := white[0].Lots; lots[0].Count != nil || lots[1].Count == nil || lots[1].Count.Quantity != 5 {
+		t.Fatalf("counts = %+v", lots)
+	}
+	if unknown := brands[1].Shades[0]; unknown.Label() != "" || unknown.Lots[0].DyeLot != "" {
+		t.Fatalf("unknown = %+v", unknown)
+	}
+}
+
+func TestEntryForm(t *testing.T) {
+	srv, st := newSite(t)
+	ctx := context.Background()
+	if _, err := st.SaveReference(ctx, "8435407948594", store.ReferenceFields{Brand: ptr("Katia"), ColorCode: ptr("1"), ColorName: ptr("blanc")}); err != nil {
+		t.Fatal(err)
+	}
+
+	status, _, body := get(t, srv, "/entries", "fr")
+	for _, want := range []string{"Nouvelle entrée", `<form class="form" method="post" action="/entries">`, `name="request_id" value="web-`,
+		`<option value="8435407948594">Katia 1 blanc</option>`, `<option value="Katia">`, "Aucune pelote ajoutée"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("entries form: %q missing", want)
+		}
+	}
+	if status != http.StatusOK {
+		t.Fatalf("entries: %d", status)
+	}
+
+	// Une référence inconnue : marque et coloris remplissent le cache ; l'UPC-A devient un EAN-13.
+	form := url.Values{"request_id": {"web-test-1"}, "ean": {" 0 12345 67890 5 "}, "dye_lot": {" A12 "}, "quantity": {"3"},
+		"brand": {"Drops"}, "color_code": {"07"}, "color_name": {""}}
+	status, header, _ := post(t, srv, srv.token, "/entries", form)
+	added := header.Get("Location")
+	if status != http.StatusSeeOther || !strings.HasPrefix(added, "/entries?added=") {
+		t.Fatalf("create: %d → %q", status, added)
+	}
+	// Le même envoi (double clic) n'est compté qu'une fois.
+	if _, header, _ := post(t, srv, srv.token, "/entries", form); header.Get("Location") != added {
+		t.Errorf("replay → %q, want %q", header.Get("Location"), added)
+	}
+	_, _, body = get(t, srv, added, "fr")
+	for _, want := range []string{`role="status">3 pelotes ajoutées au stock :`, "Drops", "Ce bain compte maintenant 3 pelotes.", `class="ledger__fresh"`, "Simon"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("after create: %q missing", want)
+		}
+	}
+	ref, err := st.Reference(ctx, "0012345678905")
+	if err != nil || deref(ref.Brand) != "Drops" || deref(ref.ColorCode) != "07" || ref.ColorName != nil {
+		t.Errorf("reference = %+v, err = %v", ref, err)
+	}
+
+	// Un EAN connu, marque et coloris laissés vides : le cache reste tel quel.
+	if status, _, _ := post(t, srv, srv.token, "/entries", url.Values{"request_id": {"web-test-2"}, "ean": {"8435407948594"}, "dye_lot": {"81784"}, "quantity": {"2"}}); status != http.StatusSeeOther {
+		t.Fatalf("known EAN: %d", status)
+	}
+	if ref, _ := st.Reference(ctx, "8435407948594"); deref(ref.Brand) != "Katia" || deref(ref.ColorName) != "blanc" {
+		t.Errorf("known reference changed: %+v", ref)
+	}
+
+	// Le même identifiant avec un autre contenu (formulaire rouvert par « Précédent ») est une nouvelle saisie.
+	form.Set("quantity", "4")
+	if _, header, _ := post(t, srv, srv.token, "/entries", form); header.Get("Location") == added {
+		t.Errorf("modified form taken for a replay")
+	}
+	movements, _ := st.Movements(ctx, store.MovementFilter{Limit: 10})
+	if len(movements) != 3 || movements[0].Quantity != 4 || deref(movements[0].Author) != "Simon" {
+		t.Fatalf("movements = %+v", movements)
+	}
+
+	// Validation, comme l'API ; le formulaire garde la saisie.
+	for _, c := range []struct {
+		form url.Values
+		want string
+	}{
+		{url.Values{"ean": {""}, "quantity": {"1"}}, "L’EAN est obligatoire"},
+		{url.Values{"ean": {"1234"}, "quantity": {"1"}}, "8, 12, 13 ou 14 chiffres attendus"},
+		{url.Values{"ean": {"12345670"}, "quantity": {"0"}}, "Nombre entier entre 1 et 10 000"},
+		{url.Values{"ean": {"12345670"}, "quantity": {"trois"}}, "Nombre entier entre 1 et 10 000"},
+		{url.Values{"ean": {"12345670"}, "quantity": {"10001"}}, "Nombre entier entre 1 et 10 000"},
+		{url.Values{"ean": {"12345670"}, "quantity": {"1"}, "dye_lot": {strings.Repeat("9", 33)}}, "32 caractères au maximum"},
+		{url.Values{"ean": {"12345670"}, "quantity": {"1"}, "brand": {strings.Repeat("é", 101)}}, "100 caractères au maximum"},
+	} {
+		status, _, body := post(t, srv, srv.token, "/entries", c.form)
+		if status != http.StatusUnprocessableEntity || !strings.Contains(body, c.want) || !strings.Contains(body, `aria-invalid="true"`) ||
+			!strings.Contains(body, `value="`+c.form.Get("ean")+`"`) {
+			t.Errorf("create %v: %d, %q missing", c.form, status, c.want)
+		}
+	}
+	if movements, _ := st.Movements(ctx, store.MovementFilter{Limit: 10}); len(movements) != 3 {
+		t.Errorf("invalid entries recorded: %d movements", len(movements))
+	}
+}
+
+func TestExitForm(t *testing.T) {
+	srv, st := newSite(t)
+	ctx := context.Background()
+	for _, in := range []store.MovementInput{
+		{Kind: store.KindIn, EAN: "8435407948594", DyeLot: "81784", Quantity: 3,
+			Reference: &store.ReferenceFields{Brand: ptr("Katia"), ColorCode: ptr("1"), ColorName: ptr("blanc")}},
+		{Kind: store.KindIn, EAN: "12345670", DyeLot: "", Quantity: 1},
+		{Kind: store.KindIn, EAN: "3664263018102", DyeLot: "A12", Quantity: 2, Reference: &store.ReferenceFields{Brand: ptr("Drops")}},
+		{Kind: store.KindOut, EAN: "3664263018102", DyeLot: "A12", Quantity: 2, Recipient: "Léa"},
+	} {
+		if _, _, _, err := st.Record(ctx, in); err != nil {
+			t.Fatal(err)
+		}
+	}
+	lots := lotIDs(t, st)
+
+	_, _, body := get(t, srv, "/exits", "fr")
+	for _, want := range []string{"Nouvelle sortie", `<optgroup label="Katia">`, `<option value="` + lots["81784"] + `">1 blanc · bain 81784 · 3 pelotes · EAN 8435407948594</option>`,
+		`<optgroup label="Marque inconnue">`, "Coloris inconnu · sans bain · 1 pelote · EAN 12345670", `<option value="Léa">`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("exits form: %q missing", want)
+		}
+	}
+	// Le bain épuisé n'est pas proposé.
+	if strings.Contains(body, `<option value="`+lots["A12"]+`"`) {
+		t.Errorf("empty dye lot offered")
+	}
+
+	status, header, _ := post(t, srv, srv.token, "/exits", url.Values{"request_id": {"web-out-1"}, "lot": {lots["81784"]}, "quantity": {"2"}, "recipient": {" Marie "}})
+	taken := header.Get("Location")
+	if status != http.StatusSeeOther || !strings.HasPrefix(taken, "/exits?taken=") {
+		t.Fatalf("exit: %d → %q", status, taken)
+	}
+	_, _, body = get(t, srv, taken, "fr")
+	for _, want := range []string{"2 pelotes sorties pour Marie :", "Il reste 1 pelote de ce bain.", "Saisie par Simon à"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("after exit: %q missing", want)
+		}
+	}
+	movements, _ := st.Movements(ctx, store.MovementFilter{Kind: store.KindOut, Limit: 10})
+	if len(movements) != 2 || deref(movements[0].Recipient) != "Marie" || deref(movements[0].Author) != "Simon" || movements[0].DyeLot != "81784" {
+		t.Fatalf("exits = %+v", movements)
+	}
+
+	// Stock insuffisant : le formulaire dit combien il en reste et garde la saisie.
+	status, _, body = post(t, srv, srv.token, "/exits", url.Values{"lot": {lots["81784"]}, "quantity": {"5"}, "recipient": {"Marie"}})
+	if status != http.StatusConflict || !strings.Contains(body, "Stock insuffisant pour ce bain : il reste 1 pelote") ||
+		!strings.Contains(body, `value="5"`) || !strings.Contains(body, `<option value="`+lots["81784"]+`" selected>`) {
+		t.Errorf("insufficient stock: %d", status)
+	}
+	// Un bain épuisé entre-temps reste choisi, pour que le message garde son contexte.
+	status, _, body = post(t, srv, srv.token, "/exits", url.Values{"lot": {lots["A12"]}, "quantity": {"1"}, "recipient": {"Marie"}})
+	if status != http.StatusConflict || !strings.Contains(body, "il reste 0 pelote") || !strings.Contains(body, `<option value="`+lots["A12"]+`" selected>`) {
+		t.Errorf("empty dye lot: %d", status)
+	}
+
+	for _, c := range []struct {
+		form url.Values
+		want string
+	}{
+		{url.Values{"lot": {""}, "quantity": {"1"}, "recipient": {"Marie"}}, "Choisissez un bain en stock"},
+		{url.Values{"lot": {"9999"}, "quantity": {"1"}, "recipient": {"Marie"}}, "Choisissez un bain en stock"},
+		{url.Values{"lot": {lots["81784"]}, "quantity": {"0"}, "recipient": {"Marie"}}, "Nombre entier entre 1 et 10 000"},
+		{url.Values{"lot": {lots["81784"]}, "quantity": {"1"}, "recipient": {"  "}}, "Indiquez pour qui les pelotes sont sorties"},
+		{url.Values{"lot": {lots["81784"]}, "quantity": {"1"}, "recipient": {strings.Repeat("a", 101)}}, "100 caractères au maximum"},
+	} {
+		status, _, body := post(t, srv, srv.token, "/exits", c.form)
+		if status != http.StatusUnprocessableEntity || !strings.Contains(body, c.want) || !strings.Contains(body, `aria-invalid="true"`) {
+			t.Errorf("exit %v: %d, %q missing", c.form, status, c.want)
+		}
+	}
+	if items, _ := st.Stock(ctx, store.StockFilter{EAN: "8435407948594"}); len(items) != 1 || items[0].Quantity != 1 {
+		t.Errorf("stock after refused exits = %+v", items)
+	}
+
+	// Sans stock, rien à choisir.
+	empty, _ := newSite(t)
+	if _, _, body := get(t, empty, "/exits", "fr"); !strings.Contains(body, "Aucun bain en stock") || strings.Contains(body, `action="/exits"`) {
+		t.Errorf("exits without stock offer a form")
+	}
+}
+
+func TestInventoryForms(t *testing.T) {
+	srv, st := newSite(t)
+	ctx := context.Background()
+	for _, in := range []store.MovementInput{
+		{Kind: store.KindIn, EAN: "8435407948594", DyeLot: "81784", Quantity: 4,
+			Reference: &store.ReferenceFields{Brand: ptr("Katia"), ColorCode: ptr("1"), ColorName: ptr("blanc")}},
+		{Kind: store.KindIn, EAN: "8435407948594", DyeLot: "81790", Quantity: 2},
+		{Kind: store.KindIn, EAN: "3664263018102", DyeLot: "A12", Quantity: 5, Reference: &store.ReferenceFields{Brand: ptr("Bergère de France")}},
+		{Kind: store.KindIn, EAN: "3664263018102", DyeLot: "B0", Quantity: 1},
+		{Kind: store.KindOut, EAN: "3664263018102", DyeLot: "B0", Quantity: 1, Recipient: "Léa"},
+	} {
+		if _, _, _, err := st.Record(ctx, in); err != nil {
+			t.Fatal(err)
+		}
+	}
+	lots := lotIDs(t, st)
+	counted := func(dyeLot string) int {
+		t.Helper()
+		inv, err := st.CurrentInventory(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		counts, _ := st.InventoryCounts(ctx, inv.ID)
+		for _, c := range counts {
+			if c.DyeLot == dyeLot {
+				return c.Quantity
+			}
+		}
+		return -1
+	}
+
+	_, _, body := get(t, srv, "/inventories", "fr")
+	for _, want := range []string{"Lancer un inventaire", `<form class="form" method="post" action="/inventories">`, `value="partial" checked`, "Seuls les bains comptés changent", "Aucun inventaire"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("start form: %q missing", want)
+		}
+	}
+	if status, _, body := post(t, srv, srv.token, "/inventories", url.Values{"scope": {"chef"}}); status != http.StatusUnprocessableEntity || !strings.Contains(body, "Choisissez le type d’inventaire") {
+		t.Errorf("invalid scope: %d", status)
+	}
+	status, header, _ := post(t, srv, srv.token, "/inventories", url.Values{"scope": {"full"}})
+	if status != http.StatusSeeOther || header.Get("Location") != "/inventories/1/count" {
+		t.Fatalf("start: %d → %q", status, header.Get("Location"))
+	}
+	// Un seul inventaire à la fois : la page renvoie vers celui en cours.
+	status, _, body = post(t, srv, srv.token, "/inventories", url.Values{"scope": {"partial"}})
+	if status != http.StatusConflict || !strings.Contains(body, "Un inventaire est déjà en cours") || !strings.Contains(body, `href="/inventories/1/count"`) {
+		t.Errorf("second start: %d", status)
+	}
+	if inv, err := st.CurrentInventory(ctx); err != nil || inv.Scope != store.ScopeFull || deref(inv.StartedBy) != "Simon" {
+		t.Fatalf("current = %+v, err = %v", inv, err)
+	}
+
+	_, _, body = get(t, srv, "/inventories/1/count", "fr")
+	for _, want := range []string{"Inventaire complet du", "Lancé par Simon", "0 bain compté sur 3.", "3 bains en stock ne sont pas encore comptés",
+		`id="lot-` + lots["81784"] + `"`, "Valider le stock", `name="quantity" value="4"`, "Bergère de France", "Afficher aussi le bain épuisé", `href="#close"`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("count sheet: %q missing", want)
+		}
+	}
+	// Le bain épuisé n'apparaît qu'à la demande.
+	if strings.Contains(body, `id="lot-`+lots["B0"]+`"`) {
+		t.Errorf("empty dye lot listed")
+	}
+	if _, _, body := get(t, srv, "/inventories/1/count?empty=1", "fr"); !strings.Contains(body, `id="lot-`+lots["B0"]+`"`) || !strings.Contains(body, "Masquer le bain épuisé") {
+		t.Errorf("empty dye lot hidden with ?empty=1")
+	}
+
+	// « Valider le stock » : le compté vaut le stock affiché ; retour sur le bain.
+	count := func(form url.Values) (int, http.Header, string) {
+		t.Helper()
+		return post(t, srv, srv.token, "/inventories/1/count", form)
+	}
+	status, header, _ = count(url.Values{"request_id": {"web-c1"}, "lot": {lots["81784"]}, "quantity": {"4"}, "mode": {"new"}})
+	if want := "/inventories/1/count?counted=" + lots["81784"] + "#lot-" + lots["81784"]; status != http.StatusSeeOther || header.Get("Location") != want {
+		t.Fatalf("confirm: %d → %q, want %q", status, header.Get("Location"), want)
+	}
+	_, _, body = get(t, srv, "/inventories/1/count?counted="+lots["81784"], "fr")
+	for _, want := range []string{`role="status">Enregistré`, "Compté <b>4</b>", "1 bain compté sur 3."} {
+		if !strings.Contains(body, want) {
+			t.Errorf("after confirm: %q missing", want)
+		}
+	}
+
+	// Une autre quantité, bains épuisés affichés : le retour les garde.
+	status, header, _ = count(url.Values{"request_id": {"web-c2"}, "lot": {lots["81790"]}, "quantity": {"1"}, "mode": {"new"}, "empty": {"1"}})
+	if want := "/inventories/1/count?counted=" + lots["81790"] + "&empty=1#lot-" + lots["81790"]; status != http.StatusSeeOther || header.Get("Location") != want {
+		t.Fatalf("count: %d → %q", status, header.Get("Location"))
+	}
+	// Déjà compté (ici ou par un téléphone) : refusé, puis ajouté ou remplacé.
+	status, _, body = count(url.Values{"lot": {lots["81790"]}, "quantity": {"3"}, "mode": {"new"}})
+	if status != http.StatusConflict || !strings.Contains(body, "Ce bain a déjà été compté dans cet inventaire : 1 pelote") ||
+		!strings.Contains(body, `value="3" autofocus`) || !strings.Contains(body, `value="set"`) {
+		t.Errorf("already counted: %d", status)
+	}
+	add := url.Values{"request_id": {"web-c3"}, "lot": {lots["81790"]}, "quantity": {"1"}, "mode": {"add"}}
+	for range 2 { // le double clic n'ajoute qu'une fois
+		if status, _, _ := count(add); status != http.StatusSeeOther {
+			t.Fatalf("add: %d", status)
+		}
+	}
+	if n := counted("81790"); n != 2 {
+		t.Errorf("after add: counted %d, want 2", n)
+	}
+	if status, _, _ := count(url.Values{"lot": {lots["81790"]}, "quantity": {"3"}, "mode": {"set"}}); status != http.StatusSeeOther || counted("81790") != 3 {
+		t.Errorf("set: %d, counted %d", status, counted("81790"))
+	}
+
+	for _, c := range []struct {
+		form url.Values
+		want string
+	}{
+		{url.Values{"lot": {lots["A12"]}, "quantity": {"-1"}}, "Nombre entier entre 0 et 10 000"},
+		{url.Values{"lot": {lots["A12"]}, "quantity": {""}}, "Nombre entier entre 0 et 10 000"},
+		{url.Values{"lot": {"9999"}, "quantity": {"1"}}, "Choisissez un bain en stock"},
+		{url.Values{"lot": {lots["A12"]}, "quantity": {"1"}, "mode": {"merge"}}, "Le mode doit valoir"},
+	} {
+		if status, _, body := count(c.form); status != http.StatusUnprocessableEntity || !strings.Contains(body, c.want) {
+			t.Errorf("count %v: %d, %q missing", c.form, status, c.want)
+		}
+	}
+
+	// Terminer : le bain A12, en stock et pas compté, passe à 0.
+	status, header, _ = post(t, srv, srv.token, "/inventories/1/close", url.Values{})
+	if status != http.StatusSeeOther || header.Get("Location") != "/inventories/1?closed=1" {
+		t.Fatalf("close: %d → %q", status, header.Get("Location"))
+	}
+	_, _, body = get(t, srv, "/inventories/1?closed=1", "fr")
+	for _, want := range []string{"Inventaire terminé.", "Terminé par Simon", "non compté, remis à 0", "A12"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("closed: %q missing", want)
+		}
+	}
+	if strings.Contains(body, "Continuer le comptage") {
+		t.Errorf("closed inventory offers to continue counting")
+	}
+	if items, _ := st.Stock(ctx, store.StockFilter{EAN: "3664263018102", IncludeEmpty: true}); items[0].Quantity != 0 {
+		t.Errorf("uncounted lot = %+v", items[0])
+	}
+
+	// Terminé, l'inventaire ne se compte ni ne se termine plus.
+	if status, header, _ := get(t, srv, "/inventories/1/count", "fr"); status != http.StatusSeeOther || header.Get("Location") != "/inventories/1" {
+		t.Errorf("count sheet of a closed inventory: %d → %q", status, header.Get("Location"))
+	}
+	if status, _, body := count(url.Values{"lot": {lots["A12"]}, "quantity": {"1"}}); status != http.StatusConflict || !strings.Contains(body, "ce comptage n’a pas été enregistré") {
+		t.Errorf("count after close: %d", status)
+	}
+	if status, _, body := post(t, srv, srv.token, "/inventories/1/close", url.Values{}); status != http.StatusConflict || !strings.Contains(body, "Cet inventaire est terminé") {
+		t.Errorf("second close: %d", status)
+	}
+	if _, _, body := get(t, srv, "/inventories", "fr"); !strings.Contains(body, "Lancer un inventaire") {
+		t.Errorf("start form missing after close")
+	}
+	if status, _, _ := post(t, srv, srv.token, "/inventories/42/count", url.Values{"lot": {lots["A12"]}, "quantity": {"1"}}); status != http.StatusNotFound {
+		t.Errorf("unknown inventory: %d", status)
+	}
+}
+
+// Un inventaire lancé depuis un téléphone se reprend sur le web, avec ses comptages.
+func TestInventoryStartedFromAPhone(t *testing.T) {
+	srv, st := newSite(t)
+	ctx := context.Background()
+	for _, in := range []store.MovementInput{
+		{Kind: store.KindIn, EAN: "8435407948594", DyeLot: "81784", Quantity: 4, Reference: &store.ReferenceFields{Brand: ptr("Katia")}},
+		{Kind: store.KindIn, EAN: "8435407948594", DyeLot: "81790", Quantity: 2},
+	} {
+		if _, _, _, err := st.Record(ctx, in); err != nil {
+			t.Fatal(err)
+		}
+	}
+	inv, err := st.StartInventory(ctx, "Marie", store.ScopePartial)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, _, _, err := st.Count(ctx, store.CountInput{InventoryID: inv.ID, EAN: "8435407948594", DyeLot: "81784", Quantity: 3, Author: "Marie"}); err != nil {
+		t.Fatal(err)
+	}
+
+	_, _, body := get(t, srv, "/inventories", "fr")
+	for _, want := range []string{"Inventaire en cours", "Inventaire partiel du", "Lancé par Marie", "1 bain compté.", `href="/inventories/1/count"`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("open inventory: %q missing", want)
+		}
+	}
+	if strings.Contains(body, `action="/inventories"`) {
+		t.Errorf("start form offered while an inventory is open")
+	}
+	if _, _, body := get(t, srv, "/inventories/1", "fr"); !strings.Contains(body, `href="/inventories/1/count"`) {
+		t.Errorf("report does not link to the count sheet")
+	}
+	_, _, body = get(t, srv, "/inventories/1/count", "fr")
+	for _, want := range []string{"Inventaire partiel :", "1 bain compté sur 2.", "Stock connu <b>4</b>", "Compté <b>3</b>", "−1", "Nouveau comptage", "Remplacer"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("count sheet: %q missing", want)
+		}
+	}
+	if strings.Contains(body, "bains en stock ne sont pas encore comptés") {
+		t.Errorf("partial inventory announces lots reset to 0")
+	}
+
+	// Un inventaire partiel terminé laisse les bains non comptés tels quels.
+	if status, _, _ := post(t, srv, srv.token, "/inventories/1/close", url.Values{}); status != http.StatusSeeOther {
+		t.Fatalf("close: %d", status)
+	}
+	items, _ := st.Stock(ctx, store.StockFilter{IncludeEmpty: true})
+	if len(items) != 2 || items[0].Quantity != 3 || items[1].Quantity != 2 {
+		t.Errorf("stock after partial inventory = %+v", items)
+	}
+}
+
+// Sans session, aucun formulaire n'enregistre rien ; un gestionnaire saisit comme un admin.
+func TestFormsNeedASession(t *testing.T) {
+	srv, st := newSite(t)
+	ctx := context.Background()
+	if _, _, _, err := st.Record(ctx, store.MovementInput{Kind: store.KindIn, EAN: "12345670", Quantity: 2}); err != nil {
+		t.Fatal(err)
+	}
+	lot := lotIDs(t, st)[""]
+	for path, form := range map[string]url.Values{
+		"/entries":             {"ean": {"12345670"}, "quantity": {"1"}},
+		"/exits":               {"lot": {lot}, "quantity": {"1"}, "recipient": {"Marie"}},
+		"/inventories":         {"scope": {"full"}},
+		"/inventories/1/count": {"lot": {lot}, "quantity": {"1"}},
+		"/inventories/1/close": {},
+	} {
+		if status, header, _ := post(t, srv, "", path, form); status != http.StatusSeeOther || header.Get("Location") != "/login" {
+			t.Errorf("anonymous %s: %d → %q", path, status, header.Get("Location"))
+		}
+	}
+	if movements, _ := st.Movements(ctx, store.MovementFilter{Limit: 10}); len(movements) != 1 {
+		t.Errorf("anonymous forms recorded %d movements", len(movements)-1)
+	}
+	if _, err := st.CurrentInventory(ctx); !errors.Is(err, store.ErrNotFound) {
+		t.Errorf("anonymous form started an inventory: %v", err)
+	}
+
+	// Un formulaire posté depuis un autre site est refusé.
+	req, _ := http.NewRequest(http.MethodPost, srv.URL+"/entries", strings.NewReader(url.Values{"ean": {"12345670"}, "quantity": {"1"}}.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Sec-Fetch-Site", "cross-site")
+	req.AddCookie(&http.Cookie{Name: sessionCookie, Value: srv.token})
+	if status, _, _ := send(t, req); status != http.StatusForbidden {
+		t.Errorf("cross-site entry: %d", status)
+	}
+
+	marie, err := st.CreateUser(ctx, "marie@example.com", "Marie", store.RoleManager, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	token, err := st.OpenSession(ctx, marie.ID, "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if status, _, _ := post(t, srv, token, "/exits", url.Values{"lot": {lot}, "quantity": {"1"}, "recipient": {"Léa"}}); status != http.StatusSeeOther {
+		t.Fatalf("manager exit: %d", status)
+	}
+	if status, header, _ := post(t, srv, token, "/inventories", url.Values{"scope": {"partial"}}); status != http.StatusSeeOther || header.Get("Location") != "/inventories/1/count" {
+		t.Fatalf("manager start: %d", status)
+	}
+	if movements, _ := st.Movements(ctx, store.MovementFilter{Kind: store.KindOut, Limit: 1}); len(movements) != 1 || deref(movements[0].Author) != "Marie" {
+		t.Errorf("manager exit = %+v", movements)
 	}
 }

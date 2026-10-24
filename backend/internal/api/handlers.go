@@ -64,13 +64,13 @@ func (req referenceRequest) validate(prefix string) (store.ReferenceFields, *pro
 		fields store.ReferenceFields
 		p      *problem
 	)
-	if fields.Brand, p = optionalText(req.Brand, prefix+"brand", maxText); p != nil {
+	if fields.Brand, p = optionalText(req.Brand, prefix+"brand", store.MaxText); p != nil {
 		return fields, p
 	}
-	if fields.ColorCode, p = optionalText(req.ColorCode, prefix+"color_code", maxText); p != nil {
+	if fields.ColorCode, p = optionalText(req.ColorCode, prefix+"color_code", store.MaxText); p != nil {
 		return fields, p
 	}
-	fields.ColorName, p = optionalText(req.ColorName, prefix+"color_name", maxText)
+	fields.ColorName, p = optionalText(req.ColorName, prefix+"color_name", store.MaxText)
 	return fields, p
 }
 
@@ -165,7 +165,7 @@ func (req movementRequest) validate() (store.MovementInput, *problem) {
 		in store.MovementInput
 		p  *problem
 	)
-	if in.RequestID, p = text(req.RequestID, "request_id", maxRequestID); p != nil {
+	if in.RequestID, p = text(req.RequestID, "request_id", store.MaxRequestID); p != nil {
 		return in, p
 	}
 	switch kind := store.Kind(strings.TrimSpace(req.Kind)); kind {
@@ -177,14 +177,14 @@ func (req movementRequest) validate() (store.MovementInput, *problem) {
 	if in.EAN, p = parseEAN(req.EAN, "ean"); p != nil {
 		return in, p
 	}
-	if in.DyeLot, p = text(req.DyeLot, "dye_lot", maxDyeLot); p != nil {
+	if in.DyeLot, p = text(req.DyeLot, "dye_lot", store.MaxDyeLot); p != nil {
 		return in, p
 	}
-	if req.Quantity < 1 || req.Quantity > maxQuantity {
+	if req.Quantity < 1 || req.Quantity > store.MaxQuantity {
 		return in, badRequest(CodeQuantity, "quantity")
 	}
 	in.Quantity = req.Quantity
-	if in.Recipient, p = text(req.Recipient, "recipient", maxText); p != nil {
+	if in.Recipient, p = text(req.Recipient, "recipient", store.MaxText); p != nil {
 		return in, p
 	}
 	switch in.Kind {

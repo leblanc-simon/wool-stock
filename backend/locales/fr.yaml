@@ -3,12 +3,66 @@ account.name: "Nom"
 account.name_help: "Laissez vide pour le déduire de l’adresse : marie.dupont@… donne Marie Dupont."
 account.role: "Droit"
 common.anonymous: anonyme
+count.add: Ajouter
+count.close_confirm: Oui, terminer l’inventaire
+count.close_help_full: Les bains en stock qui n’ont pas été comptés seront remis à 0. Un inventaire terminé ne se rouvre pas.
+count.close_help_partial: Les bains qui n’ont pas été comptés gardent leur stock. Un inventaire terminé ne se rouvre pas.
+count.close_open: Terminer l’inventaire…
+count.close_title: Terminer l’inventaire
+count.closed: 'Cet inventaire a été terminé entre-temps : ce comptage n’a pas été enregistré.'
+count.confirm: Valider le stock
+count.counted: Compté
+count.empty: 'Aucun bain à compter : le stock est vide.'
+count.hide_empty:
+  one: "Masquer le bain épuisé"
+  many: "Masquer les {{.Count}} bains épuisés"
+  other: "Masquer les {{.Count}} bains épuisés"
+count.known: Stock connu
+count.lead_full: 'Inventaire complet : à la fin, les bains en stock qui n’ont pas été comptés sont remis à 0. « Valider le stock » confirme le stock connu d’un bain ; sinon, saisissez le nombre de pelotes comptées.'
+count.lead_partial: 'Inventaire partiel : seuls les bains comptés changent. « Valider le stock » confirme le stock connu d’un bain ; sinon, saisissez le nombre de pelotes comptées.'
+count.other: Autre quantité
+count.progress:
+  one: "{{.Count}} bain compté sur {{.Total}}."
+  many: "{{.Count}} bains comptés sur {{.Total}}."
+  other: "{{.Count}} bains comptés sur {{.Total}}."
+count.recount: Nouveau comptage
+count.replace: Remplacer
+count.report: Voir les écarts
+count.save: Enregistrer
+count.saved: Enregistré
+count.show_empty:
+  one: "Afficher aussi le bain épuisé"
+  many: "Afficher aussi les {{.Count}} bains épuisés"
+  other: "Afficher aussi les {{.Count}} bains épuisés"
+count.title: Comptage
+entries.added:
+  one: "{{.Count}} pelote ajoutée au stock :"
+  many: "{{.Count}} pelotes ajoutées au stock :"
+  other: "{{.Count}} pelotes ajoutées au stock :"
+entries.brand: Marque
 entries.col_dye_lot: Bain
 entries.col_quantity: Pelotes
 entries.col_what: Laine
 entries.col_when: Quand
 entries.col_who: Saisie par
+entries.color_code: N° du coloris
+entries.color_name: Nom du coloris
+entries.dye_lot: Bain
+entries.dye_lot_help: Vide pour une laine sans numéro de bain.
+entries.ean: EAN
+entries.ean_help: 'Le code-barre de l’étiquette : 8, 12, 13 ou 14 chiffres.'
 entries.empty: Aucune pelote ajoutée au stock sur cette période.
+entries.form_title: Nouvelle entrée
+entries.history_title: Historique
+entries.lead: Les pelotes ajoutées au stock, depuis l’application ou depuis cette page.
+entries.lot_total:
+  one: "Ce bain compte maintenant {{.Count}} pelote."
+  many: "Ce bain compte maintenant {{.Count}} pelotes."
+  other: "Ce bain compte maintenant {{.Count}} pelotes."
+entries.quantity: Pelotes
+entries.reference: Marque et coloris
+entries.reference_help: 'À remplir pour un EAN inconnu. Pour un EAN déjà enregistré, laissez vide : la marque et le coloris connus sont gardés ; remplis, ces champs les remplacent.'
+entries.submit: Ajouter au stock
 entries.summary:
   one: "{{.Count}} pelote ajoutée sur cette période."
   many: "{{.Count}} pelotes ajoutées sur cette période."
@@ -37,10 +91,30 @@ error.page_not_found: Cette page n’existe pas
 error.rate_limit: Trop de requêtes, réessayez dans une minute
 error.unauthorized: Reconnectez-vous
 exits.empty: Aucune pelote sortie du stock sur cette période.
+exits.form_title: Nouvelle sortie
+exits.history_title: Historique
+exits.lead: Les pelotes sorties du stock, depuis l’application ou depuis cette page.
+exits.lot: Bain
+exits.lot_left:
+  one: "Il reste {{.Count}} pelote de ce bain."
+  many: "Il reste {{.Count}} pelotes de ce bain."
+  other: "Il reste {{.Count}} pelotes de ce bain."
+exits.lot_option: '{{.Shade}} · bain {{.DyeLot}} · {{.Balls}} · EAN {{.EAN}}'
+exits.lot_option_no_dye_lot: '{{.Shade}} · sans bain · {{.Balls}} · EAN {{.EAN}}'
+exits.lot_placeholder: Choisissez un bain en stock
+exits.no_stock: 'Aucun bain en stock : rien à sortir pour l’instant.'
+exits.quantity: Pelotes
+exits.recipient: Pour qui
+exits.recipient_help: La personne pour qui les pelotes sortent.
+exits.submit: Sortir du stock
 exits.summary:
   one: "{{.Count}} pelote sortie sur cette période, par destinataire puis par jour."
   many: "{{.Count}} pelotes sorties sur cette période, par destinataire puis par jour."
   other: "{{.Count}} pelotes sorties sur cette période, par destinataire puis par jour."
+exits.taken:
+  one: "{{.Count}} pelote sortie pour {{.Recipient}} :"
+  many: "{{.Count}} pelotes sorties pour {{.Recipient}} :"
+  other: "{{.Count}} pelotes sorties pour {{.Recipient}} :"
 exits.title: Sorties
 filter.from: Du
 filter.submit: Afficher
@@ -64,9 +138,16 @@ inventories.col_net: Écart net
 inventories.col_scope: Type
 inventories.col_started: Lancé
 inventories.col_status: État
-inventories.empty: Aucun inventaire pour l’instant. Lancez-en un depuis l’onglet Inventaire de l’application.
+inventories.empty: Aucun inventaire pour l’instant. Lancez-en un ici ou depuis l’onglet Inventaire de l’application.
+inventories.history_title: Historique
 inventories.in_progress: En cours
 inventories.lead: Chaque inventaire, partiel ou complet, avec les bains dont le comptage diffère du stock connu.
+inventories.open_title: Inventaire en cours
+inventories.resume: Continuer le comptage
+inventories.scope: Type
+inventories.shared: 'Un seul inventaire est ouvert à la fois : les téléphones comptent dans le même.'
+inventories.start: Lancer l’inventaire
+inventories.start_title: Lancer un inventaire
 inventories.title: Inventaires
 inventories.zeroed:
   one: "{{.Count}} remis à 0"
@@ -85,6 +166,7 @@ inventory.conform:
   one: "{{.Count}} bain conforme au stock"
   many: "{{.Count}} bains conformes au stock"
   other: "{{.Count}} bains conformes au stock"
+inventory.finished: Inventaire terminé.
 inventory.no_anomalies: 'Aucun écart : chaque bain compté correspond au stock connu.'
 inventory.started_at: Lancé le {{.Date}}.
 inventory.started_by: Lancé par {{.Author}} le {{.Date}}.
@@ -123,7 +205,9 @@ role.admin_help: "Comme un gestionnaire, et gère en plus les comptes."
 role.manager: "Gestionnaire"
 role.manager_help: "Entrées, sorties, inventaires et consultation du stock."
 scope.full: Complet
+scope.full_help: À la fin, chaque bain en stock qui n’a pas été compté est remis à 0.
 scope.partial: Partiel
+scope.partial_help: Seuls les bains comptés changent ; les autres gardent leur stock.
 stock.dye_lot_label: Bain
 stock.empty: Aucune laine enregistrée. Les pelotes ajoutées depuis l’onglet Entrée de l’application apparaissent ici.
 stock.no_dye_lot: sans bain
@@ -197,6 +281,7 @@ validation.ean_required: L’EAN est obligatoire
 validation.email: Saisissez une adresse email valide
 validation.kind: 'Le type doit valoir « in » ou « out »'
 validation.limit: La limite doit être comprise entre 1 et 500
+validation.lot_required: Choisissez un bain en stock
 validation.mode: 'Le mode doit valoir « new », « add » ou « set »'
 validation.name_required: Le nom est obligatoire
 validation.quantity: Nombre entier entre 1 et 10 000
@@ -204,4 +289,5 @@ validation.recipient_required: Indiquez pour qui les pelotes sont sorties
 validation.role: 'Le droit doit valoir « admin » ou « manager »'
 validation.role_required: "Choisissez un droit"
 validation.scope: 'Le type doit valoir « partial » ou « full »'
+validation.scope_required: Choisissez le type d’inventaire
 validation.too_long: '{{.Max}} caractères au maximum'

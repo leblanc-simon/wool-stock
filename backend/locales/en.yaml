@@ -3,12 +3,61 @@ account.name: "Name"
 account.name_help: "Leave empty to derive it from the address: marie.dupont@… gives Marie Dupont."
 account.role: "Role"
 common.anonymous: anonymous
+count.add: Add
+count.close_confirm: Yes, finish the inventory
+count.close_help_full: Dye lots in stock that were not counted will be reset to 0. A finished inventory cannot be reopened.
+count.close_help_partial: Dye lots that were not counted keep their stock. A finished inventory cannot be reopened.
+count.close_open: Finish the inventory…
+count.close_title: Finish the inventory
+count.closed: 'This inventory was finished in the meantime: this count was not saved.'
+count.confirm: Confirm stock
+count.counted: Counted
+count.empty: 'No dye lot to count: the stock is empty.'
+count.hide_empty:
+  one: "Hide the empty dye lot"
+  other: "Hide the {{.Count}} empty dye lots"
+count.known: Known stock
+count.lead_full: 'Full inventory: when it is finished, dye lots in stock that were not counted are reset to 0. “Confirm stock” keeps a dye lot’s known stock; otherwise, enter the number of balls counted.'
+count.lead_partial: 'Partial inventory: only counted dye lots change. “Confirm stock” keeps a dye lot’s known stock; otherwise, enter the number of balls counted.'
+count.other: Other quantity
+count.progress:
+  one: "{{.Count}} of {{.Total}} dye lots counted."
+  other: "{{.Count}} of {{.Total}} dye lots counted."
+count.recount: New count
+count.replace: Replace
+count.report: See the gaps
+count.save: Save
+count.saved: Saved
+count.show_empty:
+  one: "Also show the empty dye lot"
+  other: "Also show the {{.Count}} empty dye lots"
+count.title: Counting
+entries.added:
+  one: "{{.Count}} ball added to the stock:"
+  other: "{{.Count}} balls added to the stock:"
+entries.brand: Brand
 entries.col_dye_lot: Dye lot
 entries.col_quantity: Balls
 entries.col_what: Yarn
 entries.col_when: When
 entries.col_who: Recorded by
+entries.color_code: Shade number
+entries.color_name: Shade name
+entries.dye_lot: Dye lot
+entries.dye_lot_help: Empty for yarn with no dye lot number.
+entries.ean: EAN
+entries.ean_help: 'The label’s barcode: 8, 12, 13 or 14 digits.'
 entries.empty: No ball was added to the stock over this period.
+entries.form_title: New entry
+entries.history_title: History
+entries.lead: Balls added to the stock, from the app or from this page.
+entries.lot_total:
+  one: "This dye lot now has {{.Count}} ball."
+  other: "This dye lot now has {{.Count}} balls."
+entries.quantity: Balls
+entries.reference: Brand and shade
+entries.reference_help: 'Fill in for an unknown EAN. For an EAN already recorded, leave empty to keep the known brand and shade; filled in, these fields replace them.'
+entries.submit: Add to the stock
 entries.summary:
   one: "{{.Count}} ball added over this period."
   other: "{{.Count}} balls added over this period."
@@ -34,9 +83,27 @@ error.page_not_found: This page does not exist
 error.rate_limit: Too many requests, please try again in a minute
 error.unauthorized: Sign in again
 exits.empty: No ball was taken out of the stock over this period.
+exits.form_title: New exit
+exits.history_title: History
+exits.lead: Balls taken out of the stock, from the app or from this page.
+exits.lot: Dye lot
+exits.lot_left:
+  one: "{{.Count}} ball of this dye lot left."
+  other: "{{.Count}} balls of this dye lot left."
+exits.lot_option: '{{.Shade}} · lot {{.DyeLot}} · {{.Balls}} · EAN {{.EAN}}'
+exits.lot_option_no_dye_lot: '{{.Shade}} · no lot · {{.Balls}} · EAN {{.EAN}}'
+exits.lot_placeholder: Choose a dye lot in stock
+exits.no_stock: 'No dye lot in stock: nothing to take out for now.'
+exits.quantity: Balls
+exits.recipient: For whom
+exits.recipient_help: The person the balls are taken out for.
+exits.submit: Take out of the stock
 exits.summary:
   one: "{{.Count}} ball taken out over this period, grouped by recipient, then by day."
   other: "{{.Count}} balls taken out over this period, grouped by recipient, then by day."
+exits.taken:
+  one: "{{.Count}} ball taken out for {{.Recipient}}:"
+  other: "{{.Count}} balls taken out for {{.Recipient}}:"
 exits.title: Exits
 filter.from: From
 filter.submit: Show
@@ -60,9 +127,16 @@ inventories.col_net: Net gap
 inventories.col_scope: Type
 inventories.col_started: Started
 inventories.col_status: Status
-inventories.empty: No inventory yet. Start one from the app’s Inventory tab.
+inventories.empty: No inventory yet. Start one here or from the app’s Inventory tab.
+inventories.history_title: History
 inventories.in_progress: In progress
 inventories.lead: Every inventory, partial or full, with the dye lots whose count differs from the known stock.
+inventories.open_title: Inventory in progress
+inventories.resume: Continue counting
+inventories.scope: Type
+inventories.shared: 'Only one inventory is open at a time: phones count in the same one.'
+inventories.start: Start the inventory
+inventories.start_title: Start an inventory
 inventories.title: Inventories
 inventories.zeroed:
   one: "{{.Count}} reset to 0"
@@ -79,6 +153,7 @@ inventory.col_what: Yarn
 inventory.conform:
   one: "{{.Count}} dye lot matches the stock"
   other: "{{.Count}} dye lots match the stock"
+inventory.finished: Inventory finished.
 inventory.no_anomalies: 'No gap: every counted dye lot matches the known stock.'
 inventory.started_at: Started on {{.Date}}.
 inventory.started_by: Started by {{.Author}} on {{.Date}}.
@@ -114,7 +189,9 @@ role.admin_help: "Same as a manager, and also manages accounts."
 role.manager: "Manager"
 role.manager_help: "Entries, exits, inventories and stock pages."
 scope.full: Full
+scope.full_help: When it is finished, every dye lot in stock that was not counted is reset to 0.
 scope.partial: Partial
+scope.partial_help: Only counted dye lots change; the others keep their stock.
 stock.dye_lot_label: Dye lot
 stock.empty: No yarn recorded yet. Balls added from the app’s Entry tab show up here.
 stock.no_dye_lot: no lot
@@ -180,6 +257,7 @@ validation.ean_required: The EAN is required
 validation.email: Enter a valid email address
 validation.kind: 'The kind must be "in" or "out"'
 validation.limit: The limit must be between 1 and 500
+validation.lot_required: Choose a dye lot in stock
 validation.mode: 'The mode must be "new", "add" or "set"'
 validation.name_required: The name is required
 validation.quantity: Whole number between 1 and 10,000
@@ -187,4 +265,5 @@ validation.recipient_required: Say who the balls are taken out for
 validation.role: 'The role must be "admin" or "manager"'
 validation.role_required: "Choose a role"
 validation.scope: 'The scope must be "partial" or "full"'
+validation.scope_required: Choose the type of inventory
 validation.too_long: '{{.Max}} characters at most'

@@ -1,44 +1,92 @@
 {{define "content"}}
 <div class="page__head">
   <h1 class="page__title">{{T "exits.title"}}</h1>
-  {{template "period" .}}
-  {{if .Recipients}}<p class="page__lead">{{Tn "exits.summary" .Total}}</p>{{end}}
+  <p class="page__lead">{{T "exits.lead"}}</p>
 </div>
-{{template "truncated" .}}
-{{if not .Recipients}}
-<p class="empty">{{T "exits.empty"}}</p>
-{{end}}
-{{range .Recipients}}
-<section class="recipient">
-  <h2 class="recipient__head">
-    <span class="recipient__name">{{.Name}}</span>
-    <span class="recipient__total">{{Tn "unit.balls" .Total}}</span>
-  </h2>
-  {{range .Days}}
-  <div class="day">
-    <h3 class="day__head">
-      <time datetime="{{isoDate .Day}}">{{dayHeading .Day}}</time>
-      <span class="day__total">{{Tn "unit.balls" .Total}}</span>
-    </h3>
-    <ul class="takes">
-      {{range .Items}}
-      <li class="take">
-        <div class="take__what">{{template "yarn" .}} {{template "stamp" .DyeLot}}</div>
-        <span class="take__total">{{Tn "unit.balls" .Total}}</span>
-        {{$several := gt (len .Movements) 1}}
-        <ul class="take__moves">
-          {{range .Movements}}
-          <li class="move">
-            <time class="move__by" datetime="{{iso .CreatedAt}}">{{recordedBy .Author .CreatedAt}}</time>
-            {{if $several}}<span class="move__qty">{{Tn "unit.balls" .Quantity}}</span>{{end}}
+{{with .Taken}}<p class="notice" role="status">{{Tn "exits.taken" .Quantity (dict "Count" .Quantity "Recipient" (deref .Recipient))}} {{template "yarn" .}} {{template "stamp" .DyeLot}} {{Tn "exits.lot_left" $.Left}}</p>{{end}}
+<div class="desk">
+  {{$f := .Form}}
+  <section class="card desk__form" aria-labelledby="exit-title">
+    <h2 class="section-title" id="exit-title">{{T "exits.form_title"}}</h2>
+    {{if .Shelf}}
+    <form class="form" method="post" action="/exits">
+      <input type="hidden" name="request_id" value="{{newRequestID}}">
+      <div class="field">
+        <label class="field__label" for="lot">{{T "exits.lot"}}</label>
+        <select class="field__input" id="lot" name="lot" required{{if index $f.Errors "lot"}} aria-invalid="true" aria-describedby="lot-error"{{end}}>
+          <option value="">{{T "exits.lot_placeholder"}}</option>
+          {{range .Shelf}}
+          <optgroup label="{{if .Brand}}{{.Brand}}{{else}}{{T "stock.unknown_brand"}}{{end}}">
+            {{range $shade := .Shades}}{{range .Lots}}
+            {{$data := dict "Shade" (or $shade.Label (T "stock.unknown_color")) "DyeLot" .DyeLot "Balls" (Tn "unit.balls" .Quantity) "EAN" .EAN}}
+            <option value="{{.LotID}}"{{if eq .LotID $f.Lot}} selected{{end}}>{{if .DyeLot}}{{T "exits.lot_option" $data}}{{else}}{{T "exits.lot_option_no_dye_lot" $data}}{{end}}</option>
+            {{end}}{{end}}
+          </optgroup>
+          {{end}}
+        </select>
+        {{with index $f.Errors "lot"}}<p class="field__error" id="lot-error">{{message .}}</p>{{end}}
+      </div>
+      <div class="field">
+        <label class="field__label" for="quantity">{{T "exits.quantity"}}</label>
+        <input class="field__input field__input--short" id="quantity" name="quantity" type="number" min="1" max="10000" inputmode="numeric" value="{{$f.Quantity}}" required{{if index $f.Errors "quantity"}} aria-invalid="true" aria-describedby="quantity-error"{{end}}>
+        {{with index $f.Errors "quantity"}}<p class="field__error" id="quantity-error">{{message .}}</p>{{end}}
+      </div>
+      <div class="field">
+        <label class="field__label" for="recipient">{{T "exits.recipient"}}</label>
+        <input class="field__input" id="recipient" name="recipient" type="text" value="{{$f.Recipient}}" maxlength="100" list="known-recipients" autocomplete="off" required{{if index $f.Errors "recipient"}} aria-invalid="true" aria-describedby="recipient-error"{{else}} aria-describedby="recipient-help"{{end}}>
+        {{with index $f.Errors "recipient"}}<p class="field__error" id="recipient-error">{{message .}}</p>{{else}}<p class="field__help" id="recipient-help">{{T "exits.recipient_help"}}</p>{{end}}
+      </div>
+      <button class="button" type="submit">{{T "exits.submit"}}</button>
+    </form>
+    <datalist id="known-recipients">{{range .Recipients}}<option value="{{.Name}}"></option>{{end}}</datalist>
+    {{else}}
+    <p class="muted">{{T "exits.no_stock"}}</p>
+    {{end}}
+  </section>
+
+  <section class="desk__history" aria-labelledby="history-title">
+    <div class="desk__head">
+      <h2 class="section-title" id="history-title">{{T "exits.history_title"}}</h2>
+      {{template "period" .}}
+      {{if .Recipients}}<p class="page__lead">{{Tn "exits.summary" .Total}}</p>{{end}}
+    </div>
+    {{template "truncated" .}}
+    {{if not .Recipients}}
+    <p class="empty">{{T "exits.empty"}}</p>
+    {{end}}
+    {{range .Recipients}}
+    <section class="recipient">
+      <h3 class="recipient__head">
+        <span class="recipient__name">{{.Name}}</span>
+        <span class="recipient__total">{{Tn "unit.balls" .Total}}</span>
+      </h3>
+      {{range .Days}}
+      <div class="day">
+        <h4 class="day__head">
+          <time datetime="{{isoDate .Day}}">{{dayHeading .Day}}</time>
+          <span class="day__total">{{Tn "unit.balls" .Total}}</span>
+        </h4>
+        <ul class="takes">
+          {{range .Items}}
+          <li class="take">
+            <div class="take__what">{{template "yarn" .}} {{template "stamp" .DyeLot}}</div>
+            <span class="take__total">{{Tn "unit.balls" .Total}}</span>
+            {{$several := gt (len .Movements) 1}}
+            <ul class="take__moves">
+              {{range .Movements}}
+              <li class="move">
+                <time class="move__by" datetime="{{iso .CreatedAt}}">{{recordedBy .Author .CreatedAt}}</time>
+                {{if $several}}<span class="move__qty">{{Tn "unit.balls" .Quantity}}</span>{{end}}
+              </li>
+              {{end}}
+            </ul>
           </li>
           {{end}}
         </ul>
-      </li>
+      </div>
       {{end}}
-    </ul>
-  </div>
-  {{end}}
-</section>
-{{end}}
+    </section>
+    {{end}}
+  </section>
+</div>
 {{end}}
