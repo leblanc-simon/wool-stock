@@ -18,7 +18,7 @@ internal object Keywords {
     val ALL: List<KeywordDef> = buildList {
         add(LabelField.DYE_LOT, 1.0f,
             "dye lot", "dyelot", "bain", "n° bain", "partie", "färbepartie", "farbpartie", "farb partie",
-            "partie-nr", "kleurbad", "bagno", "partita", "farvebad", "lote")
+            "partie-nr", "batchnr", "batch-nr", "kleurbad", "bagno", "partita", "farvebad", "lote")
         add(LabelField.DYE_LOT, 0.85f, "parti", "dye")
         add(LabelField.DYE_LOT, 0.75f, "lot no", "lot nr")
         add(LabelField.DYE_LOT, 0.6f, "lot")

@@ -21,6 +21,14 @@ class LabelParserTest {
     }
 
     @Test
+    fun `Batchnr annonce le bain, en un mot ou en deux`() {
+        assertEquals("23051", parser.parse(listOf(line("Batchnr: 23051"))).dyeLot?.value)
+        assertEquals("23051", parser.parse(listOf(line("BATCHNR. 23051"))).dyeLot?.value)
+        assertEquals("23051", parser.parse(listOf(line("Batch-Nr. 23051"))).dyeLot?.value)
+        assertEquals("23051", parser.parse(listOf(line("Batchnf 23051"))).dyeLot?.value)
+    }
+
+    @Test
     fun `saute les préfixes N°, No, Nr`() {
         assertEquals("A23", parser.parse(listOf(line("Bain N°A23"))).dyeLot?.value)
         assertEquals("812", parser.parse(listOf(line("Partie-Nr.: 812"))).dyeLot?.value)
