@@ -5,18 +5,29 @@ cache des codes-barres (EAN → marque / coloris), quantité par bain, journal d
 et sorties, inventaires. Pas d'emplacement ni d'entrepôt : un seul stock. L'app et les pages
 web se connectent par **adresse email seule** ; chaque mouvement porte le nom du compte connecté.
 
-Il sert une API JSON (pour l'app) et des pages de consultation en lecture seule, réservées
-aux comptes connectés :
+Il sert une API JSON (pour l'app) et des pages web, sans JavaScript, réservées aux comptes
+connectés. Admin comme gestionnaire y consultent le stock et y saisissent entrées, sorties et
+inventaires, comme depuis l'app :
 
 | Page | Contenu |
 |---|---|
 | `/stock` | tous les bains, épuisés compris, groupés par marque puis coloris (n° et nom) ; les marques en colonnes (3 sur ordinateur, 1 sur mobile) |
-| `/entries` | entrées : quand, qui, quelle laine, quel bain, combien |
-| `/exits` | sorties groupées par destinataire, puis par jour, puis par bain ; qui les a saisies, à quelle heure |
-| `/inventories` | inventaires (partiels ou complets) : bains comptés, nombre d'anomalies, écart net |
+| `/entries` | formulaire d'entrée (EAN, bain, pelotes, et marque / coloris pour un EAN inconnu) ; historique : quand, qui, quelle laine, quel bain, combien |
+| `/exits` | formulaire de sortie (un bain en stock, pelotes, pour qui) ; historique groupé par destinataire, puis par jour, puis par bain, avec qui l'a saisi et à quelle heure |
+| `/inventories` | lancer un inventaire, partiel ou complet, ou reprendre celui en cours ; liste des inventaires : bains comptés, nombre d'anomalies, écart net |
 | `/inventories/{id}` | anomalies d'un inventaire : stock connu, quantité comptée, écart ; bains conformes repliés |
+| `/inventories/{id}/count` | feuille de comptage de l'inventaire en cours : chaque bain par marque puis coloris, son stock connu, « Valider le stock » ou une autre quantité, ajouter ou remplacer un comptage déjà fait ; terminer l'inventaire |
 | `/users` | admin seulement : comptes, droit, sessions ouvertes et dernière activité ; ajout d'un compte |
 | `/users/{id}` | admin seulement : modifier l'adresse, le nom et le droit, fermer les sessions, retirer l'accès |
+
+Les formulaires suivent les règles de l'API (`POST /api/movements`, `/api/inventories/…`) :
+mêmes validations et mêmes erreurs traduites, affichées sous le champ fautif (stock
+insuffisant, bain déjà compté…). L'auteur est le compte connecté. Chaque formulaire porte un
+identifiant de saisie lié à son contenu, comme le `request_id` de l'app : un double clic
+n'enregistre qu'une fois. Sur la page d'entrée, marque et coloris laissés vides gardent ce que
+le cache connaît de l'EAN ; remplis, ils le remplacent. L'inventaire web est celui des
+téléphones : un seul est ouvert à la fois, et un bain compté depuis l'un apparaît compté sur
+l'autre. Les bains épuisés n'apparaissent dans la feuille de comptage qu'à la demande.
 
 Entrées et sorties se filtrent par période (`?from=AAAA-MM-JJ&to=AAAA-MM-JJ`, les 30 derniers
 jours par défaut). Les jours sont ceux du fuseau du serveur : positionner `TZ` (par exemple
@@ -181,12 +192,14 @@ Les codes possibles :
 
 - `main.go` : chargement de la config, câblage, arrêt propre sur SIGINT / SIGTERM.
 - `internal/config` : composition des fragments `appconf` (préfixe `WS_`).
-- `internal/store` : SQLite, avec les tables `yarn_references`, `lots` (quantité par bain,
-  jamais négative), `movements` (journal des entrées / sorties), `inventories`,
-  `inventory_counts` et `inventory_scans` (journal des comptages). Une seule connexion :
+- `internal/store` : SQLite, et les règles de saisie communes à l'API et aux pages (EAN,
+  longueurs, quantités). Tables : `yarn_references`, `lots` (quantité par bain, jamais
+  négative), `movements` (journal des entrées / sorties), `inventories`, `inventory_counts`
+  et `inventory_scans` (journal des comptages). Une seule connexion :
   la vérification du stock et la sortie sont atomiques.
 - `internal/api` : handlers JSON, validation, erreurs traduites.
-- `internal/web` : pages HTML (gabarits et feuille de style embarqués, sans JavaScript).
+- `internal/web` : pages HTML de consultation et de saisie (gabarits et feuille de style
+  embarqués, sans JavaScript).
 - `locales` : traductions `en` / `fr` de l'API et des pages, embarquées dans le binaire.
 
 ## Limites

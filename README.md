@@ -5,9 +5,10 @@
   L'analyse d'image reste sur le téléphone : aucune image n'est envoyée.
 - **Serveur Go** (`backend/`, sur [`open-go-base`](https://github.com/leblanc-simon/open-go-base)).
   Il tient un stock global unique, sans emplacement, partagé par plusieurs téléphones, et le
-  cache des codes-barres (EAN → marque / coloris). Il sert aussi des pages de consultation :
-  `/stock`, `/entries`, `/exits` et `/inventories` (avec le détail des anomalies de chaque
-  inventaire), réservées aux comptes connectés.
+  cache des codes-barres (EAN → marque / coloris). Il sert aussi des pages web, réservées aux
+  comptes connectés : `/stock`, `/entries`, `/exits` et `/inventories` (avec le détail des
+  anomalies de chaque inventaire). On y saisit aussi entrées, sorties et inventaires, comme
+  depuis l'app.
 
 On se connecte à l'app comme aux pages web par adresse email seule, si un administrateur l'a
 ajoutée ; le téléphone et le navigateur restent ensuite connectés. Les administrateurs ajoutent

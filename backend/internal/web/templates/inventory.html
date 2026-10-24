@@ -15,7 +15,10 @@
     {{if .Zeroed}}{{Tn "inventory.summary_zeroed" .Zeroed}}{{end}}
     {{if .Uncounted}}{{Tn "inventory.summary_uncounted" .Uncounted}}{{end}}
   </p>
+  {{if not .ClosedAt}}<a class="button" href="/inventories/{{.ID}}/count">{{T "inventories.resume"}}</a>{{end}}
 </div>
+{{if .Finished}}<p class="notice" role="status">{{T "inventory.finished"}}</p>{{end}}
+{{with .Error}}<p class="notice notice--error" role="alert">{{T .}}</p>{{end}}
 
 <section class="anomalies">
   <h2 class="anomalies__head">

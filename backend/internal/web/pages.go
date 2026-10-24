@@ -142,36 +142,6 @@ func (a *App) movements(r *http.Request, kind store.Kind, p period) ([]store.Mov
 	return list, false, nil
 }
 
-type entriesView struct {
-	period
-	Movements []store.Movement
-	Total     int
-	Truncated bool
-	Limit     int
-}
-
-func (a *App) entries(w http.ResponseWriter, r *http.Request) {
-	p := a.parsePeriod(r)
-	list, truncated, err := a.movements(r, store.KindIn, p)
-	if err != nil {
-		a.serverError(w, r, err)
-		return
-	}
-	view := entriesView{period: p, Movements: list, Truncated: truncated, Limit: movementLimit}
-	for _, m := range list {
-		view.Total += m.Quantity
-	}
-	a.render(w, r, http.StatusOK, "entries", "entries", "entries.title", view)
-}
-
-type exitsView struct {
-	period
-	Recipients []recipientGroup
-	Total      int
-	Truncated  bool
-	Limit      int
-}
-
 type recipientGroup struct {
 	Name  string
 	Total int
@@ -193,21 +163,6 @@ type itemGroup struct {
 	ColorName *string
 	Total     int
 	Movements []store.Movement
-}
-
-func (a *App) exits(w http.ResponseWriter, r *http.Request) {
-	p := a.parsePeriod(r)
-	list, truncated, err := a.movements(r, store.KindOut, p)
-	if err != nil {
-		a.serverError(w, r, err)
-		return
-	}
-	view := exitsView{period: p, Truncated: truncated, Limit: movementLimit,
-		Recipients: groupExits(list, a.Location, a.I18n.FromRequest(r).Lang())}
-	for _, m := range list {
-		view.Total += m.Quantity
-	}
-	a.render(w, r, http.StatusOK, "exits", "exits", "exits.title", view)
 }
 
 // groupExits regroupe les sorties par destinataire (sans tenir compte de la casse),

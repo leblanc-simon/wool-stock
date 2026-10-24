@@ -1,6 +1,9 @@
 {{/* Référence : marque, puis n° et nom du coloris. */}}
 {{define "yarn"}}<span class="yarn"><span class="yarn__brand">{{with .Brand}}{{deref .}}{{else}}{{T "stock.unknown_brand"}}{{end}}</span>{{if or .ColorCode .ColorName}} <span class="yarn__shade">{{with .ColorCode}}{{deref .}}{{end}}{{if and .ColorCode .ColorName}} {{end}}{{with .ColorName}}{{deref .}}{{end}}</span>{{end}}</span>{{end}}
 
+{{/* La même référence en texte seul, pour une suggestion ou une option. */}}
+{{define "yarnText"}}{{with .Brand}}{{deref .}}{{else}}{{T "stock.unknown_brand"}}{{end}}{{with .ColorCode}} {{deref .}}{{end}}{{with .ColorName}} {{deref .}}{{end}}{{end}}
+
 {{/* Numéro de bain, présenté comme le tampon de l'étiquette. */}}
 {{define "stamp"}}<span class="stamp"><span class="visually-hidden">{{T "stock.dye_lot_label"}} </span>{{if .}}{{.}}{{else}}{{T "stock.no_dye_lot"}}{{end}}</span>{{end}}
 
@@ -21,23 +24,23 @@
 <div class="field">
   <label class="field__label" for="email">{{T "account.email"}}</label>
   <input class="field__input" id="email" name="email" type="email" value="{{$f.Email}}" autocomplete="off" required{{if index $f.Errors "email"}} aria-invalid="true" aria-describedby="email-error"{{end}}>
-  {{with index $f.Errors "email"}}<p class="field__error" id="email-error">{{T .Key .Data}}</p>{{end}}
+  {{with index $f.Errors "email"}}<p class="field__error" id="email-error">{{message .}}</p>{{end}}
 </div>
 <div class="field">
   <label class="field__label" for="name">{{T "account.name"}}</label>
   <input class="field__input" id="name" name="name" type="text" value="{{$f.Name}}" maxlength="100" autocomplete="off"{{if not .NameOptional}} required{{end}}{{if index $f.Errors "name"}} aria-invalid="true" aria-describedby="name-error"{{else if .NameOptional}} aria-describedby="name-help"{{end}}>
-  {{with index $f.Errors "name"}}<p class="field__error" id="name-error">{{T .Key .Data}}</p>{{else}}{{if .NameOptional}}<p class="field__help" id="name-help">{{T "account.name_help"}}</p>{{end}}{{end}}
+  {{with index $f.Errors "name"}}<p class="field__error" id="name-error">{{message .}}</p>{{else}}{{if .NameOptional}}<p class="field__help" id="name-help">{{T "account.name_help"}}</p>{{end}}{{end}}
 </div>
 {{if .ShowRole}}
 <fieldset class="field"{{if index $f.Errors "role"}} aria-describedby="role-error"{{end}}>
   <legend class="field__label">{{T "account.role"}}</legend>
   {{range $role := list "manager" "admin"}}
-  <label class="role">
+  <label class="choice">
     <input type="radio" name="role" value="{{$role}}"{{if eq $f.Role $role}} checked{{end}}{{if index $f.Errors "role"}} aria-invalid="true"{{end}}>
-    <span><span class="role__name">{{T (print "role." $role)}}</span><span class="role__help">{{T (print "role." $role "_help")}}</span></span>
+    <span><span class="choice__name">{{T (print "role." $role)}}</span><span class="choice__help">{{T (print "role." $role "_help")}}</span></span>
   </label>
   {{end}}
-  {{with index $f.Errors "role"}}<p class="field__error" id="role-error">{{T .Key .Data}}</p>{{end}}
+  {{with index $f.Errors "role"}}<p class="field__error" id="role-error">{{message .}}</p>{{end}}
 </fieldset>
 {{end}}
 {{end}}

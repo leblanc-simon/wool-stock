@@ -11,7 +11,7 @@
   <section class="card" aria-labelledby="edit-title">
     <h2 class="section-title" id="edit-title">{{T "user.edit_title"}}</h2>
     <form class="form" method="post" action="/users/{{.Account.ID}}">
-      {{with index .Form.Errors "form"}}<p class="form__error" role="alert">{{T .Key .Data}}</p>{{end}}
+      {{with index .Form.Errors "form"}}<p class="form__error" role="alert">{{message .}}</p>{{end}}
       {{template "accountFields" (dict "Form" .Form "NameOptional" false "ShowRole" (not .Self))}}
       {{if .Self}}<p class="form__note">{{T "user.own_role"}}</p>{{end}}
       <button class="button" type="submit">{{T "user.save"}}</button>

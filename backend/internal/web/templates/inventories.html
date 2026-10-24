@@ -3,39 +3,76 @@
   <h1 class="page__title">{{T "inventories.title"}}</h1>
   <p class="page__lead">{{T "inventories.lead"}}</p>
 </div>
-{{if .Inventories}}
-<table class="ledger">
-  <thead>
-    <tr>
-      <th scope="col">{{T "inventories.col_started"}}</th>
-      <th scope="col">{{T "inventories.col_scope"}}</th>
-      <th scope="col">{{T "inventories.col_status"}}</th>
-      <th scope="col" class="ledger__num">{{T "inventories.col_counted"}}</th>
-      <th scope="col" class="ledger__num">{{T "inventories.col_anomalies"}}</th>
-      <th scope="col" class="ledger__num">{{T "inventories.col_net"}}</th>
-    </tr>
-  </thead>
-  <tbody>
-    {{range .Inventories}}
-    <tr>
-      <td data-label="{{T "inventories.col_started"}}">
-        <div>
-          <a href="/inventories/{{.ID}}"><time datetime="{{iso .StartedAt}}">{{dateTime .StartedAt}}</time></a>
-          {{with .StartedBy}}<span class="ledger__ean">{{T "inventories.by" (dict "Author" (deref .))}}</span>{{end}}
-        </div>
-      </td>
-      <td data-label="{{T "inventories.col_scope"}}">{{T (print "scope." .Scope)}}</td>
-      <td data-label="{{T "inventories.col_status"}}">
-        {{with .ClosedAt}}{{T "inventories.closed_on" (dict "Date" (dateTime .))}}{{else}}<span class="status">{{T "inventories.in_progress"}}</span>{{end}}
-      </td>
-      <td data-label="{{T "inventories.col_counted"}}" class="ledger__num">{{.Counted}}{{if .Zeroed}}<span class="ledger__ean">{{Tn "inventories.zeroed" .Zeroed}}</span>{{end}}</td>
-      <td data-label="{{T "inventories.col_anomalies"}}" class="ledger__num">{{if .Anomalies}}<a href="/inventories/{{.ID}}">{{.Anomalies}}</a>{{else}}0{{end}}</td>
-      <td data-label="{{T "inventories.col_net"}}" class="ledger__num"><span class="gap {{gapClass .Net}}">{{signedBalls .Net}}</span></td>
-    </tr>
+<div class="desk">
+  {{with .Open}}
+  <section class="card desk__form" aria-labelledby="open-title">
+    <h2 class="section-title" id="open-title">{{T "inventories.open_title"}}</h2>
+    {{with index $.Form.Errors "form"}}<p class="form__error" role="alert">{{message .}}</p>{{end}}
+    <p><a href="/inventories/{{.ID}}">{{T (print "inventory.title_" .Scope) (dict "Date" (date .StartedAt))}}</a></p>
+    <p class="muted">{{with .StartedBy}}{{T "inventory.started_by" (dict "Author" (deref .) "Date" (dateTime $.Open.StartedAt))}}{{else}}{{T "inventory.started_at" (dict "Date" (dateTime .StartedAt))}}{{end}} {{Tn "inventory.summary_counted" .Counted}}</p>
+    <p class="muted">{{T "inventories.shared"}}</p>
+    <a class="button" href="/inventories/{{.ID}}/count">{{T "inventories.resume"}}</a>
+  </section>
+  {{else}}
+  {{$f := .Form}}
+  <section class="card desk__form" aria-labelledby="start-title">
+    <h2 class="section-title" id="start-title">{{T "inventories.start_title"}}</h2>
+    <form class="form" method="post" action="/inventories">
+      <fieldset class="field"{{if index $f.Errors "scope"}} aria-describedby="scope-error"{{end}}>
+        <legend class="field__label">{{T "inventories.scope"}}</legend>
+        {{range $scope := list "partial" "full"}}
+        <label class="choice">
+          <input type="radio" name="scope" value="{{$scope}}"{{if eq $f.Scope $scope}} checked{{end}}{{if index $f.Errors "scope"}} aria-invalid="true"{{end}}>
+          <span><span class="choice__name">{{T (print "scope." $scope)}}</span><span class="choice__help">{{T (print "scope." $scope "_help")}}</span></span>
+        </label>
+        {{end}}
+        {{with index $f.Errors "scope"}}<p class="field__error" id="scope-error">{{message .}}</p>{{end}}
+      </fieldset>
+      <p class="form__note">{{T "inventories.shared"}}</p>
+      <button class="button" type="submit">{{T "inventories.start"}}</button>
+    </form>
+  </section>
+  {{end}}
+
+  <section class="desk__history" aria-labelledby="history-title">
+    <div class="desk__head">
+      <h2 class="section-title" id="history-title">{{T "inventories.history_title"}}</h2>
+    </div>
+    {{if .Inventories}}
+    <table class="ledger">
+      <thead>
+        <tr>
+          <th scope="col">{{T "inventories.col_started"}}</th>
+          <th scope="col">{{T "inventories.col_scope"}}</th>
+          <th scope="col">{{T "inventories.col_status"}}</th>
+          <th scope="col" class="ledger__num">{{T "inventories.col_counted"}}</th>
+          <th scope="col" class="ledger__num">{{T "inventories.col_anomalies"}}</th>
+          <th scope="col" class="ledger__num">{{T "inventories.col_net"}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Inventories}}
+        <tr>
+          <td data-label="{{T "inventories.col_started"}}">
+            <div>
+              <a href="/inventories/{{.ID}}"><time datetime="{{iso .StartedAt}}">{{dateTime .StartedAt}}</time></a>
+              {{with .StartedBy}}<span class="ledger__ean">{{T "inventories.by" (dict "Author" (deref .))}}</span>{{end}}
+            </div>
+          </td>
+          <td data-label="{{T "inventories.col_scope"}}">{{T (print "scope." .Scope)}}</td>
+          <td data-label="{{T "inventories.col_status"}}">
+            {{with .ClosedAt}}{{T "inventories.closed_on" (dict "Date" (dateTime .))}}{{else}}<a class="status" href="/inventories/{{.ID}}/count">{{T "inventories.in_progress"}}</a>{{end}}
+          </td>
+          <td data-label="{{T "inventories.col_counted"}}" class="ledger__num">{{.Counted}}{{if .Zeroed}}<span class="ledger__ean">{{Tn "inventories.zeroed" .Zeroed}}</span>{{end}}</td>
+          <td data-label="{{T "inventories.col_anomalies"}}" class="ledger__num">{{if .Anomalies}}<a href="/inventories/{{.ID}}">{{.Anomalies}}</a>{{else}}0{{end}}</td>
+          <td data-label="{{T "inventories.col_net"}}" class="ledger__num"><span class="gap {{gapClass .Net}}">{{signedBalls .Net}}</span></td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+    {{else}}
+    <p class="empty">{{T "inventories.empty"}}</p>
     {{end}}
-  </tbody>
-</table>
-{{else}}
-<p class="empty">{{T "inventories.empty"}}</p>
-{{end}}
+  </section>
+</div>
 {{end}}

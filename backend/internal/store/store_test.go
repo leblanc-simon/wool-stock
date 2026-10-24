@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -455,5 +456,36 @@ func TestManageUsers(t *testing.T) {
 	}
 	if _, err := s.SessionUser(ctx, token); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("session of a deleted user: err = %v", err)
+	}
+}
+
+func TestNormalizeEAN(t *testing.T) {
+	for raw, want := range map[string]string{
+		"8435407948594":    "8435407948594",
+		" 8435 4079 48594": "8435407948594",
+		"012345678905":     "0012345678905",
+		"12345670":         "12345670",
+		"12345678901234":   "12345678901234",
+		"1234567":          "",
+		"84354079485941A":  "",
+		"843540794859X":    "",
+	} {
+		got, ok := NormalizeEAN(raw)
+		if got != want || ok != (want != "") {
+			t.Errorf("NormalizeEAN(%q) = %q, %v; want %q", raw, got, ok, want)
+		}
+	}
+}
+
+func TestCleanText(t *testing.T) {
+	if got, ok := CleanText("  Katia\t", MaxText); got != "Katia" || !ok {
+		t.Errorf("CleanText = %q, %v", got, ok)
+	}
+	// La limite compte des caractères, pas des octets.
+	if got, ok := CleanText(strings.Repeat("é", MaxText), MaxText); !ok || got == "" {
+		t.Errorf("%d accented characters refused", MaxText)
+	}
+	if _, ok := CleanText(strings.Repeat("a", MaxText+1), MaxText); ok {
+		t.Errorf("%d characters accepted", MaxText+1)
 	}
 }

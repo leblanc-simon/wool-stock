@@ -111,16 +111,16 @@ type countRequest struct {
 func (req countRequest) validate(inventoryID int64) (store.CountInput, *problem) {
 	in := store.CountInput{InventoryID: inventoryID}
 	var p *problem
-	if in.RequestID, p = text(req.RequestID, "request_id", maxRequestID); p != nil {
+	if in.RequestID, p = text(req.RequestID, "request_id", store.MaxRequestID); p != nil {
 		return in, p
 	}
 	if in.EAN, p = parseEAN(req.EAN, "ean"); p != nil {
 		return in, p
 	}
-	if in.DyeLot, p = text(req.DyeLot, "dye_lot", maxDyeLot); p != nil {
+	if in.DyeLot, p = text(req.DyeLot, "dye_lot", store.MaxDyeLot); p != nil {
 		return in, p
 	}
-	if req.Quantity == nil || *req.Quantity < 0 || *req.Quantity > maxQuantity {
+	if req.Quantity == nil || *req.Quantity < 0 || *req.Quantity > store.MaxQuantity {
 		return in, badRequest(CodeCount, "quantity")
 	}
 	in.Quantity = *req.Quantity

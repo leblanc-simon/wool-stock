@@ -1,0 +1,111 @@
+{{define "content"}}
+<div class="page__head">
+  <a class="page__back" href="/inventories">{{T "inventory.back"}}</a>
+  <h1 class="page__title">{{T (print "inventory.title_" .Scope) (dict "Date" (date .StartedAt))}}</h1>
+  <p class="page__lead">
+    {{with .StartedBy}}{{T "inventory.started_by" (dict "Author" (deref .) "Date" (dateTime $.StartedAt))}}{{else}}{{T "inventory.started_at" (dict "Date" (dateTime .StartedAt))}}{{end}}
+    <span class="status">{{T "inventories.in_progress"}}</span>
+  </p>
+  <p class="page__lead">{{T (print "count.lead_" .Scope)}}</p>
+  <p class="page__lead">
+    {{Tn "count.progress" .Counted (dict "Count" .Counted "Total" .Lots)}}
+    {{if .Uncounted}}{{Tn "inventory.summary_uncounted" .Uncounted}}{{end}}
+  </p>
+  <p class="page__links">
+    <a href="/inventories/{{.ID}}">{{T "count.report"}}</a>
+    {{if .Empty}}<a href="/inventories/{{.ID}}/count{{if not .ShowEmpty}}?empty=1{{end}}">{{if .ShowEmpty}}{{Tn "count.hide_empty" .Empty}}{{else}}{{Tn "count.show_empty" .Empty}}{{end}}</a>{{end}}
+    <a href="#close">{{T "count.close_title"}}</a>
+  </p>
+</div>
+{{with index .Form.Errors "form"}}<p class="notice notice--error" role="alert">{{message .}}</p>{{end}}
+{{if not .Brands}}<p class="empty">{{T "count.empty"}}</p>{{end}}
+<div class="tally">
+  {{range .Brands}}
+  <section class="tally-brand">
+    <h2 class="tally-brand__head">{{if .Brand}}{{.Brand}}{{else}}{{T "stock.unknown_brand"}}{{end}}</h2>
+    {{range $shade := .Shades}}
+    <div class="tally-shade">
+      <h3 class="tally-shade__head">
+        {{if .Code}}<span class="tally-shade__code">{{.Code}}</span>{{end}}
+        {{if .Name}}<span class="tally-shade__name">{{.Name}}</span>{{end}}
+        {{if not (or .Code .Name)}}<span class="tally-shade__name tally-shade__name--unknown">{{T "stock.unknown_color"}}</span>{{end}}
+        <span class="tally-shade__ean">{{range $i, $ean := .EANs}}{{if $i}}, {{end}}{{$ean}}{{end}}</span>
+      </h3>
+      <ul class="tally-lots">
+        {{range .Lots}}{{template "tallyLot" (dict "Lot" . "Shade" $shade "View" $)}}{{end}}
+      </ul>
+    </div>
+    {{end}}
+  </section>
+  {{end}}
+</div>
+
+{{$full := eq .Scope "full"}}
+<section class="card tally-close{{if $full}} card--danger{{end}}" id="close" aria-labelledby="close-title">
+  <h2 class="section-title" id="close-title">{{T "count.close_title"}}</h2>
+  <p>{{T (print "count.close_help_" .Scope)}}</p>
+  {{if .Uncounted}}<p>{{Tn "inventory.summary_uncounted" .Uncounted}}</p>{{end}}
+  <details class="confirm">
+    <summary class="confirm__summary">{{T "count.close_open"}}</summary>
+    <form method="post" action="/inventories/{{.ID}}/close">
+      <button class="button{{if $full}} button--danger{{end}}" type="submit">{{T "count.close_confirm"}}</button>
+    </form>
+  </details>
+</section>
+{{end}}
+
+{{/* Un bain de la feuille : stock connu, comptage, et de quoi le compter ou le recompter.
+     Reçoit dict "Lot" … "Shade" … "View" …. */}}
+{{define "tallyLot"}}
+{{$lot := .Lot}}{{$v := .View}}{{$id := $lot.LotID}}
+{{$failed := eq $id $v.Form.Lot}}{{$err := index $v.Form.Errors "quantity"}}
+<li class="tally-lot{{if $lot.Count}} tally-lot--counted{{end}}" id="lot-{{$id}}">
+  <div class="tally-lot__id" id="lot-{{$id}}-name">
+    <span class="visually-hidden">{{or .Shade.Label (T "stock.unknown_color")}}</span>
+    {{template "stamp" $lot.DyeLot}}
+    {{if gt (len .Shade.EANs) 1}}<span class="tally-lot__ean">{{$lot.EAN}}</span>{{end}}
+  </div>
+  <p class="tally-lot__state">
+    {{with $lot.Count}}
+    <span>{{T "count.known"}} <b>{{.PreviousQuantity}}</b></span>
+    <span class="tally-lot__counted">{{T "count.counted"}} <b>{{.Quantity}}</b></span>
+    {{if .Gap}}<span class="gap {{gapClass .Gap}}">{{signed .Gap}}</span>{{end}}
+    {{else}}
+    <span>{{T "count.known"}} <b>{{$lot.Quantity}}</b></span>
+    {{end}}
+    {{if eq $id $v.Saved}}<span class="tally-lot__saved" role="status">{{T "count.saved"}}</span>{{end}}
+  </p>
+  <div class="tally-lot__actions">
+    {{if $lot.Count}}
+    <form class="tally-form" method="post" action="/inventories/{{$v.ID}}/count">
+      <input type="hidden" name="request_id" value="{{newRequestID}}">
+      <input type="hidden" name="lot" value="{{$id}}">
+      {{if $v.ShowEmpty}}<input type="hidden" name="empty" value="1">{{end}}
+      <label class="tally-form__label" for="qty-{{$id}}">{{T "count.recount"}}</label>
+      <input class="tally-form__input" id="qty-{{$id}}" name="quantity" type="number" min="0" max="10000" inputmode="numeric" required value="{{if $failed}}{{$v.Form.Quantity}}{{end}}"{{if $failed}} autofocus{{end}}{{if and $failed $err}} aria-invalid="true" aria-describedby="lot-{{$id}}-name qty-{{$id}}-error"{{else}} aria-describedby="lot-{{$id}}-name"{{end}}>
+      <button class="button button--secondary" type="submit" name="mode" value="set" aria-describedby="lot-{{$id}}-name">{{T "count.replace"}}</button>
+      <button class="button button--secondary" type="submit" name="mode" value="add" aria-describedby="lot-{{$id}}-name">{{T "count.add"}}</button>
+    </form>
+    {{else}}
+    <form method="post" action="/inventories/{{$v.ID}}/count">
+      <input type="hidden" name="request_id" value="{{newRequestID}}">
+      <input type="hidden" name="lot" value="{{$id}}">
+      <input type="hidden" name="quantity" value="{{$lot.Quantity}}">
+      <input type="hidden" name="mode" value="new">
+      {{if $v.ShowEmpty}}<input type="hidden" name="empty" value="1">{{end}}
+      <button class="button" type="submit" aria-describedby="lot-{{$id}}-name">{{T "count.confirm"}}</button>
+    </form>
+    <form class="tally-form" method="post" action="/inventories/{{$v.ID}}/count">
+      <input type="hidden" name="request_id" value="{{newRequestID}}">
+      <input type="hidden" name="lot" value="{{$id}}">
+      <input type="hidden" name="mode" value="new">
+      {{if $v.ShowEmpty}}<input type="hidden" name="empty" value="1">{{end}}
+      <label class="tally-form__label" for="qty-{{$id}}">{{T "count.other"}}</label>
+      <input class="tally-form__input" id="qty-{{$id}}" name="quantity" type="number" min="0" max="10000" inputmode="numeric" required value="{{if $failed}}{{$v.Form.Quantity}}{{end}}"{{if $failed}} autofocus{{end}}{{if and $failed $err}} aria-invalid="true" aria-describedby="lot-{{$id}}-name qty-{{$id}}-error"{{else}} aria-describedby="lot-{{$id}}-name"{{end}}>
+      <button class="button button--secondary" type="submit" aria-describedby="lot-{{$id}}-name">{{T "count.save"}}</button>
+    </form>
+    {{end}}
+  </div>
+  {{if and $failed $err}}<p class="field__error tally-lot__error" id="qty-{{$id}}-error">{{message $err}}</p>{{end}}
+</li>
+{{end}}

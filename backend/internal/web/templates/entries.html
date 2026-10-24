@@ -1,34 +1,92 @@
 {{define "content"}}
 <div class="page__head">
   <h1 class="page__title">{{T "entries.title"}}</h1>
-  {{template "period" .}}
-  {{if .Movements}}<p class="page__lead">{{Tn "entries.summary" .Total}}</p>{{end}}
+  <p class="page__lead">{{T "entries.lead"}}</p>
 </div>
-{{template "truncated" .}}
-{{if .Movements}}
-<table class="ledger">
-  <thead>
-    <tr>
-      <th scope="col">{{T "entries.col_when"}}</th>
-      <th scope="col">{{T "entries.col_who"}}</th>
-      <th scope="col">{{T "entries.col_what"}}</th>
-      <th scope="col">{{T "entries.col_dye_lot"}}</th>
-      <th scope="col" class="ledger__num">{{T "entries.col_quantity"}}</th>
-    </tr>
-  </thead>
-  <tbody>
-    {{range .Movements}}
-    <tr>
-      <td data-label="{{T "entries.col_when"}}"><time datetime="{{iso .CreatedAt}}">{{dateTime .CreatedAt}}</time></td>
-      <td data-label="{{T "entries.col_who"}}">{{with .Author}}{{deref .}}{{else}}<span class="muted">{{T "common.anonymous"}}</span>{{end}}</td>
-      <td data-label="{{T "entries.col_what"}}"><div>{{template "yarn" .}}<span class="ledger__ean">{{.EAN}}</span></div></td>
-      <td data-label="{{T "entries.col_dye_lot"}}">{{template "stamp" .DyeLot}}</td>
-      <td data-label="{{T "entries.col_quantity"}}" class="ledger__num">{{.Quantity}}</td>
-    </tr>
+{{with .Added}}<p class="notice" role="status">{{Tn "entries.added" .Quantity}} {{template "yarn" .}} {{template "stamp" .DyeLot}}{{with $.Lot}} {{Tn "entries.lot_total" .Quantity}}{{end}}</p>{{end}}
+<div class="desk">
+  {{$f := .Form}}
+  <section class="card desk__form" aria-labelledby="entry-title">
+    <h2 class="section-title" id="entry-title">{{T "entries.form_title"}}</h2>
+    <form class="form" method="post" action="/entries">
+      <input type="hidden" name="request_id" value="{{newRequestID}}">
+      <div class="field">
+        <label class="field__label" for="ean">{{T "entries.ean"}}</label>
+        <input class="field__input" id="ean" name="ean" type="text" inputmode="numeric" value="{{$f.EAN}}" list="known-eans" autocomplete="off" required{{if index $f.Errors "ean"}} aria-invalid="true" aria-describedby="ean-error"{{else}} aria-describedby="ean-help"{{end}}>
+        {{with index $f.Errors "ean"}}<p class="field__error" id="ean-error">{{message .}}</p>{{else}}<p class="field__help" id="ean-help">{{T "entries.ean_help"}}</p>{{end}}
+      </div>
+      <div class="form__row">
+        <div class="field">
+          <label class="field__label" for="dye_lot">{{T "entries.dye_lot"}}</label>
+          <input class="field__input" id="dye_lot" name="dye_lot" type="text" value="{{$f.DyeLot}}" maxlength="32" autocomplete="off"{{if index $f.Errors "dye_lot"}} aria-invalid="true" aria-describedby="dye_lot-error"{{else}} aria-describedby="dye_lot-help"{{end}}>
+          {{with index $f.Errors "dye_lot"}}<p class="field__error" id="dye_lot-error">{{message .}}</p>{{else}}<p class="field__help" id="dye_lot-help">{{T "entries.dye_lot_help"}}</p>{{end}}
+        </div>
+        <div class="field">
+          <label class="field__label" for="quantity">{{T "entries.quantity"}}</label>
+          <input class="field__input" id="quantity" name="quantity" type="number" min="1" max="10000" inputmode="numeric" value="{{$f.Quantity}}" required{{if index $f.Errors "quantity"}} aria-invalid="true" aria-describedby="quantity-error"{{end}}>
+          {{with index $f.Errors "quantity"}}<p class="field__error" id="quantity-error">{{message .}}</p>{{end}}
+        </div>
+      </div>
+      <fieldset class="form__group" aria-describedby="reference-help">
+        <legend class="form__legend">{{T "entries.reference"}}</legend>
+        <p class="form__note" id="reference-help">{{T "entries.reference_help"}}</p>
+        <div class="field">
+          <label class="field__label" for="brand">{{T "entries.brand"}}</label>
+          <input class="field__input" id="brand" name="brand" type="text" value="{{$f.Brand}}" maxlength="100" list="known-brands" autocomplete="off"{{if index $f.Errors "brand"}} aria-invalid="true" aria-describedby="brand-error"{{end}}>
+          {{with index $f.Errors "brand"}}<p class="field__error" id="brand-error">{{message .}}</p>{{end}}
+        </div>
+        <div class="form__row">
+          <div class="field">
+            <label class="field__label" for="color_code">{{T "entries.color_code"}}</label>
+            <input class="field__input" id="color_code" name="color_code" type="text" value="{{$f.ColorCode}}" maxlength="100" autocomplete="off"{{if index $f.Errors "color_code"}} aria-invalid="true" aria-describedby="color_code-error"{{end}}>
+            {{with index $f.Errors "color_code"}}<p class="field__error" id="color_code-error">{{message .}}</p>{{end}}
+          </div>
+          <div class="field">
+            <label class="field__label" for="color_name">{{T "entries.color_name"}}</label>
+            <input class="field__input" id="color_name" name="color_name" type="text" value="{{$f.ColorName}}" maxlength="100" autocomplete="off"{{if index $f.Errors "color_name"}} aria-invalid="true" aria-describedby="color_name-error"{{end}}>
+            {{with index $f.Errors "color_name"}}<p class="field__error" id="color_name-error">{{message .}}</p>{{end}}
+          </div>
+        </div>
+      </fieldset>
+      <button class="button" type="submit">{{T "entries.submit"}}</button>
+    </form>
+    <datalist id="known-eans">{{range .References}}<option value="{{.EAN}}">{{template "yarnText" .}}</option>{{end}}</datalist>
+    <datalist id="known-brands">{{range .Brands}}<option value="{{.}}"></option>{{end}}</datalist>
+  </section>
+
+  <section class="desk__history" aria-labelledby="history-title">
+    <div class="desk__head">
+      <h2 class="section-title" id="history-title">{{T "entries.history_title"}}</h2>
+      {{template "period" .}}
+      {{if .Movements}}<p class="page__lead">{{Tn "entries.summary" .Total}}</p>{{end}}
+    </div>
+    {{template "truncated" .}}
+    {{if .Movements}}
+    <table class="ledger">
+      <thead>
+        <tr>
+          <th scope="col">{{T "entries.col_when"}}</th>
+          <th scope="col">{{T "entries.col_who"}}</th>
+          <th scope="col">{{T "entries.col_what"}}</th>
+          <th scope="col">{{T "entries.col_dye_lot"}}</th>
+          <th scope="col" class="ledger__num">{{T "entries.col_quantity"}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Movements}}
+        <tr{{if and $.Added (eq .ID $.Added.ID)}} class="ledger__fresh"{{end}}>
+          <td data-label="{{T "entries.col_when"}}"><time datetime="{{iso .CreatedAt}}">{{dateTime .CreatedAt}}</time></td>
+          <td data-label="{{T "entries.col_who"}}">{{with .Author}}{{deref .}}{{else}}<span class="muted">{{T "common.anonymous"}}</span>{{end}}</td>
+          <td data-label="{{T "entries.col_what"}}"><div>{{template "yarn" .}}<span class="ledger__ean">{{.EAN}}</span></div></td>
+          <td data-label="{{T "entries.col_dye_lot"}}">{{template "stamp" .DyeLot}}</td>
+          <td data-label="{{T "entries.col_quantity"}}" class="ledger__num">{{.Quantity}}</td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+    {{else}}
+    <p class="empty">{{T "entries.empty"}}</p>
     {{end}}
-  </tbody>
-</table>
-{{else}}
-<p class="empty">{{T "entries.empty"}}</p>
-{{end}}
+  </section>
+</div>
 {{end}}

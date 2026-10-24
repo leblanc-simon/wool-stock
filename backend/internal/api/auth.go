@@ -95,7 +95,7 @@ func (a *App) login(w http.ResponseWriter, r *http.Request) {
 		a.fail(w, r, p)
 		return
 	}
-	device, p := text(req.Device, "device", maxText)
+	device, p := text(req.Device, "device", store.MaxText)
 	if p != nil {
 		a.fail(w, r, p)
 		return
@@ -158,7 +158,7 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
 		a.fail(w, r, p)
 		return
 	}
-	name, p := text(req.Name, "name", maxText)
+	name, p := text(req.Name, "name", store.MaxText)
 	if p != nil {
 		a.fail(w, r, p)
 		return

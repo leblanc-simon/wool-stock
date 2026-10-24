@@ -11,9 +11,6 @@ import (
 	"leblanc.io/wool-stock/backend/internal/store"
 )
 
-// maxName est la longueur maximale d'un nom, comme dans l'API.
-const maxName = 100
-
 // adminOnly réserve une page aux administrateurs : 403 pour un gestionnaire.
 func (a *App) adminOnly(next http.HandlerFunc) http.HandlerFunc {
 	return a.signedIn(func(w http.ResponseWriter, r *http.Request) {
@@ -25,26 +22,17 @@ func (a *App) adminOnly(next http.HandlerFunc) http.HandlerFunc {
 	})
 }
 
-// fieldError est un message de formulaire : une clé de traduction et ses données.
-type fieldError struct {
-	Key  string
-	Data map[string]any
-}
-
 // userForm est le formulaire d'un compte, à l'ajout comme à la modification.
 type userForm struct {
 	Email string
 	Name  string
 	Role  store.Role
 	// Errors est indexé par champ (email, name, role) ; "form" porte une erreur d'ensemble.
-	Errors map[string]*fieldError
+	Errors formErrors
 }
 
 func (f *userForm) fail(field, key string, data map[string]any) {
-	if f.Errors == nil {
-		f.Errors = map[string]*fieldError{}
-	}
-	f.Errors[field] = &fieldError{Key: key, Data: data}
+	f.Errors.fail(field, key, data)
 }
 
 // readUserForm lit et valide le formulaire. guess déduit de l'adresse un nom laissé vide.
@@ -65,8 +53,8 @@ func readUserForm(r *http.Request, guess bool) (userForm, string, string) {
 	switch {
 	case name == "":
 		f.fail("name", "validation.name_required", nil)
-	case utf8.RuneCountInString(name) > maxName:
-		f.fail("name", "validation.too_long", map[string]any{"Max": maxName})
+	case utf8.RuneCountInString(name) > store.MaxText:
+		f.fail("name", "validation.too_long", map[string]any{"Max": store.MaxText})
 	}
 	if f.Role != store.RoleAdmin && f.Role != store.RoleManager {
 		f.fail("role", "validation.role_required", nil)
