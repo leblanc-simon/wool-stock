@@ -44,8 +44,8 @@ func cmWidth(cm float64) float64 {
 // en tête, ni plus de 15 chiffres.
 var plainNumber = regexp.MustCompile(`^[1-9][0-9]{0,14}$`)
 
-// export envoie le classeur : le stock du jour, bains épuisés masqués comme sur la
-// page Stock, et toutes les sorties, regroupées par jour et par destinataire.
+// export envoie le classeur : le stock du jour, chaque bain reçu avec sa quantité
+// (0 s'il est épuisé), et toutes les sorties, regroupées par jour et par destinataire.
 func (a *App) export(w http.ResponseWriter, r *http.Request) {
 	items, err := a.Store.Stock(r.Context(), store.StockFilter{IncludeEmpty: true})
 	if err != nil {
@@ -239,8 +239,7 @@ func workbook(loc *i18n.Localizer, now time.Time, view stockView, rows []distrib
 	return f, nil
 }
 
-// stockRow est une ligne d'une table de marque : un bain en stock, ou un coloris épuisé
-// (sans bain, stock 0).
+// stockRow est une ligne d'une table de marque : un bain et son stock, 0 s'il est épuisé.
 type stockRow struct {
 	Shade  string
 	DyeLot string
@@ -342,8 +341,8 @@ func stackBrands(heights []int, stacks int) [][]int {
 	return pack(lo)
 }
 
-// stockRows donne les lignes d'une marque : chaque bain en stock, et une ligne sans bain
-// pour un coloris épuisé, qui reste dans la liste.
+// stockRows donne les lignes d'une marque : chaque bain reçu, épuisé ou non, comme
+// dans le classeur d'origine.
 func stockRows(b brandGroup, loc *i18n.Localizer) []stockRow {
 	var rows []stockRow
 	for _, c := range b.Colors {
@@ -351,11 +350,7 @@ func stockRows(b brandGroup, loc *i18n.Localizer) []stockRow {
 		if c.Code == "" && c.Name == "" {
 			shade = loc.T("stock.unknown_color")
 		}
-		if len(c.Lots) == 0 {
-			rows = append(rows, stockRow{Shade: shade, Code: c.Code, Stock: c.Total})
-			continue
-		}
-		for _, lot := range c.Lots {
+		for _, lot := range c.Received {
 			rows = append(rows, stockRow{Shade: shade, DyeLot: lot.DyeLot, Code: c.Code, Stock: lot.Quantity})
 		}
 	}

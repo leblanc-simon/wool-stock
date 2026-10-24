@@ -59,6 +59,10 @@ func TestGroupStock(t *testing.T) {
 		len(white.EANs) != 2 || white.Total != 3 {
 		t.Fatalf("white = %+v", white)
 	}
+	// L'export, lui, garde tous les bains reçus.
+	if white := katia.Colors[0]; len(white.Received) != 3 || white.Received[1].DyeLot != "B" {
+		t.Fatalf("white received = %+v", white.Received)
+	}
 	// Un coloris épuisé reste, sans bain.
 	if empty := katia.Colors[2]; empty.Code != "9" || empty.Total != 0 || len(empty.Lots) != 0 {
 		t.Fatalf("empty shade = %+v", empty)

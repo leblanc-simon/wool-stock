@@ -154,13 +154,14 @@ func TestExport(t *testing.T) {
 	for name, want := range map[string]string{
 		"A2": "Laine BERGÈRE DE FRANCE", "F2": "Laine CHEVAL BLANC", "K2": "Laine KATIA",
 		"A3": "COULEUR", "B3": "N° de bain", "C3": "N° Couleur",
-		// Coloris épuisé : une ligne sans bain, à 0.
-		"A4": "", "B4": "", "C4": "10", "D4": "0",
+		// Coloris épuisé : son bain reste, à 0.
+		"A4": "", "B4": "A12", "C4": "10", "D4": "0",
 		// 11 avant 101 ; un bain sans numéro laisse la cellule vide.
 		"F4": "Blanche", "G4": "", "H4": "11", "I4": "4",
 		"F5": "Tournesol", "G5": "53553", "H5": "101", "I5": "19",
-		// Le bain épuisé 81790 disparaît, le coloris reste avec 81784.
-		"K4": "blanc", "L4": "81784", "M4": "1", "N4": "1", "K5": "",
+		// Le bain épuisé 81790 reste aussi, à 0, sous 81784.
+		"K4": "blanc", "L4": "81784", "M4": "1", "N4": "1",
+		"K5": "blanc", "L5": "81790", "M5": "1", "N5": "0",
 	} {
 		if got := cell(stock, name); got != want {
 			t.Errorf("%s = %q, want %q", name, got, want)

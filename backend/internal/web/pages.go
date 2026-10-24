@@ -44,6 +44,8 @@ type colorGroup struct {
 	EANs  []string
 	Total int
 	Lots  []store.StockItem
+	// Received liste tous les bains reçus, épuisés compris, pour l'export Excel.
+	Received []store.StockItem
 }
 
 func (a *App) stock(w http.ResponseWriter, r *http.Request) {
@@ -91,6 +93,7 @@ func groupStock(items []store.StockItem) stockView {
 		if item.Quantity > 0 {
 			c.Lots = append(c.Lots, item)
 		}
+		c.Received = append(c.Received, item)
 		c.Total += item.Quantity
 		b.Total += item.Quantity
 		view.Balls += item.Quantity
