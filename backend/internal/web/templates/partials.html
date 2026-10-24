@@ -18,6 +18,9 @@
 
 {{define "truncated"}}{{if .Truncated}}<p class="notice">{{T "movements.truncated" .}}</p>{{end}}{{end}}
 
+{{/* Classeur Excel : le stock du jour et toutes les distributions. */}}
+{{define "exportLink"}}<a class="button button--secondary" href="/stock/export" download>{{T "export.download"}}</a>{{end}}
+
 {{/* Champs d'un compte : adresse, nom, droit. Reçoit dict "Form" … "NameOptional" … "ShowRole" …. */}}
 {{define "accountFields"}}
 {{$f := .Form}}

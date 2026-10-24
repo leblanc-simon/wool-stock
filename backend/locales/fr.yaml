@@ -116,12 +116,37 @@ exits.taken:
   many: "{{.Count}} pelotes sorties pour {{.Recipient}} :"
   other: "{{.Count}} pelotes sorties pour {{.Recipient}} :"
 exits.title: Sorties
+export.brand: Laine {{.Brand}}
+export.col_balls: Nombre de pelotes
+export.col_code: N° Couleur
+export.col_date: DATE
+export.col_detail: Détail
+export.col_dye_lot: N° de bain
+export.col_recipient: NOM
+export.col_shade: COULEUR
+export.col_stock: Stock du {{.Date}}
+export.download: Exporter en Excel
+export.exits_sheet: Suivi distribution pelotes
+export.exits_title: Suivi de la distribution des pelotes
+export.filename: stock-laine-{{.Date}}.xlsx
+export.item:
+  one: "{{.Yarn}}, bain {{.DyeLot}} : {{.Count}} pelote"
+  many: "{{.Yarn}}, bain {{.DyeLot}} : {{.Count}} pelotes"
+  other: "{{.Yarn}}, bain {{.DyeLot}} : {{.Count}} pelotes"
+export.item_no_dye_lot:
+  one: "{{.Yarn}}, sans bain : {{.Count}} pelote"
+  many: "{{.Yarn}}, sans bain : {{.Count}} pelotes"
+  other: "{{.Yarn}}, sans bain : {{.Count}} pelotes"
+export.stock_sheet: Stock laine
+export.stock_title: STOCK DE LAINE AU {{.Date}}
 filter.from: Du
 filter.submit: Afficher
 filter.to: Au
 format.date: 02/01/2006
 format.date_time: '{{.Date}} à {{.Time}}'
 format.day_heading: '{{.Weekday}} {{.Date}}'
+format.spreadsheet_balls: '[=1]0" pelote";0" pelotes"'
+format.spreadsheet_date: dd/mm/yyyy
 format.time: '15:04'
 format.weekday.0: Dimanche
 format.weekday.1: Lundi

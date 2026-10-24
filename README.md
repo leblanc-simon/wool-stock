@@ -8,7 +8,7 @@
   cache des codes-barres (EAN → marque / coloris). Il sert aussi des pages web, réservées aux
   comptes connectés : `/stock`, `/entries`, `/exits` et `/inventories` (avec le détail des
   anomalies de chaque inventaire). On y saisit aussi entrées, sorties et inventaires, comme
-  depuis l'app.
+  depuis l'app, et on y exporte le stock et le suivi des distributions en Excel.
 
 On se connecte à l'app comme aux pages web par adresse email seule, si un administrateur l'a
 ajoutée ; le téléphone et le navigateur restent ensuite connectés. Les administrateurs ajoutent

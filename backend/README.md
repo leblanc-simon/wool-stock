@@ -12,6 +12,7 @@ inventaires, comme depuis l'app :
 | Page | Contenu |
 |---|---|
 | `/stock` | tous les bains, épuisés compris, groupés par marque puis coloris (n° et nom) ; les marques en colonnes (3 sur ordinateur, 1 sur mobile) |
+| `/stock/export` | classeur Excel, lien « Exporter en Excel » des pages Stock et Sorties, dans la présentation du classeur tenu à la main : une feuille de stock (une table par marque : coloris, bain, n° de coloris, stock du jour ; bains épuisés masqués, coloris épuisés à 0) et une feuille de suivi des distributions (date, personne, pelotes, détail des bains), sur tout l'historique |
 | `/entries` | formulaire d'entrée (EAN, bain, pelotes, et marque / coloris pour un EAN inconnu) ; historique : quand, qui, quelle laine, quel bain, combien |
 | `/exits` | formulaire de sortie (un bain en stock, pelotes, pour qui) ; historique groupé par destinataire, puis par jour, puis par bain, avec qui l'a saisi et à quelle heure |
 | `/inventories` | lancer un inventaire, partiel ou complet, ou reprendre celui en cours ; liste des inventaires : bains comptés, nombre d'anomalies, écart net |

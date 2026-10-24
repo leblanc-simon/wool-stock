@@ -243,6 +243,12 @@ func TestEveryKeyIsTranslated(t *testing.T) {
 		"error.inventory_closed": false, "scope.partial_help": false, "scope.full_help": false,
 		"count.title": false, "count.closed": false, "count.lead_partial": false, "count.lead_full": false,
 		"count.close_help_partial": false, "count.close_help_full": false,
+		"export.filename": false, "export.stock_sheet": false, "export.stock_title": false, "export.brand": false,
+		"export.col_shade": false, "export.col_dye_lot": false, "export.col_code": false, "export.col_stock": false,
+		"export.exits_sheet": false, "export.exits_title": false, "export.col_date": false,
+		"export.col_recipient": false, "export.col_balls": false, "export.col_detail": false,
+		"export.item": true, "export.item_no_dye_lot": true, "stock.unknown_color": false,
+		"format.spreadsheet_date": false, "format.spreadsheet_balls": false,
 	}
 	for d := 0; d < 7; d++ {
 		keys["format.weekday."+string(rune('0'+d))] = false

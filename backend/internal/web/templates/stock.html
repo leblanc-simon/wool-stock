@@ -3,6 +3,7 @@
   <h1 class="page__title">{{T "stock.title"}}</h1>
   {{if .Brands}}
   <p class="page__lead">{{Tn "stock.summary_balls" .Balls}}{{if .EmptyColors}} {{Tn "stock.summary_empty" .EmptyColors}}{{end}}</p>
+  {{template "exportLink"}}
   {{end}}
 </div>
 {{if not .Brands}}

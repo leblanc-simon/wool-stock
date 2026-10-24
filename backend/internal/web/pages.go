@@ -56,7 +56,8 @@ func (a *App) stock(w http.ResponseWriter, r *http.Request) {
 }
 
 // groupStock regroupe par marque puis coloris, dans l'ordre du store (marque, n°, nom,
-// EAN, bain). Les bains épuisés disparaissent, pas les coloris.
+// EAN, bain), à ceci près que les n° de coloris se comparent comme des nombres. Les
+// bains épuisés disparaissent, pas les coloris.
 func groupStock(items []store.StockItem) stockView {
 	var view stockView
 	brands := map[string]int{}
@@ -95,6 +96,8 @@ func groupStock(items []store.StockItem) stockView {
 		view.Balls += item.Quantity
 	}
 	for _, b := range view.Brands {
+		// Le store trie les n° comme du texte (« 101 » avant « 11 »).
+		sort.SliceStable(b.Colors, func(i, j int) bool { return naturalLess(b.Colors[i].Code, b.Colors[j].Code) })
 		for _, c := range b.Colors {
 			if c.Total == 0 {
 				view.EmptyColors++
@@ -103,6 +106,42 @@ func groupStock(items []store.StockItem) stockView {
 	}
 	return view
 }
+
+// naturalLess compare deux n° de coloris en lisant les suites de chiffres comme des
+// nombres : « 11 » avant « 101 », « A2 » avant « A10 » ; les lettres, sans la casse.
+func naturalLess(a, b string) bool {
+	for a != "" && b != "" {
+		ca, cb := leadingRun(a), leadingRun(b)
+		a, b = a[len(ca):], b[len(cb):]
+		if isDigit(ca[0]) && isDigit(cb[0]) {
+			na, nb := strings.TrimLeft(ca, "0"), strings.TrimLeft(cb, "0")
+			if len(na) != len(nb) {
+				return len(na) < len(nb)
+			}
+			if na != nb {
+				return na < nb
+			}
+			continue
+		}
+		if la, lb := strings.ToLower(ca), strings.ToLower(cb); la != lb {
+			return la < lb
+		}
+	}
+	return len(a) < len(b)
+}
+
+// leadingRun renvoie le début de s fait que de chiffres, ou que d'autres caractères.
+func leadingRun(s string) string {
+	digits := isDigit(s[0])
+	for i := 1; i < len(s); i++ {
+		if isDigit(s[i]) != digits {
+			return s[:i]
+		}
+	}
+	return s
+}
+
+func isDigit(c byte) bool { return '0' <= c && c <= '9' }
 
 // period est la période filtrée, en dates locales ; To est inclus.
 type period struct {

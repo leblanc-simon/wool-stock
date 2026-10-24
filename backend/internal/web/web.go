@@ -78,6 +78,7 @@ func (a *App) Handler() http.Handler {
 		http.Redirect(w, r, defaultPage, http.StatusSeeOther)
 	}))
 	mux.HandleFunc("GET /stock", a.signedIn(a.stock))
+	mux.HandleFunc("GET /stock/export", a.signedIn(a.export))
 	mux.HandleFunc("GET /entries", a.signedIn(a.entries))
 	mux.HandleFunc("POST /entries", a.signedIn(a.createEntry))
 	mux.HandleFunc("GET /exits", a.signedIn(a.exits))

@@ -105,12 +105,35 @@ exits.taken:
   one: "{{.Count}} ball taken out for {{.Recipient}}:"
   other: "{{.Count}} balls taken out for {{.Recipient}}:"
 exits.title: Exits
+export.brand: "{{.Brand}} yarn"
+export.col_balls: Number of balls
+export.col_code: Colour no.
+export.col_date: DATE
+export.col_detail: Details
+export.col_dye_lot: Dye lot
+export.col_recipient: NAME
+export.col_shade: COLOUR
+export.col_stock: Stock on {{.Date}}
+export.download: Export to Excel
+export.exits_sheet: Ball distribution
+export.exits_title: Ball distribution log
+export.filename: yarn-stock-{{.Date}}.xlsx
+export.item:
+  one: "{{.Yarn}}, dye lot {{.DyeLot}}: {{.Count}} ball"
+  other: "{{.Yarn}}, dye lot {{.DyeLot}}: {{.Count}} balls"
+export.item_no_dye_lot:
+  one: "{{.Yarn}}, no dye lot: {{.Count}} ball"
+  other: "{{.Yarn}}, no dye lot: {{.Count}} balls"
+export.stock_sheet: Yarn stock
+export.stock_title: YARN STOCK ON {{.Date}}
 filter.from: From
 filter.submit: Show
 filter.to: To
 format.date: 2 Jan 2006
 format.date_time: '{{.Date}}, {{.Time}}'
 format.day_heading: '{{.Weekday}} {{.Date}}'
+format.spreadsheet_balls: '[=1]0" ball";0" balls"'
+format.spreadsheet_date: d mmm yyyy
 format.time: '15:04'
 format.weekday.0: Sunday
 format.weekday.1: Monday

@@ -2,6 +2,7 @@
 <div class="page__head">
   <h1 class="page__title">{{T "exits.title"}}</h1>
   <p class="page__lead">{{T "exits.lead"}}</p>
+  {{template "exportLink"}}
 </div>
 {{with .Taken}}<p class="notice" role="status">{{Tn "exits.taken" .Quantity (dict "Count" .Quantity "Recipient" (deref .Recipient))}} {{template "yarn" .}} {{template "stamp" .DyeLot}} {{Tn "exits.lot_left" $.Left}}</p>{{end}}
 <div class="desk">

@@ -58,6 +58,7 @@ type MovementFilter struct {
 	// Since et Until bornent la date du mouvement : Since incluse, Until exclue.
 	Since time.Time
 	Until time.Time
+	// Limit vaut 0 pour tout l'historique (export).
 	Limit int
 }
 
@@ -192,8 +193,11 @@ func (s *Store) Movements(ctx context.Context, filter MovementFilter) ([]Movemen
 	if len(where) > 0 {
 		query += " WHERE " + strings.Join(where, " AND ")
 	}
-	query += ` ORDER BY m.id DESC LIMIT ?`
-	args = append(args, filter.Limit)
+	query += ` ORDER BY m.id DESC`
+	if filter.Limit > 0 {
+		query += ` LIMIT ?`
+		args = append(args, filter.Limit)
+	}
 
 	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
