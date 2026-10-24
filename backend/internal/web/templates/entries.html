@@ -8,7 +8,7 @@
   {{$f := .Form}}
   <section class="card desk__form" aria-labelledby="entry-title">
     <h2 class="section-title" id="entry-title">{{T "entries.form_title"}}</h2>
-    <form class="form" method="post" action="/entries">
+    <form class="form" method="post" action="/entries" data-reference-lookup data-known-label="{{T "entries.reference_known"}}">
       <input type="hidden" name="request_id" value="{{newRequestID}}">
       <div class="field">
         <label class="field__label" for="ean">{{T "entries.ean"}}</label>
@@ -30,6 +30,7 @@
       <fieldset class="form__group" aria-describedby="reference-help">
         <legend class="form__legend">{{T "entries.reference"}}</legend>
         <p class="form__note" id="reference-help">{{T "entries.reference_help"}}</p>
+        <p class="form__status" role="status" data-reference-status></p>
         <div class="field">
           <label class="field__label" for="brand">{{T "entries.brand"}}</label>
           <input class="field__input" id="brand" name="brand" type="text" value="{{$f.Brand}}" maxlength="100" list="known-brands" autocomplete="off"{{if index $f.Errors "brand"}} aria-invalid="true" aria-describedby="brand-error"{{end}}>
@@ -50,7 +51,8 @@
       </fieldset>
       <button class="button" type="submit">{{T "entries.submit"}}</button>
     </form>
-    <datalist id="known-eans">{{range .References}}<option value="{{.EAN}}">{{template "yarnText" .}}</option>{{end}}</datalist>
+    {{/* Marque et coloris de chaque EAN connu, que entries.js reporte dans le formulaire. */}}
+    <datalist id="known-eans">{{range .References}}<option value="{{.EAN}}" data-brand="{{deref .Brand}}" data-color-code="{{deref .ColorCode}}" data-color-name="{{deref .ColorName}}">{{template "yarnText" .}}</option>{{end}}</datalist>
     <datalist id="known-brands">{{range .Brands}}<option value="{{.}}"></option>{{end}}</datalist>
   </section>
 
@@ -91,4 +93,5 @@
     {{end}}
   </section>
 </div>
+<script src="{{asset "entries.js"}}" defer></script>
 {{end}}

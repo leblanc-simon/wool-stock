@@ -62,6 +62,7 @@ entries.lot_total:
 entries.quantity: Pelotes
 entries.reference: Marque et coloris
 entries.reference_help: 'À remplir pour un EAN inconnu. Pour un EAN déjà enregistré, laissez vide : la marque et le coloris connus sont gardés ; remplis, ces champs les remplacent.'
+entries.reference_known: 'EAN déjà enregistré : marque et coloris repris ci-dessous, à corriger si besoin.'
 entries.submit: Ajouter au stock
 entries.summary:
   one: "{{.Count}} pelote ajoutée sur cette période."

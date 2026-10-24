@@ -57,6 +57,7 @@ entries.lot_total:
 entries.quantity: Balls
 entries.reference: Brand and shade
 entries.reference_help: 'Fill in for an unknown EAN. For an EAN already recorded, leave empty to keep the known brand and shade; filled in, these fields replace them.'
+entries.reference_known: 'Known EAN: brand and shade filled in below; change them if needed.'
 entries.submit: Add to the stock
 entries.summary:
   one: "{{.Count}} ball added over this period."

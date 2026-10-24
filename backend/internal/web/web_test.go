@@ -624,7 +624,7 @@ func TestLocalPath(t *testing.T) {
 func TestStaticAssets(t *testing.T) {
 	srv := httptest.NewServer(Static())
 	t.Cleanup(srv.Close)
-	for path, want := range map[string]string{"/static/logo.svg": "image/svg+xml", "/static/style.css": "text/css"} {
+	for path, want := range map[string]string{"/static/logo.svg": "image/svg+xml", "/static/style.css": "text/css", "/static/entries.js": "text/javascript"} {
 		res, err := http.Get(srv.URL + path)
 		if err != nil {
 			t.Fatal(err)
@@ -692,9 +692,12 @@ func TestEntryForm(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	status, _, body := get(t, srv, "/entries", "fr")
-	for _, want := range []string{"Nouvelle entrée", `<form class="form" method="post" action="/entries">`, `name="request_id" value="web-`,
-		`<option value="8435407948594">Katia 1 blanc</option>`, `<option value="Katia">`, "Aucune pelote ajoutée"} {
+	status, header, body := get(t, srv, "/entries", "fr")
+	for _, want := range []string{"Nouvelle entrée", `<form class="form" method="post" action="/entries" data-reference-lookup data-known-label="EAN déjà enregistré`,
+		`name="request_id" value="web-`, `<option value="Katia">`, "Aucune pelote ajoutée",
+		// entries.js lit marque et coloris dans la liste des EAN connus.
+		`<option value="8435407948594" data-brand="Katia" data-color-code="1" data-color-name="blanc">Katia 1 blanc</option>`,
+		`<p class="form__status" role="status" data-reference-status></p>`, `<script src="/static/entries.js?v=`} {
 		if !strings.Contains(body, want) {
 			t.Errorf("entries form: %q missing", want)
 		}
@@ -702,11 +705,15 @@ func TestEntryForm(t *testing.T) {
 	if status != http.StatusOK {
 		t.Fatalf("entries: %d", status)
 	}
+	// Le script vient du site ; aucun script en ligne n'est permis.
+	if csp := header.Get("Content-Security-Policy"); !strings.Contains(csp, "script-src 'self';") {
+		t.Errorf("csp = %q", csp)
+	}
 
 	// Une référence inconnue : marque et coloris remplissent le cache ; l'UPC-A devient un EAN-13.
 	form := url.Values{"request_id": {"web-test-1"}, "ean": {" 0 12345 67890 5 "}, "dye_lot": {" A12 "}, "quantity": {"3"},
 		"brand": {"Drops"}, "color_code": {"07"}, "color_name": {""}}
-	status, header, _ := post(t, srv, srv.token, "/entries", form)
+	status, header, _ = post(t, srv, srv.token, "/entries", form)
 	added := header.Get("Location")
 	if status != http.StatusSeeOther || !strings.HasPrefix(added, "/entries?added=") {
 		t.Fatalf("create: %d → %q", status, added)

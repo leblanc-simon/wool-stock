@@ -1,6 +1,7 @@
 // Package web sert les pages HTML, réservées aux comptes connectés : le stock, les
-// entrées, les sorties et les inventaires, à consulter comme à saisir. Les pages se
-// passent de JavaScript ; les textes passent par les traductions du serveur.
+// entrées, les sorties et les inventaires, à consulter comme à saisir. Les pages marchent
+// sans JavaScript ; un script d'appoint (static/entries.js) remplit la marque et le coloris
+// d'un EAN connu. Les textes passent par les traductions du serveur.
 package web
 
 import (
@@ -149,11 +150,11 @@ func (a *App) RateLimitHandler() http.Handler {
 	}))
 }
 
-// securityHeaders : pages sans script ni ressource externe, jamais encadrées.
+// securityHeaders : pages sans ressource externe ni script en ligne, jamais encadrées.
 func securityHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h := w.Header()
-		h.Set("Content-Security-Policy", "default-src 'none'; style-src 'self'; img-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'")
+		h.Set("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'")
 		h.Set("X-Content-Type-Options", "nosniff")
 		h.Set("Referrer-Policy", "no-referrer")
 		h.Set("Cache-Control", "no-store")

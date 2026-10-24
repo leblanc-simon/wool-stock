@@ -5,7 +5,7 @@ cache des codes-barres (EAN → marque / coloris), quantité par bain, journal d
 et sorties, inventaires. Pas d'emplacement ni d'entrepôt : un seul stock. L'app et les pages
 web se connectent par **adresse email seule** ; chaque mouvement porte le nom du compte connecté.
 
-Il sert une API JSON (pour l'app) et des pages web, sans JavaScript, réservées aux comptes
+Il sert une API JSON (pour l'app) et des pages web, utilisables sans JavaScript, réservées aux comptes
 connectés. Admin comme gestionnaire y consultent le stock et y saisissent entrées, sorties et
 inventaires, comme depuis l'app :
 
@@ -13,7 +13,7 @@ inventaires, comme depuis l'app :
 |---|---|
 | `/stock` | tous les bains, épuisés compris, groupés par marque puis coloris (n° et nom) ; les marques en colonnes (3 sur ordinateur, 1 sur mobile) |
 | `/stock/export` | classeur Excel, lien « Exporter en Excel » des pages Stock et Sorties, dans la présentation du classeur tenu à la main : une feuille de stock (une table par marque : coloris, bain, n° de coloris, stock du jour ; chaque bain reçu, épuisés compris à 0) et une feuille de suivi des distributions (date, personne, pelotes, détail des bains), sur tout l'historique |
-| `/entries` | formulaire d'entrée (EAN, bain, pelotes, et marque / coloris pour un EAN inconnu) ; historique : quand, qui, quelle laine, quel bain, combien |
+| `/entries` | formulaire d'entrée (EAN, bain, pelotes, et marque / coloris pour un EAN inconnu ; un EAN déjà enregistré les remplit, si JavaScript est actif) ; historique : quand, qui, quelle laine, quel bain, combien |
 | `/exits` | formulaire de sortie (un bain en stock, pelotes, pour qui) ; historique groupé par destinataire, puis par jour, puis par bain, avec qui l'a saisi et à quelle heure |
 | `/inventories` | lancer un inventaire, partiel ou complet, ou reprendre celui en cours ; liste des inventaires : bains comptés, nombre d'anomalies, écart net |
 | `/inventories/{id}` | anomalies d'un inventaire : stock connu, quantité comptée, écart ; bains conformes repliés |

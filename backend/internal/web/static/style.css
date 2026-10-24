@@ -786,6 +786,17 @@ h4 {
     font-size: 0.875rem;
   }
 
+  /* Annonce d'entries.js : la marque et le coloris d'un EAN connu sont repris. */
+  .form__status {
+    color: var(--gain);
+    font-size: 0.875rem;
+    font-weight: 600;
+
+    &:empty {
+      display: none;
+    }
+  }
+
   /* Deux champs côte à côte, l'un sous l'autre quand la place manque. */
   .form__row {
     display: grid;
