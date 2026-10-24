@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"math"
 	"mime"
 	"net/http"
 	"regexp"
@@ -30,6 +31,14 @@ const (
 	// stockGap est le nombre de lignes vides entre deux tables d'une même colonne.
 	stockGap = 2
 )
+
+// cmWidth convertit des centimètres en largeur de colonne Excel, qui se compte en
+// chiffres de la police par défaut du classeur : Arial 11, 8 pixels par chiffre à
+// 96 ppp. Excel dessine les colonnes au pixel près, d'où l'arrondi.
+func cmWidth(cm float64) float64 {
+	const pixelsPerCm, digitPixels = 96 / 2.54, 8
+	return math.Round(cm*pixelsPerCm) / digitPixels
+}
 
 // plainNumber reconnaît un n° qu'Excel peut garder en nombre sans le changer : ni zéro
 // en tête, ni plus de 15 chiffres.
@@ -281,7 +290,8 @@ func writeStockSheet(s *sheetWriter, st exportStyles, loc *i18n.Localizer, today
 	s.check(s.f.SetRowHeight(s.sheet, 1, 36))
 	for stack := range used {
 		col := 1 + stack*(stockBlockWidth+1)
-		for i, width := range []float64{24, 12, 12, 18} {
+		// Couleur 3,5 cm, n° de bain 2,10 cm, n° de coloris 2,20 cm ; le stock, en caractères.
+		for i, width := range []float64{cmWidth(3.5), cmWidth(2.10), cmWidth(2.20), 18} {
 			s.width(col+i, width)
 		}
 		if stack < used-1 {

@@ -178,6 +178,12 @@ func TestExport(t *testing.T) {
 			t.Errorf("%s is text", name)
 		}
 	}
+	// 3,5 cm, 2,10 cm et 2,20 cm : 132, 79 et 83 pixels à 8 pixels par chiffre, dans chaque table.
+	for col, want := range map[string]float64{"A": 16.5, "B": 9.875, "C": 10.375, "F": 16.5, "G": 9.875, "H": 10.375} {
+		if got, err := f.GetColWidth(stock, col); err != nil || got != want {
+			t.Errorf("width %s = %v (%v), want %v", col, got, err, want)
+		}
+	}
 	merged, err := f.GetMergeCells(stock)
 	if err != nil {
 		t.Fatal(err)
