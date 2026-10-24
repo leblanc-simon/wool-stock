@@ -19,9 +19,9 @@ android {
         versionCode = 8
         versionName = "0.8.0"
 
-        // Serveur par défaut : 127.0.0.1 joint le poste de dev via `adb reverse tcp:8080 tcp:8080`.
-        // Modifiable dans les réglages de l'app, ou au build avec -Pwoolstock.apiUrl=…
-        val apiUrl = providers.gradleProperty("woolstock.apiUrl").getOrElse("http://127.0.0.1:8080")
+        // Serveur par défaut : celui de production. Modifiable dans les réglages de l'app, ou au
+        // build avec -Pwoolstock.apiUrl=http://127.0.0.1:8080 (poste de dev joint par `adb reverse`).
+        val apiUrl = providers.gradleProperty("woolstock.apiUrl").getOrElse("https://stock-laine.carin.family")
         buildConfigField("String", "DEFAULT_API_URL", "\"$apiUrl\"")
     }
 

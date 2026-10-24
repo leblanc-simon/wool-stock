@@ -61,8 +61,8 @@ wool-stock -c config.yaml users list
 Sans `config.yaml`, la configuration vient des variables `WS_*` (`wool-stock --help` les
 liste). Par défaut, le serveur écoute sur `127.0.0.1:8080`. Pour que des téléphones du
 réseau local le joignent, passer `web.host` à `0.0.0.0`. En développement, avec le
-téléphone branché en USB, `adb reverse tcp:8080 tcp:8080` suffit : l'app vise
-`http://127.0.0.1:8080` par défaut.
+téléphone branché en USB, `adb reverse tcp:8080 tcp:8080` puis, dans les réglages de l'app,
+l'adresse `http://127.0.0.1:8080` (l'app vise `https://stock-laine.carin.family` par défaut).
 
 ## Connexion et droits
 

@@ -37,10 +37,10 @@ L'app a quatre onglets, sous un en-tête commun (logo, « Stock de laine », ré
 cd backend && make test && make run # serveur (voir backend/README.md)
 ```
 
-En développement, avec le téléphone en USB, `adb reverse tcp:8080 tcp:8080` suffit : l'app
-vise `http://127.0.0.1:8080` par défaut. Sinon, saisir l'adresse du serveur dans les réglages
-(roue dentée de l'onglet Stock). On peut aussi changer l'adresse par défaut au build, avec
-`-Pwoolstock.apiUrl=http://192.168.1.10:8080`.
+Par défaut, l'app vise le serveur `https://stock-laine.carin.family`. Pour un autre serveur,
+saisir son adresse dans les réglages (roue dentée de l'onglet Stock), ou changer l'adresse par
+défaut au build. En développement, avec le téléphone en USB : `adb reverse tcp:8080 tcp:8080`
+et `./gradlew :app:installDebug -Pwoolstock.apiUrl=http://127.0.0.1:8080`.
 
 Le rapport du parseur est écrit dans `label-parser/build/reports/label-parser/report.md`.
 
