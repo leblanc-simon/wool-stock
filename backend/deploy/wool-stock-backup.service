@@ -1,0 +1,25 @@
+# Wool Stock — sauvegarde de la base, à installer en /etc/systemd/system/.
+# Lancée chaque nuit par wool-stock-backup.timer ; voir docs/deploiement-serveur.md.
+
+[Unit]
+Description=Sauvegarde de la base Wool Stock
+After=wool-stock.service
+
+[Service]
+Type=oneshot
+User=wool-stock
+Group=wool-stock
+UMask=0077
+# La base est en mode WAL : copier le seul fichier .db perdrait les dernières saisies.
+# .backup prend une copie cohérente, serveur démarré.
+ExecStart=/bin/sh -c 'exec sqlite3 /var/lib/wool-stock/wool-stock.db ".backup /var/backups/wool-stock/wool-stock-$(date +%%F).db"'
+# Garde 30 jours de sauvegardes.
+ExecStartPost=/usr/bin/find /var/backups/wool-stock -name 'wool-stock-*.db' -mtime +30 -delete
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+# Lire une base WAL demande d'écrire dans son fichier -shm.
+ReadWritePaths=/var/lib/wool-stock /var/backups/wool-stock

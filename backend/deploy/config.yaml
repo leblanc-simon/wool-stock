@@ -1,0 +1,30 @@
+# Wool Stock — configuration de production, à installer en /etc/wool-stock/config.yaml.
+# Voir docs/deploiement-serveur.md. Le serveur n'écoute qu'en local : nginx reçoit
+# HTTPS et lui transmet les requêtes.
+
+web:
+  host: 127.0.0.1
+  # Le même port que l'upstream de nginx.
+  port: 8080
+  rate_limit: 100
+  # nginx tourne sur la même machine : les limites portent sur l'IP réelle du client,
+  # lue dans X-Forwarded-For. Sans cette liste, tous les clients partageraient l'IP de
+  # nginx, et 5 connexions par minute suffiraient à bloquer tout le monde.
+  trusted_proxies:
+    - 127.0.0.1/32
+    - ::1/128
+
+logging:
+  level: info
+  format: text
+  source: false
+
+i18n:
+  default_language: fr
+
+database:
+  # Dossier créé par systemd (StateDirectory=wool-stock), propriété de l'utilisateur wool-stock.
+  path: /var/lib/wool-stock/wool-stock.db
+
+login:
+  rate_limit: 5

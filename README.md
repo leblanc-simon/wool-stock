@@ -48,6 +48,16 @@ Prérequis : JDK 17 ou plus, SDK Android avec la plateforme 37 (AGP l'installe a
 Go 1.26 ou plus pour le serveur.
 Versions : Gradle 9.8, AGP 9.4, Kotlin 2.4, minSdk 26, compileSdk 37, targetSdk 36.
 
+## Déployer et publier
+
+- [`docs/deploiement-serveur.md`](docs/deploiement-serveur.md) : le serveur derrière nginx,
+  en service systemd sous un utilisateur dédié, avec sauvegardes et mises à jour. Les
+  fichiers à installer sont dans `backend/deploy/`.
+- [`docs/publication-play-store.md`](docs/publication-play-store.md) : compte développeur,
+  signature, déclarations, test interne et production sur Google Play.
+- [`docs/publication-apple.md`](docs/publication-apple.md) : porter l'app sur iPhone, puis
+  la diffuser par TestFlight ou l'App Store.
+
 ## Organisation
 
 - `label-parser/` — module **Kotlin pur** (aucune dépendance Android) :

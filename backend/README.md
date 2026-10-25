@@ -203,6 +203,8 @@ Les codes possibles :
 - `internal/web` : pages HTML de consultation et de saisie (gabarits et feuille de style
   embarqués, sans JavaScript).
 - `locales` : traductions `en` / `fr` de l'API et des pages, embarquées dans le binaire.
+- `deploy` : configuration de production, services systemd (serveur et sauvegarde
+  quotidienne) et site nginx ; voir [`docs/deploiement-serveur.md`](../docs/deploiement-serveur.md).
 
 ## Limites
 

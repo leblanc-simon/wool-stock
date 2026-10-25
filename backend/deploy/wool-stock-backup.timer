@@ -1,0 +1,13 @@
+# Wool Stock — sauvegarde quotidienne, à installer en /etc/systemd/system/.
+
+[Unit]
+Description=Sauvegarde quotidienne de la base Wool Stock
+
+[Timer]
+OnCalendar=*-*-* 03:30
+RandomizedDelaySec=15m
+# Rattrape une sauvegarde manquée pendant que la machine était éteinte.
+Persistent=true
+
+[Install]
+WantedBy=timers.target
