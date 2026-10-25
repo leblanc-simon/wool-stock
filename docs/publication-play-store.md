@@ -118,7 +118,7 @@ android {
 ## 5. Construire et essayer la version release
 
 ```bash
-./gradlew :label-parser:test :app:bundleRelease
+./gradlew :label-parser:jvmTest :app:bundleRelease
 # → app/build/outputs/bundle/release/app-release.aab, le fichier à envoyer
 ```
 
@@ -263,7 +263,7 @@ l'app, mais c'est le serveur qui décide qui entre.
 ## 11. Mettre à jour
 
 1. Augmenter `versionCode` et `versionName` dans `app/build.gradle.kts`.
-2. Lancer `./gradlew :label-parser:test :app:bundleRelease`.
+2. Lancer `./gradlew :label-parser:jvmTest :app:bundleRelease`.
 3. Créer une release sur la piste voulue (test interne, puis production le cas échéant) et y
    envoyer le nouvel `.aab`. Une release de test interne peut aussi être **promue** vers une
    autre piste sans renvoyer de fichier.

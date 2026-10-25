@@ -1,8 +1,11 @@
 # Wool Stock — scan d'étiquettes de laine et stock partagé
 
-- **Application Android** (Kotlin, Compose, CameraX, ML Kit embarqué, Room). Elle lit sur une
-  étiquette de pelote le code-barre, le numéro de bain et, si possible, la marque et le coloris.
-  L'analyse d'image reste sur le téléphone : aucune image n'est envoyée.
+- **Application Android et iOS** (Kotlin Multiplatform, Compose Multiplatform, Room, Ktor).
+  Elle lit sur une étiquette de pelote le code-barre, le numéro de bain et, si possible, la
+  marque et le coloris : CameraX et ML Kit embarqué sur Android, AVFoundation et Vision sur
+  iPhone. L'analyse d'image reste sur le téléphone : aucune image n'est envoyée. La version
+  iOS se compile sous Linux ; il reste à la construire et à l'essayer sur un Mac (voir
+  [`docs/publication-apple.md`](docs/publication-apple.md)).
 - **Serveur Go** (`backend/`, sur [`open-go-base`](https://github.com/leblanc-simon/open-go-base)).
   Il tient un stock global unique, sans emplacement, partagé par plusieurs téléphones, et le
   cache des codes-barres (EAN → marque / coloris). Il sert aussi des pages web, réservées aux
@@ -32,9 +35,11 @@ L'app a quatre onglets, sous un en-tête commun (logo, « Stock de laine », ré
 ## Construire et tester
 
 ```bash
-./gradlew :label-parser:test        # parseur + rapport de taux de réussite
-./gradlew :app:installDebug         # installe sur le téléphone branché
-cd backend && make test && make run # serveur (voir backend/README.md)
+./gradlew :label-parser:jvmTest            # parseur + rapport de taux de réussite
+./gradlew :shared:testAndroidHostTest      # code commun de l'app, sur la JVM
+./gradlew :shared:compileKotlinIosArm64    # code iOS, compilé sous Linux comme sur un Mac
+./gradlew :app:installDebug                # installe sur le téléphone branché
+cd backend && make test && make run        # serveur (voir backend/README.md)
 ```
 
 Par défaut, l'app vise le serveur `https://stock-laine.carin.family`. Pour un autre serveur,
@@ -45,8 +50,9 @@ et `./gradlew :app:installDebug -Pwoolstock.apiUrl=http://127.0.0.1:8080`.
 Le rapport du parseur est écrit dans `label-parser/build/reports/label-parser/report.md`.
 
 Prérequis : JDK 17 ou plus, SDK Android avec la plateforme 37 (AGP l'installe au premier build),
-Go 1.26 ou plus pour le serveur.
-Versions : Gradle 9.8, AGP 9.4, Kotlin 2.4, minSdk 26, compileSdk 37, targetSdk 36.
+Go 1.26 ou plus pour le serveur, et un Mac avec Xcode 26 pour construire l'app iOS.
+Versions : Gradle 9.8, AGP 9.4, Kotlin 2.4, Compose Multiplatform 1.12, minSdk 26, compileSdk 37,
+targetSdk 36, iOS 17.
 
 ## Déployer et publier
 
@@ -55,46 +61,59 @@ Versions : Gradle 9.8, AGP 9.4, Kotlin 2.4, minSdk 26, compileSdk 37, targetSdk 
   fichiers à installer sont dans `backend/deploy/`.
 - [`docs/publication-play-store.md`](docs/publication-play-store.md) : compte développeur,
   signature, déclarations, test interne et production sur Google Play.
-- [`docs/publication-apple.md`](docs/publication-apple.md) : porter l'app sur iPhone, puis
-  la diffuser par TestFlight ou l'App Store.
+- [`docs/publication-apple.md`](docs/publication-apple.md) : construire et essayer l'app iOS
+  sur un Mac, puis la diffuser par TestFlight ou l'App Store.
 
 ## Organisation
 
-- `label-parser/` — module **Kotlin pur** (aucune dépendance Android) :
+- `label-parser/` — module **Kotlin multiplateforme** (JVM et iOS, sans dépendance Android ni
+  Apple), testé sur la JVM :
   - `LabelParser` : mots-clés multilingues (tolérants aux accents et à une erreur OCR),
     valeur sur la même ligne, sinon recherche spatiale à droite / en dessous, validation
     (poids, métrages, aiguilles, températures, EAN rejetés), correction prudente O→0, I/l→1, S→5, B→8
     avec conservation de la valeur brute, arbitrage bain / coloris.
-  - `BrandMatcher` + `brands.json` (dans `src/main/resources/…/parser/`) : Levenshtein normalisé,
-    bonus aux lignes en gros caractères. Ajouter une marque = ajouter une entrée JSON.
+  - `BrandMatcher` + `label-parser/brands.json` : Levenshtein normalisé, bonus aux lignes en
+    gros caractères. Ajouter une marque = ajouter une entrée JSON ; le build en fait une
+    constante Kotlin, embarquée sur les deux plateformes.
   - `ScanAccumulator` / `CandidateVoter` : vote sur les 15 dernières frames (≥ 3 votes et ≥ 50 %
     des frames qui proposent une valeur), capture automatique quand EAN et bain sont stables 1 s.
   - `LabelDump` : format JSON commun aux fixtures et à l'export du mode debug.
-- `app/` :
-  - `scan/` : CameraX + `MlKitAnalyzer`, overlay debug, export ; un même écran pour Entrée,
-    Sortie et Inventaire.
+- `shared/` — l'app elle-même, commune à Android et iOS (Compose Multiplatform). Dans
+  `commonMain` :
+  - `scan/` : écran caméra, vote sur les images, overlay debug, export ; un même écran pour
+    Entrée, Sortie et Inventaire.
   - `confirm/` : vérification avant envoi.
   - `stock/` : liste du stock global.
   - `inventory/` : inventaire en cours, bains comptés, clôture.
   - `login/` : connexion par adresse email.
-  - `settings/` : compte connecté, déconnexion, adresse du serveur, gestion des comptes (admin).
-  - `data/` : client HTTP de l'API (`api/`), réglages, et copie locale du cache des références
-    dans Room.
+  - `settings/` : compte connecté, déconnexion, suppression du compte, adresse du serveur,
+    gestion des comptes (admin).
+  - `data/` : client de l'API sur Ktor (`api/`), réglages, et copie locale du cache des
+    références dans Room.
+  - `platform/` : ce qui diffère d'une plateforme à l'autre, déclaré en `expect`. `androidMain`
+    l'implémente avec CameraX + ML Kit, les SharedPreferences et le FileProvider ; `iosMain`
+    avec AVFoundation + Vision, NSUserDefaults et la feuille de partage d'iOS.
+  - `composeResources/` : les textes (anglais et français) et le logo.
+- `app/` — l'application Android : activité, manifeste, icône du lanceur.
+- `iosApp/` — le projet Xcode de l'application iOS : il héberge l'écran Compose de `shared`
+  (`MainViewController`) ; identité et version dans `Configuration/Config.xcconfig`.
 - `backend/` — serveur Go : API JSON, SQLite, documentation de l'API dans `backend/README.md`.
 - Logo : `backend/internal/web/static/logo.svg` est la source (favicon et en-tête des pages,
   avec une variante pour le mode sombre). L'icône de l'app en reprend les tracés dans
   `app/src/main/res/drawable/ic_launcher_foreground.xml` (et `ic_launcher_monochrome.xml` pour
-  les icônes à thème) : modifier l'un, c'est reporter la modification dans les autres.
+  les icônes à thème), le logo des écrans dans `shared/src/commonMain/composeResources/drawable*`,
+  et l'icône iOS dans `iosApp/AppIcon.svg` (rendue en PNG, la commande est dans le fichier) :
+  modifier l'un, c'est reporter la modification dans les autres.
 
 ## Enrichir les fixtures avec de vraies étiquettes
 
 1. Dans l'app, activer **Debug**, viser l'étiquette quelques secondes, puis **Exporter JSON**.
    Le fichier contient les 15 dernières frames OCR (texte brut, lignes, mots, boîtes) et la
    proposition de l'app dans `parsed`.
-2. Déposer le fichier dans `label-parser/src/test/resources/labels/`.
+2. Déposer le fichier dans `label-parser/src/jvmTest/resources/labels/`.
 3. Ajouter un bloc `expected` avec les vraies valeurs (une chaîne vide = « aucune valeur attendue »,
    un champ absent n'est pas vérifié). Sans `expected`, la fixture est listée « à annoter ».
-4. `./gradlew :label-parser:test` : le test échoue si le bain est faux sur plus de 30 % des
+4. `./gradlew :label-parser:jvmTest` : le test échoue si le bain est faux sur plus de 30 % des
    étiquettes réelles annotées.
 
 ## Choix et limites
@@ -116,10 +135,13 @@ Versions : Gradle 9.8, AGP 9.4, Kotlin 2.4, minSdk 26, compileSdk 37, targetSdk 
   télémétrie de ML Kit de sortir ; les images, elles, ne quittent jamais le téléphone. La
   version debug accepte HTTP en clair. La version release exige HTTPS, sauf vers
   `127.0.0.1` (`adb reverse`).
-- **Pas d'authentification.** Chacun se nomme dans les réglages, et ce nom accompagne ses
-  mouvements. N'exposer le serveur que sur un réseau de confiance.
-- Les coordonnées OCR sont celles de la `PreviewView` (`COORDINATE_SYSTEM_VIEW_REFERENCED`) :
-  l'overlay les dessine telles quelles, et le parseur ne dépend que des distances relatives.
+- **Connexion par adresse email seule.** Le nom du compte connecté accompagne ses mouvements.
+  Connaître une adresse autorisée suffit pour se connecter : voir les limites dans
+  `backend/README.md`.
+- Les coordonnées OCR sont celles de l'aperçu, en pixels : la `PreviewView` sur Android
+  (`COORDINATE_SYSTEM_VIEW_REFERENCED`), la vue de la caméra sur iOS (les boîtes Vision y sont
+  ramenées par `AspectFillMapper`). L'overlay les dessine telles quelles, et le parseur ne
+  dépend que des distances relatives.
 - La capture automatique est suspendue en mode debug, et une étiquette déjà capturée n'est
   recapturée automatiquement qu'après avoir quitté le champ (le bouton Capturer reste disponible).
 - Sans mot-clé reconnu, aucun bain ni coloris n'est proposé : le cache EAN et la saisie prennent

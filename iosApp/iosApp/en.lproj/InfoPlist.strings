@@ -1,0 +1,3 @@
+/* Nom sous l'icône et texte de la demande d'accès à la caméra, en anglais. */
+"CFBundleDisplayName" = "Wool Stock";
+"NSCameraUsageDescription" = "The camera reads the label of each ball of yarn: barcode, dye lot and colour. Images are analysed on the iPhone and never sent.";

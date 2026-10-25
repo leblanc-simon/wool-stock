@@ -1,0 +1,21 @@
+// Identité et version de l'app iOS, lues par le projet Xcode et l'Info.plist.
+// Voir docs/publication-apple.md, section « Finaliser sur le Mac ».
+
+// Équipe Apple Developer (10 caractères, Xcode → Settings → Accounts) : obligatoire pour
+// installer sur un iPhone, vide suffit pour le simulateur.
+TEAM_ID =
+
+// Le même identifiant que l'app Android ; à changer s'il est déjà pris sur l'App Store.
+BUNDLE_ID = eu.leblancsimon.woolstock
+
+// Nom du binaire ; le nom affiché sous l'icône vient de InfoPlist.strings.
+APP_NAME = WoolStock
+
+// Les mêmes numéros que versionName et versionCode d'Android (app/build.gradle.kts).
+MARKETING_VERSION = 0.8.0
+CURRENT_PROJECT_VERSION = 8
+
+// Serveur par défaut, tant qu'aucune adresse n'est enregistrée dans les réglages de l'app.
+// « // » ouvre un commentaire dans un .xcconfig : $() le coupe. Sur le simulateur, le Mac
+// répond à http:/$()/127.0.0.1:8080.
+WOOLSTOCK_API_URL = https:/$()/stock-laine.carin.family

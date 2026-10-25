@@ -7,3 +7,7 @@ local.properties
 captures/
 .externalNativeBuild/
 .cxx/
+# Xcode
+xcuserdata/
+*.xcworkspace/
+DerivedData/

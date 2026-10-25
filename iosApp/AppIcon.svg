@@ -1,0 +1,27 @@
+<!-- Icône de l'app iOS : le logo de backend/internal/web/static/logo.svg (thème clair) sur le
+     fond lin de l'icône Android. Rendu en PNG 1024 × 1024 sans transparence :
+     inkscape iosApp/AppIcon.svg -w 1024 -h 1024 -o icon.png
+     magick icon.png -background "#F1F2EF" -alpha remove -alpha off \
+       iosApp/iosApp/Assets.xcassets/AppIcon.appiconset/AppIcon.png -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <rect width="1024" height="1024" fill="#F1F2EF"/>
+  <svg x="152" y="152" width="720" height="720" viewBox="3 -2.5 64 64">
+    <defs>
+      <clipPath id="ball">
+        <circle cx="30" cy="40" r="20"/>
+      </clipPath>
+    </defs>
+    <path d="M16 33 L41.5 3.6" fill="none" stroke="#c08a55" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M44 33 L18.5 3.6" fill="none" stroke="#c08a55" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="42.4" cy="2.6" r="3.4" fill="#8f5a2c"/>
+    <circle cx="17.6" cy="2.6" r="3.4" fill="#8f5a2c"/>
+    <circle cx="30" cy="40" r="20" fill="#2e3f8f"/>
+    <g clip-path="url(#ball)" fill="none" stroke="#9aa9ec" stroke-width="2.2" stroke-linecap="round">
+      <path d="M10 43 C18 32 32 25 49 26"/>
+      <path d="M11 52 C21 40 36 33 51 35"/>
+      <path d="M17 59 C28 49 40 44 51 45"/>
+      <path d="M22 21 C31 32 35 46 33 61"/>
+    </g>
+    <path d="M45 53 C50 59 56 60 59 56" fill="none" stroke="#2e3f8f" stroke-width="2.6" stroke-linecap="round"/>
+  </svg>
+</svg>

@@ -1,93 +1,117 @@
 # Déployer l'app sur iPhone
 
-Étapes pour proposer Wool Stock sur iPhone, du portage à l'App Store. État des règles au 24
+Étapes pour proposer Wool Stock sur iPhone, du build sur un Mac à l'App Store. État des règles au 24
 octobre 2026 ; les liens de la dernière section donnent les versions officielles.
 
-## Le point de départ : l'app n'existe que pour Android
+## Où en est le portage
 
-L'app actuelle ne tourne pas sur iPhone. Chacun de ses blocs est propre à Android :
+L'app iOS est écrite : c'est la même app que sur Android, en Kotlin Multiplatform et Compose
+Multiplatform. Les écrans, la navigation, l'accès au serveur, le cache et le parseur sont
+communs (module `shared`) ; seuls quelques blocs ont une version par plateforme :
 
-| Bloc | Aujourd'hui (Android) | Sur iPhone |
+| Bloc | Android | iPhone |
 |---|---|---|
-| Interface | Jetpack Compose | Compose Multiplatform, ou SwiftUI |
-| Caméra | CameraX | AVFoundation |
-| OCR et code-barre | ML Kit Android (modèles embarqués) | Vision d'Apple (`VNRecognizeTextRequest`, `VNDetectBarcodesRequest`), ou ML Kit iOS |
-| Parseur d'étiquettes | `label-parser`, Kotlin pur | Réutilisable tel quel avec Kotlin Multiplatform |
-| Appels au serveur | `HttpURLConnection` | Ktor (moteur Darwin), ou `URLSession` |
-| Cache local | Room | Room KMP (2.7 et plus), ou SQLDelight |
-| Réglages, session | `SharedPreferences` | DataStore KMP, ou `UserDefaults` / Trousseau |
-| Partage de l'export | `FileProvider` + `ACTION_SEND` | `UIActivityViewController` |
-| Traductions | `res/values*/strings.xml` | Ressources Compose Multiplatform, ou `Localizable.xcstrings`, avec les mêmes clés |
+| Interface et navigation | Compose Multiplatform, commun | idem |
+| Caméra | CameraX | AVFoundation (`VisionCamera`) |
+| OCR et code-barre | ML Kit, modèles embarqués | Vision (`VNRecognizeTextRequest`, `VNDetectBarcodesRequest`), sur l'iPhone |
+| Parseur d'étiquettes | `label-parser`, commun | idem |
+| Appels au serveur | Ktor, moteur Android | Ktor, moteur Darwin |
+| Cache local | Room, SQLite du système | Room, SQLite embarqué |
+| Réglages, session | `SharedPreferences` | `NSUserDefaults` |
+| Partage des exports | `FileProvider` + fenêtre de partage | `UIActivityViewController` |
+| Couleurs | dynamiques (Android 12+) | palette Material claire ou sombre |
+| Traductions | `shared/src/commonMain/composeResources`, communes | idem, plus `InfoPlist.strings` pour le nom et la demande de caméra |
 
-**Il faut aussi un Mac.** Xcode, seul outil capable de compiler et d'envoyer une app iOS, ne
-tourne que sur macOS. Trois possibilités :
+Le projet Xcode est dans `iosApp/` : il héberge l'écran Compose (`MainViewController`) et
+compile le framework Kotlin à chaque build, par Gradle.
 
-- un Mac à soi (un Mac mini suffit) ;
-- un Mac loué dans le cloud ;
-- une CI macOS, comme Xcode Cloud (25 heures par mois comprises dans l'abonnement développeur)
-  ou les runners macOS de GitHub Actions.
+**Ce qui est vérifié, sans Mac.** Tout le code Kotlin, iOS compris, se compile sous Linux
+(`./gradlew :shared:compileKotlinIosArm64`), contre les vraies API d'Apple : une faute de
+type ou d'API dans le code iOS y est donc détectée. L'app Android, qui exécute le même code
+commun, a été essayée sur un émulateur. La conversion des boîtes Vision vers le repère de
+l'écran a ses tests (`./gradlew :shared:testAndroidHostTest`).
 
-### Avant de porter : les pages web suffisent-elles ?
+**Ce qui ne l'est pas.** L'édition de liens du framework, le build Xcode et l'exécution
+demandent un Mac : l'app iOS n'a encore jamais tourné. Restent donc à essayer la caméra, la
+qualité de l'OCR de Vision sur de vraies étiquettes, la demande d'autorisation, la feuille de
+partage et le clavier (section 1).
 
-Le serveur sert déjà des pages utilisables sur iPhone, dans Safari, à l'adresse
-`https://stock-laine.carin.family`. On y consulte le stock, on y saisit entrées, sorties et
-inventaires, et on y télécharge l'export. Le partage → « Sur l'écran d'accueil » leur donne
-une icône. Il manque seulement le scan : l'EAN et le bain se tapent à la main.
+**Il faut un Mac.** Xcode, seul outil capable de compiler et d'envoyer une app iOS, ne
+tourne que sur macOS : un Mac à soi (un Mac mini suffit), un Mac loué dans le cloud, ou une
+CI macOS (Xcode Cloud, 25 heures par mois comprises dans l'abonnement développeur, ou les
+runners macOS de GitHub Actions).
 
-Si les personnes sur iPhone saisissent peu, c'est la solution immédiate, sans Mac, sans
-abonnement et sans revue.
+**En attendant : les pages web.** Le serveur sert déjà des pages utilisables dans Safari, à
+l'adresse `https://stock-laine.carin.family` : stock, entrées, sorties, inventaires et
+export. Le partage → « Sur l'écran d'accueil » leur donne une icône. Il n'y manque que le
+scan : l'EAN et le bain se tapent à la main.
 
-## 1. Choisir la technique de portage
+## 1. Finaliser sur le Mac
 
-**Kotlin Multiplatform et Compose Multiplatform (recommandé).** On garde une seule base de
-code, et Compose Multiplatform est stable sur iOS depuis sa version 1.8. Le partage se fait
-ainsi :
+### Installer les outils
 
-- **En commun** : le parseur, les modèles de l'API, le client HTTP, le cache, les écrans et
-  leurs ViewModels.
-- **Propre à chaque plateforme** : la caméra, l'OCR et le partage de fichier, derrière une
-  interface commune (`expect` / `actual`).
+- **Xcode 26** ou plus, depuis l'App Store, avec le simulateur iOS.
+- **Un JDK 17 ou plus**, par exemple Temurin 21. Le build Xcode le trouve seul
+  (`/usr/libexec/java_home`).
+- **Le SDK Android** : Gradle configure aussi la cible Android du module `shared`. Le plus
+  simple est d'installer Android Studio, qui sert aussi à modifier le code Kotlin. Sinon,
+  indiquer le chemin du SDK dans `local.properties` (`sdk.dir=…`).
 
-**SwiftUI, avec le parseur en framework Kotlin.** Une app iOS native qui n'importe que
-`label-parser`, compilé en XCFramework. L'interface est plus « iPhone », mais tous les écrans
-sont à réécrire et à maintenir deux fois.
+### Premier build
 
-## 2. Porter le code
+1. Dans le dépôt, lier une première fois le framework pour le simulateur :
 
-Dans l'ordre :
+   ```bash
+   ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
+   ```
 
-1. **`label-parser` en module multiplateforme.** Il n'utilise que trois API propres à la JVM :
-   - `java.text.Normalizer`, qui retire les accents ;
-   - `java.util.Locale` ;
-   - `getResourceAsStream("brands.json")`, qui charge le dictionnaire des marques.
+   C'est la seule étape que Linux n'a pas pu faire. Une erreur d'édition de liens nomme en
+   général un framework système : l'ajouter à `OTHER_LDFLAGS` dans le projet Xcode.
+2. Ouvrir `iosApp/iosApp.xcodeproj`. Si Xcode propose de passer aux réglages recommandés,
+   accepter, mais laisser **User Script Sandboxing à No** : la phase « Compile Kotlin
+   Framework » lance Gradle, qui écrit hors du bac à sable.
+3. Choisir un simulateur d'iPhone, puis Run. Le simulateur n'a pas de caméra : l'écran de
+   scan reste noir, les autres écrans fonctionnent. Par défaut, l'app vise le serveur de
+   production. Pour un serveur lancé sur le Mac, changer l'adresse dans les réglages de l'app,
+   ou `WOOLSTOCK_API_URL` dans `iosApp/Configuration/Config.xcconfig`, par exemple
+   `http:/$()/127.0.0.1:8080`.
 
-   Les remplacer par des `expect` / `actual`, ou embarquer le dictionnaire comme ressource
-   multiplateforme. Ses tests passent alors sur la JVM et sur iOS.
-2. **Client et modèles de l'API.**
-   - `kotlinx.serialization` est déjà multiplateforme.
-   - `HttpURLConnection` devient Ktor. Il faut garder les en-têtes `Authorization` et
-     `Accept-Language`, et la lecture de `Content-Disposition` pour l'export.
-3. **Cache et réglages** : Room KMP pour les références, DataStore pour l'adresse du serveur
-   et la session. La session est un jeton qui n'expire pas : sur iPhone, elle a sa place dans
-   le Trousseau.
-4. **Écrans** : migrer les écrans Compose vers Compose Multiplatform, et les chaînes vers ses
-   ressources, avec les mêmes clés en anglais et les traductions fr et en.
-5. **Caméra et OCR sur iOS.**
-   - AVFoundation fournit les images, et Vision y lit le texte et les codes-barres.
-   - Vision renvoie des boîtes en coordonnées normalisées, avec l'origine en **bas** à gauche.
-     Le parseur attend des `Rect` en pixels, avec l'origine en haut à gauche : la conversion
-     décide de la recherche « à droite / en dessous ».
-   - Pour valider, enregistrer des relevés iOS au format `LabelDump` et comparer le taux de
-     réussite au rapport du parseur (`label-parser/build/reports/label-parser/report.md`).
-6. **Partage de l'export** : `UIActivityViewController`, avec le fichier `.xlsx` écrit dans
-   le dossier temporaire.
+### Sur un iPhone
 
-**Réseau.** iOS exige HTTPS (App Transport Security), ce que le serveur de production
-respecte. Pour viser un serveur de développement en HTTP, ajouter une exception
-`NSAllowsLocalNetworking` réservée à la configuration Debug. iOS n'a pas d'équivalent à
-`adb reverse` : l'iPhone vise l'adresse du Mac sur le réseau local.
+1. Dans `Config.xcconfig`, renseigner `TEAM_ID`, l'identifiant de l'équipe (Xcode →
+   Settings → Accounts). Avec l'équipe personnelle gratuite, le profil expire au bout de
+   7 jours ; avec l'abonnement (section 2), l'iPhone est déclaré dans le compte.
+2. Si Xcode répond que l'identifiant est déjà pris, changer `BUNDLE_ID`.
+3. Brancher l'iPhone, activer le mode développeur (Réglages → Confidentialité et sécurité →
+   Mode développeur), puis Run.
 
-## 3. Compte Apple Developer Program
+### À vérifier
+
+- **Autorisation** : la demande s'affiche en français, avec le texte de `InfoPlist.strings`.
+  Après un refus, le bouton de l'écran de scan ouvre les Réglages.
+- **Aperçu et boîtes** : en mode Debug, les rectangles doivent tomber sur le texte de
+  l'étiquette. Un décalage vient de la conversion des coordonnées (`AspectFillMapper`) ou de
+  l'orientation des images (`VisionCamera`, rotation de 90°).
+- **Lecture** : EAN-13 et UPC, bain, marque, coloris, capture automatique, lampe.
+- **Qualité de l'OCR** : exporter des relevés JSON depuis l'iPhone (Debug → Exporter JSON),
+  les ajouter aux fixtures (`label-parser/src/jvmTest/resources/labels/`) et comparer le taux
+  de réussite au rapport du parseur. Si Vision lit mal les petits tampons, essayer un zoom de
+  la caméra (`videoZoomFactor`), une zone d'intérêt (`regionOfInterest`) ou, en dernier
+  recours, ML Kit pour iOS.
+- **Le reste** : saisies, export Excel par la feuille de partage, clavier qui ne masque pas
+  les champs, retour par glissement depuis le bord, mode sombre, connexion gardée après un
+  redémarrage, « Supprimer mon compte ».
+
+### Points connus
+
+- La session est gardée dans `NSUserDefaults`, comme dans les `SharedPreferences` d'Android.
+  Le Trousseau serait plus sûr : les `NSUserDefaults` partent dans les sauvegardes de
+  l'iPhone, alors que l'app Android exclut les siennes (`allowBackup="false"`).
+- Après un envoi à App Store Connect, Apple peut écrire (ITMS-91053) qu'une API « à raison
+  déclarée » manque au manifeste `PrivacyInfo.xcprivacy` : l'y ajouter avec la raison
+  proposée.
+
+## 2. Compte Apple Developer Program
 
 1. S'inscrire sur [developer.apple.com/programs](https://developer.apple.com/programs/),
    avec un compte Apple protégé par l'identification à deux facteurs.
@@ -103,38 +127,27 @@ respecte. Pour viser un serveur de développement en HTTP, ajouter une exception
    - un commerçant voit son adresse, son téléphone et son email publiés sur la fiche de l'app
      dans l'UE.
 
-## 4. Projet Xcode
+**Déjà réglé dans le projet** (`iosApp/`) :
+
+- iPhone seulement, iOS 17 ou plus, en portrait (sinon l'App Store exigerait aussi des
+  captures d'iPad) ;
+- bundle ID `eu.leblancsimon.woolstock`, le même que sur Android, version et numéro de build
+  repris d'Android (`Config.xcconfig`) ;
+- `NSCameraUsageDescription`, en anglais et en français ; sans cette clé, l'app planterait à
+  l'ouverture de la caméra ;
+- `ITSAppUsesNonExemptEncryption = NO` : l'app ne chiffre que par HTTPS, via le système ;
+- `NSAllowsLocalNetworking`, pour viser un serveur de développement en HTTP sur le réseau
+  local ; le serveur de production est en HTTPS, comme l'exige iOS ;
+- le manifeste de confidentialité : données collectées (adresse email, nom, mouvements
+  saisis), sans pistage, et API « à raison déclarée » (`UserDefaults`, horodatage des fichiers
+  pour SQLite, horloge du système pour le scan) ;
+- l'icône, tirée du logo (`iosApp/AppIcon.svg`).
 
 **Version d'Xcode.** Depuis le 28 avril 2026, tout envoi à App Store Connect doit être
 compilé avec **Xcode 26 ou plus** et le SDK iOS 26. Apple relève cette exigence chaque
 printemps.
 
-**Identifiant et signature.**
-- Bundle ID : `eu.leblancsimon.woolstock`, le même que sur Android.
-- Signature automatique avec l'équipe du compte développeur.
-
-**Appareils.** iPhone seulement. Sinon, l'App Store exigera aussi des captures d'iPad.
-
-**`Info.plist` :**
-- `NSCameraUsageDescription` : pourquoi l'app demande la caméra (« Lire les étiquettes et
-  les codes-barres des pelotes »), traduit en français et en anglais dans
-  `InfoPlist.xcstrings`. Sans cette clé, l'app plante à l'ouverture de la caméra et la
-  revue la refuse.
-- `ITSAppUsesNonExemptEncryption = NO` : l'app ne chiffre que par HTTPS, via le système.
-  Cela évite la question sur l'export de cryptographie à chaque envoi.
-
-**Manifeste de confidentialité** (`PrivacyInfo.xcprivacy`) :
-- `UserDefaults` fait partie des API « à raison déclarée » (raison `CA92.1`) ;
-- y déclarer aussi les données collectées : adresse email, nom.
-
-## 5. Essayer sur un iPhone
-
-- **Sans abonnement** : avec l'équipe personnelle gratuite, Xcode installe l'app sur un
-  iPhone branché. Le profil expire au bout de 7 jours.
-- **Avec l'abonnement** : déclarer l'iPhone dans le compte et installer des builds de
-  développement sans limite de durée courte.
-
-## 6. Créer l'app dans App Store Connect
+## 3. Créer l'app dans App Store Connect
 
 **Apps → Nouvelle app** :
 - plateforme iOS ;
@@ -143,10 +156,10 @@ printemps.
 - bundle ID ;
 - SKU, une référence interne, par exemple `wool-stock`.
 
-## 7. Envoyer un build
+## 4. Envoyer un build
 
-Le numéro de build (`CFBundleVersion`) augmente à chaque envoi. La version
-(`CFBundleShortVersionString`) peut suivre le `versionName` d'Android.
+Le numéro de build (`CURRENT_PROJECT_VERSION` dans `Config.xcconfig`) augmente à chaque
+envoi. La version (`MARKETING_VERSION`) suit le `versionName` d'Android.
 
 Envoi depuis Xcode :
 1. Product → **Archive**.
@@ -155,7 +168,7 @@ Envoi depuis Xcode :
 Xcode Cloud peut faire la même chose à chaque tag Git. Le build apparaît dans App Store
 Connect après un traitement de quelques minutes.
 
-## 8. TestFlight
+## 5. TestFlight
 
 - **Testeurs internes** :
   - jusqu'à 100 personnes, membres de l'équipe App Store Connect ;
@@ -168,7 +181,7 @@ Connect après un traitement de quelques minutes.
 
 Les testeurs installent l'app TestFlight, puis Wool Stock par l'invitation.
 
-## 9. Choisir la diffusion
+## 6. Choisir la diffusion
 
 | Mode | Pour qui | Contraintes |
 |---|---|---|
@@ -185,7 +198,7 @@ Pour la distribution non répertoriée :
 4. Une fois la demande acceptée, App Store Connect fournit le lien à partager. Le serveur
    reste le contrôle d'accès : sans compte autorisé, l'app ne montre rien.
 
-## 10. Fiche App Store et confidentialité
+## 7. Fiche App Store et confidentialité
 
 Champs de la fiche :
 
@@ -199,14 +212,15 @@ Champs de la fiche :
 - **URL d'assistance et URL de règles de confidentialité**, toutes deux obligatoires. La
   page de confidentialité peut être la même que pour Google Play.
 - **Confidentialité de l'app** (« étiquette nutritionnelle ») :
-  - adresse email et nom collectés, liés à la personne, pour le fonctionnement de l'app ;
+  - adresse email, nom et mouvements saisis (« autres contenus de l'utilisateur »), collectés,
+    liés à la personne, pour le fonctionnement de l'app, comme dans le manifeste ;
   - pas de pistage ;
   - images de la caméra non collectées.
 - **Classification par âge** : remplir le questionnaire. L'app ne contient aucun contenu
   sensible.
 - **Prix** : gratuit ; disponibilité : pays choisis.
 
-## 11. Revue
+## 8. Revue
 
 À donner dans les **informations de revue** :
 
@@ -225,7 +239,7 @@ Champs de la fiche :
 La revue prend en général 24 à 48 heures. Un refus arrive avec la guideline en cause, et on
 peut répondre depuis App Store Connect.
 
-## 12. Mettre à jour
+## 9. Mettre à jour
 
 1. Augmenter la version et le numéro de build.
 2. Archiver, puis envoyer le build.

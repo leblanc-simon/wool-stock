@@ -1,11 +1,10 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+// L'application Android : l'activité, le conteneur de dépendances et les ressources du
+// lanceur. Les écrans vivent dans :shared, communs avec l'app iOS.
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.room)
 }
 
 android {
@@ -52,39 +51,7 @@ kotlin {
     }
 }
 
-room {
-    schemaDirectory("$projectDir/schemas")
-}
-
 dependencies {
-    implementation(project(":label-parser"))
-
-    implementation(libs.androidx.core.ktx)
+    implementation(project(":shared"))
     implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.navigation.compose)
-
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.material.icons.core)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-
-    implementation(libs.androidx.camera.camera2)
-    implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.view)
-    implementation(libs.androidx.camera.mlkit.vision)
-
-    // Modèles embarqués dans l'APK : aucun téléchargement via Play Services.
-    implementation(libs.mlkit.barcode.scanning)
-    implementation(libs.mlkit.text.recognition)
-
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
-
-    implementation(libs.kotlinx.serialization.json)
 }

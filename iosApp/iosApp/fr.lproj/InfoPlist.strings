@@ -1,0 +1,3 @@
+/* Nom sous l'icône et texte de la demande d'accès à la caméra, en français. */
+"CFBundleDisplayName" = "Stock de laine";
+"NSCameraUsageDescription" = "La caméra lit l’étiquette de chaque pelote : code-barre, bain et coloris. Les images sont analysées sur l’iPhone et jamais envoyées.";

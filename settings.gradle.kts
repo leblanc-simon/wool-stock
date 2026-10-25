@@ -22,4 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "wool-stock"
 
-include(":app", ":label-parser")
+include(":app", ":shared", ":label-parser")
