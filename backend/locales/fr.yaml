@@ -219,6 +219,7 @@ layout.nav_inventories: Inventaires
 layout.nav_label: Rubriques
 layout.nav_stock: Stock
 layout.nav_users: "Utilisateurs"
+login.deleted: "Votre compte a été supprimé et vos appareils ont été déconnectés."
 login.email: Adresse email
 login.intro: Saisissez l’adresse email qu’un administrateur a autorisée.
 login.submit: Se connecter
@@ -226,6 +227,13 @@ login.title: Connexion
 movements.recorded_at: Saisie à {{.Time}}
 movements.recorded_by: Saisie par {{.Author}} à {{.Time}}
 movements.truncated: Seuls les {{.Limit}} plus récents sont affichés. Resserrez la période pour voir les autres.
+my_account.delete_confirm: "Oui, supprimer définitivement mon compte"
+my_account.delete_help: "Votre adresse ne sera plus autorisée et tous vos appareils seront déconnectés, application comme navigateur. Votre nom reste sur les entrées, sorties et inventaires déjà saisis : ils font partie de l’historique du stock. Pour revenir, demandez à un administrateur de recréer votre compte."
+my_account.delete_open: "Supprimer mon compte…"
+my_account.delete_title: "Supprimer mon compte"
+my_account.last_admin: "Vous êtes le dernier administrateur : donnez d’abord ce droit à un autre compte, depuis Utilisateurs, puis supprimez le vôtre."
+my_account.lead: "Votre nom signe chaque entrée, sortie et comptage que vous saisissez."
+my_account.title: "Mon compte"
 role.admin: "Administrateur"
 role.admin_help: "Comme un gestionnaire, et gère en plus les comptes."
 role.manager: "Gestionnaire"

@@ -122,6 +122,25 @@ func (a *App) me(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]store.User{"user": currentUser(r)})
 }
 
+// deleteMe supprime le compte connecté et toutes ses sessions, à la demande de son
+// titulaire ; son nom reste sur les mouvements et inventaires déjà saisis. Le dernier
+// administrateur est refusé (409) : il doit d'abord en nommer un autre.
+func (a *App) deleteMe(w http.ResponseWriter, r *http.Request) {
+	user := currentUser(r)
+	err := a.Store.DeleteUser(r.Context(), user.ID)
+	if errors.Is(err, store.ErrLastAdmin) {
+		a.fail(w, r, &problem{status: http.StatusConflict, code: CodeLastAdmin})
+		return
+	}
+	// ErrNotFound : un admin vient de retirer ce compte, le résultat est le même.
+	if err != nil && !errors.Is(err, store.ErrNotFound) {
+		a.internalError(w, r, err)
+		return
+	}
+	a.Logger.Info("account deleted", "user", user.Email)
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
 func (a *App) logout(w http.ResponseWriter, r *http.Request) {
 	if err := a.Store.CloseSession(r.Context(), bearer(r)); err != nil {
 		a.internalError(w, r, err)

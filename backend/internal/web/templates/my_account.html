@@ -1,0 +1,28 @@
+{{define "content"}}
+<div class="page__head">
+  <h1 class="page__title">{{T "my_account.title"}}</h1>
+  <p class="page__lead">{{T "my_account.lead"}}</p>
+</div>
+{{with .Error}}<p class="notice notice--error" role="alert">{{T .}}</p>{{end}}
+<div class="sheet">
+  <section class="card" aria-labelledby="identity-title">
+    <h2 class="section-title" id="identity-title">{{.User.Name}}</h2>
+    <p>{{.User.Email}}</p>
+    <p class="muted">{{T (print "role." .User.Role)}}</p>
+    <form method="post" action="/logout">
+      <button class="button button--secondary" type="submit">{{T "layout.logout"}}</button>
+    </form>
+  </section>
+
+  <section class="card card--danger" aria-labelledby="delete-title">
+    <h2 class="section-title" id="delete-title">{{T "my_account.delete_title"}}</h2>
+    <p>{{T "my_account.delete_help"}}</p>
+    <details class="confirm">
+      <summary class="confirm__summary">{{T "my_account.delete_open"}}</summary>
+      <form method="post" action="/account/delete">
+        <button class="button button--danger" type="submit">{{T "my_account.delete_confirm"}}</button>
+      </form>
+    </details>
+  </section>
+</div>
+{{end}}

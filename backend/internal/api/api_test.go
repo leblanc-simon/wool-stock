@@ -473,3 +473,48 @@ func TestUserManagement(t *testing.T) {
 		t.Fatalf("users = %+v", res)
 	}
 }
+
+func TestDeleteOwnAccount(t *testing.T) {
+	srv := newServer(t)
+	ctx := context.Background()
+	marie, err := srv.store.CreateUser(ctx, "marie@example.org", "Marie", store.RoleManager, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	phone, err := srv.store.OpenSession(ctx, marie.ID, "Pixel 6")
+	if err != nil {
+		t.Fatal(err)
+	}
+	browser, err := srv.store.OpenSession(ctx, marie.ID, "Firefox")
+	if err != nil {
+		t.Fatal(err)
+	}
+	res := call(t, srv, http.MethodPost, "/api/movements", `{"kind":"in","ean":"12345670","dye_lot":"A","quantity":2}`, "Authorization", "Bearer "+phone)
+	if res.status != http.StatusCreated {
+		t.Fatalf("movement = %+v", res)
+	}
+
+	// Le dernier administrateur ne peut pas supprimer son compte.
+	res = call(t, srv, http.MethodDelete, "/api/auth/me", "", "Accept-Language", "fr")
+	if res.status != http.StatusConflict || res.errorField("code") != CodeLastAdmin || res.errorField("message") != "Il doit rester au moins un administrateur." {
+		t.Fatalf("last admin = %+v", res)
+	}
+
+	// Le compte et toutes ses sessions disparaissent ; son nom reste sur ses mouvements.
+	if res := call(t, srv, http.MethodDelete, "/api/auth/me", "", "Authorization", "Bearer "+phone); res.status != http.StatusOK {
+		t.Fatalf("delete = %+v", res)
+	}
+	for _, token := range []string{phone, browser} {
+		if res := call(t, srv, http.MethodGet, "/api/auth/me", "", "Authorization", "Bearer "+token); res.status != http.StatusUnauthorized {
+			t.Errorf("session after deletion = %+v", res)
+		}
+	}
+	if _, err := srv.store.UserByEmail(ctx, "marie@example.org"); err != store.ErrNotFound {
+		t.Errorf("user after deletion: err = %v", err)
+	}
+	res = call(t, srv, http.MethodGet, "/api/movements", "")
+	movements, _ := res.body["movements"].([]any)
+	if len(movements) != 1 || movements[0].(map[string]any)["author"] != "Marie" {
+		t.Errorf("movements after deletion = %+v", res)
+	}
+}

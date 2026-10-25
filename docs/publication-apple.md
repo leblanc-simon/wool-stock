@@ -218,8 +218,8 @@ Champs de la fiche :
   un administrateur. Le cas échéant, préciser la demande de distribution non répertoriée.
 - **Suppression de compte** (guideline 5.1.1(v)). Toute app qui permet de créer un compte
   doit permettre de le supprimer depuis l'app. Ici, seuls les administrateurs créent des
-  comptes : le même cas limite que pour Google. Un « Supprimer mon compte » dans les réglages
-  règle la question des deux côtés.
+  comptes : le même cas limite que pour Google. L'app le permet déjà : Réglages → « Supprimer
+  mon compte ». Le signaler dans les notes de revue.
 - **Serveur joignable** pendant toute la revue (guideline 2.1).
 
 La revue prend en général 24 à 48 heures. Un refus arrive avec la guideline en cause, et on

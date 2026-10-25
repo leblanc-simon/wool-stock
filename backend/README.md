@@ -18,6 +18,7 @@ inventaires, comme depuis l'app :
 | `/inventories` | lancer un inventaire, partiel ou complet, ou reprendre celui en cours ; liste des inventaires : bains comptés, nombre d'anomalies, écart net |
 | `/inventories/{id}` | anomalies d'un inventaire : stock connu, quantité comptée, écart ; bains conformes repliés |
 | `/inventories/{id}/count` | feuille de comptage de l'inventaire en cours : chaque bain par marque puis coloris, son stock connu, « Valider le stock » ou une autre quantité, ajouter ou remplacer un comptage déjà fait ; terminer l'inventaire |
+| `/account` | le compte connecté (lien sur son nom, dans l'en-tête) : se déconnecter, supprimer son compte. C'est l'adresse à déclarer aux stores pour la suppression de compte |
 | `/users` | admin seulement : comptes, droit, sessions ouvertes et dernière activité ; ajout d'un compte |
 | `/users/{id}` | admin seulement : modifier l'adresse, le nom et le droit, fermer les sessions, retirer l'accès |
 
@@ -72,6 +73,10 @@ l'adresse `http://127.0.0.1:8080` (l'app vise `https://stock-laine.carin.family`
 - Toutes les autres routes `/api/…` (sauf `health`) demandent `Authorization: Bearer <jeton>` ;
   sans jeton valide : `401 error.unauthorized`. `GET /api/auth/me` renvoie le compte,
   `POST /api/auth/logout` ferme la session.
+- Chacun peut supprimer son propre compte : `DELETE /api/auth/me` depuis l'app (Réglages →
+  Supprimer mon compte), ou la page `/account`. Le compte et toutes ses sessions disparaissent ;
+  son nom reste sur les mouvements et inventaires déjà saisis, qui font l'historique du stock.
+  Le dernier admin est refusé (`409 error.last_admin`) : il nomme d'abord un autre admin.
 - Deux droits : **admin** et **manager** (gestionnaire). Seul l'admin gère les comptes : par
   l'API (`GET /api/users`, `POST /api/users` avec `{"email","name","role"}`) et sur les pages
   `/users`. Sur ces pages, un nom laissé vide se déduit de l'adresse, comme dans l'app ; fermer
@@ -87,8 +92,8 @@ l'adresse `http://127.0.0.1:8080` (l'app vise `https://stock-laine.carin.family`
   la connexion (seules les adresses de ce site sont suivies). La session vit dans le cookie
   `ws_session` (`HttpOnly`, `SameSite=Lax`, `Secure` quand la requête arrive en HTTPS ou avec
   `X-Forwarded-Proto: https`), renouvelé pour 400 jours à chaque page : le navigateur reste
-  connecté tant qu'on revient dans l'année. « Se déconnecter » (en-tête) ne ferme que la session
-  du navigateur. Les formulaires postés depuis un autre site sont refusés (`403`).
+  connecté tant qu'on revient dans l'année. « Se déconnecter » (en-tête, et page `/account`
+  sur un téléphone) ne ferme que la session du navigateur. Les formulaires postés depuis un autre site sont refusés (`403`).
 - **Limite des connexions** : `POST /api/auth/login` et `POST /login` partagent un limiteur
   dédié, `login.rate_limit` (`WS_LOGIN_RATE_LIMIT`, 5 tentatives par minute et par client par
   défaut), en plus de la limite générale `web.rate_limit`. C'est le composant `ratelimit`

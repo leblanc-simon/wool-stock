@@ -47,6 +47,7 @@ fun Throwable.toErrorMessage(): ErrorMessage = when (this) {
         "error.email_not_allowed" -> ErrorMessage.Resource(R.string.error_email_not_allowed)
         "error.email_taken" -> ErrorMessage.Resource(R.string.error_email_taken)
         "error.forbidden" -> ErrorMessage.Resource(R.string.error_forbidden)
+        "error.last_admin" -> ErrorMessage.Resource(R.string.error_last_admin)
         "error.unauthorized" -> ErrorMessage.Resource(R.string.error_unauthorized)
         "validation.email" -> ErrorMessage.Resource(R.string.validation_email)
         "validation.name_required" -> ErrorMessage.Resource(R.string.validation_name_required)

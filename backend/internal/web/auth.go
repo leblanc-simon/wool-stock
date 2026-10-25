@@ -74,6 +74,8 @@ type loginView struct {
 	Email string
 	Next  string
 	Error string
+	// Deleted annonce que le compte vient d'être supprimé.
+	Deleted bool
 }
 
 func (a *App) loginForm(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +84,7 @@ func (a *App) loginForm(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, next, http.StatusSeeOther)
 		return
 	}
-	a.render(w, r, http.StatusOK, "login", "", "login.title", loginView{Next: next})
+	a.render(w, r, http.StatusOK, "login", "", "login.title", loginView{Next: next, Deleted: r.URL.Query().Has("deleted")})
 }
 
 // login ouvre une session sans fin pour une adresse autorisée, comme l'application.
@@ -122,8 +124,7 @@ func (a *App) logout(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	http.SetCookie(w, &http.Cookie{Name: sessionCookie, Path: "/", MaxAge: -1, HttpOnly: true,
-		Secure: secure(r), SameSite: http.SameSiteLaxMode})
+	clearSessionCookie(w, r)
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
@@ -139,6 +140,12 @@ func setSessionCookie(w http.ResponseWriter, r *http.Request, token string) {
 		Secure:   secure(r),
 		SameSite: http.SameSiteLaxMode,
 	})
+}
+
+// clearSessionCookie efface le cookie de session du navigateur.
+func clearSessionCookie(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{Name: sessionCookie, Path: "/", MaxAge: -1, HttpOnly: true,
+		Secure: secure(r), SameSite: http.SameSiteLaxMode})
 }
 
 // secure dit si le navigateur parle en HTTPS, directement ou derrière un reverse proxy.

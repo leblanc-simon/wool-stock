@@ -29,7 +29,7 @@ var templateFiles embed.FS
 var staticFiles embed.FS
 
 // pageNames liste les pages rendues dans la mise en page commune.
-var pageNames = []string{"login", "stock", "entries", "exits", "inventories", "inventory", "count", "users", "user", "error"}
+var pageNames = []string{"login", "stock", "entries", "exits", "inventories", "inventory", "count", "users", "user", "my_account", "error"}
 
 // App porte les dépendances des pages.
 type App struct {
@@ -90,6 +90,8 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("GET /inventories/{id}/count", a.signedIn(a.countSheet))
 	mux.HandleFunc("POST /inventories/{id}/count", a.signedIn(a.count))
 	mux.HandleFunc("POST /inventories/{id}/close", a.signedIn(a.closeInventory))
+	mux.HandleFunc("GET /account", a.signedIn(a.myAccount))
+	mux.HandleFunc("POST /account/delete", a.signedIn(a.deleteMyAccount))
 	mux.HandleFunc("GET /users", a.adminOnly(a.users))
 	mux.HandleFunc("POST /users", a.adminOnly(a.createUser))
 	mux.HandleFunc("GET /users/{id}", a.adminOnly(a.user))
@@ -167,7 +169,8 @@ type page struct {
 	Lang string
 	// User est le compte connecté ; nil sur la page de connexion.
 	User *store.User
-	// Nav désigne l'onglet courant : stock, entries, exits, inventories ou users.
+	// Nav désigne l'onglet courant : stock, entries, exits, inventories ou users ;
+	// account pour la page du compte connecté.
 	Nav string
 	// Title est une clé de traduction.
 	Title string

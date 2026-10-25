@@ -37,6 +37,7 @@
     <string name="error_email_not_allowed">This email address is not allowed. Ask an administrator to add it.</string>
     <string name="error_email_taken">This email address already has an account.</string>
     <string name="error_forbidden">Only an administrator can do this.</string>
+    <string name="error_last_admin">You are the last administrator: first make another account an administrator, then delete yours.</string>
     <string name="error_unauthorized">Sign in again.</string>
 
     <!-- Transverse: account roles -->
@@ -187,6 +188,10 @@
     <string name="settings_account_help">Your name is recorded with each entry, exit and count made on this phone.</string>
     <string name="settings_users">Manage users</string>
     <string name="settings_logout">Sign out</string>
+    <string name="settings_delete_account">Delete my account</string>
+    <string name="settings_delete_account_title">Delete your account?</string>
+    <string name="settings_delete_account_text">Your email address will no longer be allowed and all your devices will be signed out, phones and browsers alike. Your name stays on the entries, exits and inventories already recorded: they are part of the stock history. To come back, ask an administrator to create your account again.</string>
+    <string name="settings_delete_account_confirm">Delete</string>
     <string name="settings_server">Server</string>
     <string name="settings_server_url">Server address</string>
     <string name="settings_server_url_help">For example http://192.168.1.10:8080</string>

@@ -11,7 +11,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -21,6 +23,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,6 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import eu.leblancsimon.woolstock.R
 import eu.leblancsimon.woolstock.data.api.Session
+import eu.leblancsimon.woolstock.ui.ErrorMessage
 import eu.leblancsimon.woolstock.ui.text
 
 /** Réglages : le compte connecté (avec la gestion des comptes pour un admin), puis le serveur. */
@@ -48,6 +52,25 @@ fun SettingsScreen(
     val session by viewModel.session.collectAsStateWithLifecycle()
     val currentOnBack by rememberUpdatedState(onBack)
     LaunchedEffect(viewModel) { viewModel.saved.collect { currentOnBack() } }
+
+    if (state.confirmingDelete) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissDeleteAccount,
+            title = { Text(stringResource(R.string.settings_delete_account_title)) },
+            text = { Text(stringResource(R.string.settings_delete_account_text)) },
+            confirmButton = {
+                TextButton(
+                    onClick = viewModel::deleteAccount,
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                ) {
+                    Text(stringResource(R.string.settings_delete_account_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissDeleteAccount) { Text(stringResource(R.string.common_cancel)) }
+            },
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -71,6 +94,11 @@ fun SettingsScreen(
         ) {
             session?.let { current ->
                 Account(current, onOpenUsers = onOpenUsers, onLogout = viewModel::logout)
+                DeleteAccount(
+                    deleting = state.deleting,
+                    error = state.deleteError,
+                    onDelete = viewModel::askDeleteAccount,
+                )
                 HorizontalDivider(Modifier.padding(vertical = 16.dp))
             }
             Text(stringResource(R.string.settings_server), style = MaterialTheme.typography.titleMedium)
@@ -133,5 +161,21 @@ private fun Account(session: Session, onOpenUsers: () -> Unit, onLogout: () -> U
         OutlinedButton(onClick = onLogout, modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
             Text(stringResource(R.string.settings_logout))
         }
+    }
+}
+
+/** Suppression du compte par son titulaire, exigée par les stores ; confirmée par un dialogue. */
+@Composable
+private fun DeleteAccount(deleting: Boolean, error: ErrorMessage?, onDelete: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        TextButton(
+            onClick = onDelete,
+            enabled = !deleting,
+            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(R.string.settings_delete_account))
+        }
+        error?.let { Text(it.text(), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
     }
 }

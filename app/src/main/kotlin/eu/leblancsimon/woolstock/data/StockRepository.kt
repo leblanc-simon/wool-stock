@@ -71,6 +71,12 @@ class StockRepository(
         settings.clearSession()
     }
 
+    /** Supprime le compte sur le serveur, puis oublie la session ; en cas d'échec, rien ne change ici. */
+    suspend fun deleteAccount() {
+        api.deleteAccount()
+        settings.clearSession()
+    }
+
     suspend fun users(): List<User> = api.users()
 
     suspend fun createUser(email: String, name: String, role: UserRole): User = api.createUser(email.trim(), name.trim(), role)

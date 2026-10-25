@@ -21,7 +21,7 @@
       {{if .User.IsAdmin}}<a class="tabs__link" href="/users"{{if eq .Nav "users"}} aria-current="page"{{end}}>{{T "layout.nav_users"}}</a>{{end}}
     </nav>
     <form class="account" method="post" action="/logout">
-      <span class="account__name" title="{{.User.Email}}">{{.User.Name}}</span>
+      <a class="account__name" href="/account" title="{{.User.Email}}"{{if eq .Nav "account"}} aria-current="page"{{end}}>{{.User.Name}}</a>
       <button class="account__logout" type="submit">{{T "layout.logout"}}</button>
     </form>
   </div>

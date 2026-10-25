@@ -33,6 +33,7 @@
     <string name="error_email_not_allowed">Cette adresse n’est pas autorisée. Demandez à un administrateur de l’ajouter.</string>
     <string name="error_email_taken">Cette adresse a déjà un compte.</string>
     <string name="error_forbidden">Seul un administrateur peut faire cela.</string>
+    <string name="error_last_admin">Vous êtes le dernier administrateur : nommez d’abord un autre administrateur, puis supprimez votre compte.</string>
     <string name="error_unauthorized">Reconnectez-vous.</string>
 
     <string name="role_admin">Administrateur</string>
@@ -185,6 +186,10 @@
     <string name="settings_account_help">Votre nom accompagne chaque entrée, sortie et comptage saisis sur ce téléphone.</string>
     <string name="settings_users">Gérer les utilisateurs</string>
     <string name="settings_logout">Se déconnecter</string>
+    <string name="settings_delete_account">Supprimer mon compte</string>
+    <string name="settings_delete_account_title">Supprimer votre compte ?</string>
+    <string name="settings_delete_account_text">Votre adresse ne sera plus autorisée et tous vos appareils seront déconnectés, téléphones comme navigateurs. Votre nom reste sur les entrées, sorties et inventaires déjà saisis : ils font partie de l’historique du stock. Pour revenir, demandez à un administrateur de recréer votre compte.</string>
+    <string name="settings_delete_account_confirm">Supprimer</string>
     <string name="settings_server">Serveur</string>
     <string name="settings_server_url">Adresse du serveur</string>
     <string name="settings_server_url_help">Par exemple http://192.168.1.10:8080</string>

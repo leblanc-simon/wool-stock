@@ -158,7 +158,8 @@ et des adresses email. La publier sur le serveur, par exemple
   du téléphone noté à la connexion, et les mouvements, signés du nom du compte ;
 - que les images de la caméra sont analysées sur le téléphone et jamais envoyées ;
 - que les données restent sur ce serveur, sans revente ni partage ;
-- combien de temps les données sont gardées, et comment demander leur suppression ;
+- combien de temps les données sont gardées, et comment supprimer son compte (Réglages →
+  Supprimer mon compte, ou la page `/account`), le nom restant sur les mouvements déjà saisis ;
 - un contact.
 
 **Accès à l'application.** Toutes les fonctions demandent une connexion. Donner aux
@@ -194,13 +195,20 @@ Toutes ces données sont chiffrées en transit (HTTPS).
 
 **Suppression de compte.** Google exige un chemin de suppression, dans l'app et sur une page
 web, de toute app qui permet de **créer un compte** depuis l'app. Ici, personne ne crée son
-propre compte, mais un administrateur peut en créer depuis l'app. Le cas est limite. Le plus
-sûr est de :
+propre compte, mais un administrateur peut en créer depuis l'app. Le cas est limite ; les deux
+chemins existent, ce qui règle la question :
 
-- ajouter dans les réglages un « Supprimer mon compte », qui retire le compte et ses
-  sessions, le nom restant sur les mouvements passés ;
-- publier une page web qui explique comment demander la suppression ;
-- déclarer cette page dans le formulaire « Sécurité des données ».
+- **dans l'app** : Réglages → « Supprimer mon compte », après confirmation ;
+- **sur le web** : `https://stock-laine.carin.family/account`. Sans session, la page demande
+  de se connecter, puis y ramène ; le lien sur son nom, dans l'en-tête des pages, y mène aussi.
+
+Les deux suppriment le compte et toutes ses sessions (téléphones et navigateurs). Le nom
+reste sur les entrées, sorties et inventaires déjà saisis, qui forment l'historique du stock :
+le dire dans les règles de confidentialité. Le dernier administrateur ne peut pas supprimer
+son compte avant d'en avoir nommé un autre.
+
+Dans le formulaire « Sécurité des données », répondre que l'app permet de créer des comptes
+(par un administrateur), puis donner l'adresse de la page `/account` comme lien de suppression.
 
 **Autres déclarations** (applications gouvernementales, fonctionnalités financières, santé,
 actualités) : non concerné.

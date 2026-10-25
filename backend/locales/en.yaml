@@ -201,6 +201,7 @@ layout.nav_inventories: Inventories
 layout.nav_label: Sections
 layout.nav_stock: Stock
 layout.nav_users: "Users"
+login.deleted: "Your account has been deleted and your devices signed out."
 login.email: Email address
 login.intro: Enter the email address an administrator has allowed.
 login.submit: Sign in
@@ -208,6 +209,13 @@ login.title: Sign in
 movements.recorded_at: Recorded at {{.Time}}
 movements.recorded_by: Recorded by {{.Author}} at {{.Time}}
 movements.truncated: Only the {{.Limit}} most recent are shown. Narrow the period to see the others.
+my_account.delete_confirm: "Yes, permanently delete my account"
+my_account.delete_help: "Your email address will no longer be allowed and all your devices will be signed out, app and browser alike. Your name stays on the entries, exits and inventories already recorded: they are part of the stock history. To come back, ask an administrator to create your account again."
+my_account.delete_open: "Delete my account…"
+my_account.delete_title: "Delete my account"
+my_account.last_admin: "You are the last administrator: first give this role to another account, from Users, then delete yours."
+my_account.lead: "Your name is recorded with each entry, exit and count you make."
+my_account.title: "My account"
 role.admin: "Administrator"
 role.admin_help: "Same as a manager, and also manages accounts."
 role.manager: "Manager"

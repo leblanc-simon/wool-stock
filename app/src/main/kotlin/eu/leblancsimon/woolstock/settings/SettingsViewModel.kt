@@ -35,6 +35,10 @@ data class SettingsUiState(
     val urlError: ErrorMessage? = null,
     val testing: Boolean = false,
     val test: ConnectionTest? = null,
+    /** Le dialogue de confirmation de « Supprimer mon compte » est ouvert. */
+    val confirmingDelete: Boolean = false,
+    val deleting: Boolean = false,
+    val deleteError: ErrorMessage? = null,
 )
 
 class SettingsViewModel(private val settings: AppSettings, private val repository: StockRepository) : ViewModel() {
@@ -72,6 +76,24 @@ class SettingsViewModel(private val settings: AppSettings, private val repositor
     /** La navigation revient d'elle-même à l'écran de connexion quand la session disparaît. */
     fun logout() {
         viewModelScope.launch { repository.logout() }
+    }
+
+    fun askDeleteAccount() = _state.update { it.copy(confirmingDelete = true, deleteError = null) }
+
+    fun dismissDeleteAccount() = _state.update { it.copy(confirmingDelete = false) }
+
+    /** Comme pour la déconnexion, la navigation suit la disparition de la session. */
+    fun deleteAccount() {
+        _state.update { it.copy(confirmingDelete = false, deleting = true, deleteError = null) }
+        viewModelScope.launch {
+            val error = try {
+                repository.deleteAccount()
+                null
+            } catch (e: ApiException) {
+                e.toErrorMessage()
+            }
+            _state.update { it.copy(deleting = false, deleteError = error) }
+        }
     }
 
     /** Adresse http(s) avec un hôte, sans barre finale ; sinon signale l'erreur. */

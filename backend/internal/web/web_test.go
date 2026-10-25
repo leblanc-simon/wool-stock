@@ -188,7 +188,7 @@ func TestPages(t *testing.T) {
 	}
 	for _, want := range []string{`lang="fr"`, `rel="icon" type="image/svg+xml" href="/static/logo.svg?v=`, `class="masthead__logo"`, "Katia", "blanc", "81784", "1 pelote en stock.", "1 coloris épuisé reste dans la liste.", `aria-current="page"`,
 		"Bergère de France", `class="shade shade--empty"`, "0 pelote",
-		`<form class="account" method="post" action="/logout">`, `title="simon@example.com">Simon</span>`, "Se déconnecter"} {
+		`<form class="account" method="post" action="/logout">`, `<a class="account__name" href="/account" title="simon@example.com">Simon</a>`, "Se déconnecter"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("stock: %q missing", want)
 		}
@@ -1118,5 +1118,78 @@ func TestFormsNeedASession(t *testing.T) {
 	}
 	if movements, _ := st.Movements(ctx, store.MovementFilter{Kind: store.KindOut, Limit: 1}); len(movements) != 1 || deref(movements[0].Author) != "Marie" {
 		t.Errorf("manager exit = %+v", movements)
+	}
+}
+
+func TestMyAccount(t *testing.T) {
+	srv, st := newSite(t)
+	ctx := context.Background()
+	marie, err := st.CreateUser(ctx, "marie@example.com", "Marie", store.RoleManager, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	marieBrowser, err := st.OpenSession(ctx, marie.ID, "Firefox")
+	if err != nil {
+		t.Fatal(err)
+	}
+	mariePhone, err := st.OpenSession(ctx, marie.ID, "Pixel 6")
+	if err != nil {
+		t.Fatal(err)
+	}
+	as := func(token, method, path string) (int, http.Header, string) {
+		t.Helper()
+		req, _ := http.NewRequest(method, srv.URL+path, nil)
+		req.Header.Set("Accept-Language", "fr")
+		req.AddCookie(&http.Cookie{Name: sessionCookie, Value: token})
+		return send(t, req)
+	}
+
+	// Sans session, la connexion ramène à la page du compte.
+	req, _ := http.NewRequest(http.MethodGet, srv.URL+"/account", nil)
+	if status, header, _ := send(t, req); status != http.StatusSeeOther || header.Get("Location") != "/login?next=%2Faccount" {
+		t.Fatalf("account without session: %d → %q", status, header.Get("Location"))
+	}
+
+	status, _, body := as(marieBrowser, http.MethodGet, "/account")
+	for _, want := range []string{`<a class="account__name" href="/account" title="marie@example.com" aria-current="page">Marie</a>`,
+		"Mon compte", "marie@example.com", "Gestionnaire", `action="/logout"`,
+		`<form method="post" action="/account/delete">`, "Oui, supprimer définitivement mon compte"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("account page: %q missing", want)
+		}
+	}
+	if status != http.StatusOK {
+		t.Fatalf("account page: %d", status)
+	}
+
+	// Le dernier administrateur garde son compte.
+	if status, _, body := as(srv.token, http.MethodPost, "/account/delete"); status != http.StatusConflict ||
+		!strings.Contains(body, "Vous êtes le dernier administrateur") {
+		t.Errorf("last admin deletes his account: %d", status)
+	}
+	if _, err := st.UserByEmail(ctx, "simon@example.com"); err != nil {
+		t.Errorf("last admin deleted: %v", err)
+	}
+
+	// Suppression : le compte et toutes ses sessions disparaissent, le navigateur est déconnecté.
+	status, header, _ := as(marieBrowser, http.MethodPost, "/account/delete")
+	if status != http.StatusSeeOther || header.Get("Location") != "/login?deleted=1" {
+		t.Fatalf("delete: %d → %q", status, header.Get("Location"))
+	}
+	if cookie := header.Get("Set-Cookie"); !strings.Contains(cookie, sessionCookie+"=;") || !strings.Contains(cookie, "Max-Age=0") {
+		t.Errorf("delete: cookie not cleared: %q", cookie)
+	}
+	if _, err := st.UserByEmail(ctx, "marie@example.com"); err != store.ErrNotFound {
+		t.Errorf("deleted user: err = %v", err)
+	}
+	for _, token := range []string{marieBrowser, mariePhone} {
+		if status, _, _ := as(token, http.MethodGet, "/stock"); status != http.StatusSeeOther {
+			t.Errorf("session after deletion: %d", status)
+		}
+	}
+	req, _ = http.NewRequest(http.MethodGet, srv.URL+"/login?deleted=1", nil)
+	req.Header.Set("Accept-Language", "fr")
+	if _, _, body := send(t, req); !strings.Contains(body, "Votre compte a été supprimé") {
+		t.Errorf("deleted notice missing")
 	}
 }

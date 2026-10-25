@@ -3,6 +3,7 @@
   <img class="login__logo" src="{{asset "logo.svg"}}" alt="" width="96" height="96">
   <h1 class="login__title" id="login-title">{{T "layout.app_name"}}</h1>
   <p class="login__lead">{{T "login.intro"}}</p>
+  {{if .Deleted}}<p class="notice login__notice" role="status">{{T "login.deleted"}}</p>{{end}}
   <form class="login__form" method="post" action="/login">
     <input type="hidden" name="next" value="{{.Next}}">
     <label class="login__label" for="email">{{T "login.email"}}</label>

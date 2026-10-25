@@ -39,6 +39,11 @@ class ApiClient(
         execute("POST", "/api/auth/logout", "{}")
     }
 
+    /** Supprime le compte connecté et toutes ses sessions ; 409 error.last_admin pour le dernier admin. */
+    suspend fun deleteAccount() {
+        execute("DELETE", "/api/auth/me", null)
+    }
+
     suspend fun users(): List<User> = get<UsersResponse>("/api/users").users
 
     suspend fun createUser(email: String, name: String, role: UserRole): User =

@@ -131,17 +131,25 @@ h4 {
     gap: 0.75rem;
     padding-bottom: 0.5rem;
 
+    /* Le nom mène à la page du compte : déconnexion et suppression du compte. */
     .account__name {
+      display: block;
+      max-width: 14rem;
+      overflow: hidden;
+      color: var(--ink);
       font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-decoration-color: var(--rule);
+      text-underline-offset: 0.2em;
 
-      /* Sur un téléphone, le bouton seul tient à côté du nom du site. */
+      &:hover,
+      &[aria-current="page"] {
+        text-decoration-color: currentColor;
+      }
+
       @media (width < 30rem) {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip-path: inset(50%);
-        white-space: nowrap;
+        max-width: 9rem;
       }
     }
 
@@ -157,6 +165,12 @@ h4 {
 
       &:hover {
         border-color: var(--indigo);
+      }
+
+      /* Sur un téléphone, le nom seul tient à côté de celui du site ; la page du compte
+         garde le bouton. */
+      @media (width < 30rem) {
+        display: none;
       }
     }
   }
@@ -282,6 +296,12 @@ h4 {
     &[aria-invalid="true"] {
       border-color: var(--loss);
     }
+  }
+
+  .login__notice {
+    width: 100%;
+    margin: 0;
+    text-align: left;
   }
 
   .login__error {

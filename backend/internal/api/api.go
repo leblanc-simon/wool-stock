@@ -31,6 +31,7 @@ const (
 	CodeForbidden         = "error.forbidden"
 	CodeEmailNotAllowed   = "error.email_not_allowed"
 	CodeEmailTaken        = "error.email_taken"
+	CodeLastAdmin         = "error.last_admin"
 	CodeEANRequired       = "validation.ean_required"
 	CodeEANFormat         = "validation.ean_format"
 	CodeKind              = "validation.kind"
@@ -50,7 +51,7 @@ const (
 var Codes = []string{
 	CodeInvalidJSON, CodeNotFound, CodeInternal, CodeInsufficientStock, CodeRateLimit,
 	CodeAlreadyCounted, CodeInventoryOpen, CodeInventoryClosed,
-	CodeUnauthorized, CodeForbidden, CodeEmailNotAllowed, CodeEmailTaken,
+	CodeUnauthorized, CodeForbidden, CodeEmailNotAllowed, CodeEmailTaken, CodeLastAdmin,
 	CodeEANRequired, CodeEANFormat, CodeKind, CodeQuantity, CodeRecipientRequired, CodeTooLong, CodeLimit,
 	CodeMode, CodeCount, CodeScope, CodeEmail, CodeNameRequired, CodeRole,
 }
@@ -78,6 +79,7 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("GET /api/health", a.health)
 	mux.HandleFunc("POST /api/auth/login", a.login)
 	mux.HandleFunc("GET /api/auth/me", a.authenticate(a.me))
+	mux.HandleFunc("DELETE /api/auth/me", a.authenticate(a.deleteMe))
 	mux.HandleFunc("POST /api/auth/logout", a.authenticate(a.logout))
 	mux.HandleFunc("GET /api/users", a.adminOnly(a.listUsers))
 	mux.HandleFunc("POST /api/users", a.adminOnly(a.createUser))
