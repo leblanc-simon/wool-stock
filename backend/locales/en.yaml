@@ -262,7 +262,7 @@ user.self: "This is your account."
 user.sessions_closed:
   one: "{{.Count}} session closed."
   other: "{{.Count}} sessions closed."
-user.sessions_help: "Each signed-in phone or browser opens a session that never expires. Closing them signs these devices out; the address stays allowed."
+user.sessions_help: "Each signed-in phone or browser opens a session that stays open while it is used. Closing them signs these devices out; the address stays allowed."
 user.sessions_title: "Signed-in devices"
 user.title: "Account"
 users.add_title: "Add an account"

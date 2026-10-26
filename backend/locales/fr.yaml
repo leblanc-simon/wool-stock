@@ -286,7 +286,7 @@ user.sessions_closed:
   one: "{{.Count}} session fermée."
   many: "{{.Count}} sessions fermées."
   other: "{{.Count}} sessions fermées."
-user.sessions_help: "Chaque téléphone ou navigateur connecté ouvre une session, sans limite de durée. Les fermer déconnecte ces appareils ; l’adresse reste autorisée."
+user.sessions_help: "Chaque téléphone ou navigateur connecté ouvre une session, qui reste ouverte tant qu’elle sert. Les fermer déconnecte ces appareils ; l’adresse reste autorisée."
 user.sessions_title: "Appareils connectés"
 user.title: "Compte"
 users.add_title: "Ajouter un compte"

@@ -83,7 +83,7 @@ type loginResponse struct {
 	User  store.User `json:"user"`
 }
 
-// login ouvre une session sans fin pour une adresse autorisée ; 403 sinon.
+// login ouvre une session pour une adresse autorisée ; 403 sinon.
 func (a *App) login(w http.ResponseWriter, r *http.Request) {
 	var req loginRequest
 	if p := decode(w, r, &req); p != nil {

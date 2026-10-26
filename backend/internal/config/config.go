@@ -15,7 +15,7 @@ type Config struct {
 	I18n appconf.I18n `yaml:"i18n" env-prefix:"WS_"`
 	// Database expose WS_DB_PATH.
 	Database Database `yaml:"database" env-prefix:"WS_"`
-	// Login expose WS_LOGIN_RATE_LIMIT.
+	// Login expose WS_LOGIN_RATE_LIMIT et WS_LOGIN_SESSION_IDLE_DAYS.
 	Login Login `yaml:"login" env-prefix:"WS_"`
 }
 
@@ -26,7 +26,9 @@ type Database struct {
 
 // Login borne les tentatives de connexion par client, celles de l'app et des pages
 // web confondues, en plus de la limite générale (Web.RateLimit). Sans mot de passe,
-// c'est ce qui freine qui essaierait des adresses à la chaîne.
+// c'est ce qui freine qui essaierait des adresses à la chaîne. SessionIdleDays fait
+// expirer une session restée inutilisée (téléphone perdu, navigateur abandonné).
 type Login struct {
-	RateLimit int `yaml:"rate_limit" env:"LOGIN_RATE_LIMIT" env-default:"5" env-description:"Max sign-in attempts per minute per client, app and web pages together"`
+	RateLimit       int `yaml:"rate_limit" env:"LOGIN_RATE_LIMIT" env-default:"5" env-description:"Max sign-in attempts per minute per client, app and web pages together"`
+	SessionIdleDays int `yaml:"session_idle_days" env:"LOGIN_SESSION_IDLE_DAYS" env-default:"400" env-description:"Days without use after which a session expires; 0 never expires"`
 }

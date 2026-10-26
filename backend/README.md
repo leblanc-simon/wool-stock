@@ -69,7 +69,10 @@ l'adresse `http://127.0.0.1:8080` (l'app vise `https://stock-laine.carin.family`
 
 - `POST /api/auth/login` avec `{"email": "…", "device": "…"}` : si l'adresse a un compte,
   la réponse donne un jeton (`{"token","user"}`), sinon `403 error.email_not_allowed`. Pas de
-  mot de passe, et la session n'expire pas : le téléphone reste connecté.
+  mot de passe, et la session reste ouverte tant qu'elle sert : le téléphone reste connecté.
+  Une session inutilisée pendant `login.session_idle_days` jours (`WS_LOGIN_SESSION_IDLE_DAYS`,
+  400 par défaut, comme le cookie des pages ; 0 = jamais) expire, et elle est effacée à la
+  connexion suivante d'un compte : un téléphone perdu ou un navigateur oublié finit déconnecté.
 - Toutes les autres routes `/api/…` (sauf `health`) demandent `Authorization: Bearer <jeton>` ;
   sans jeton valide : `401 error.unauthorized`. `GET /api/auth/me` renvoie le compte,
   `POST /api/auth/logout` ferme la session.

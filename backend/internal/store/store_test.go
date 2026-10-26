@@ -431,6 +431,54 @@ func TestUsersAndSessions(t *testing.T) {
 	}
 }
 
+// Une session inutilisée expire ; une session qui sert reste ouverte. Les sessions
+// expirées sont effacées à la connexion suivante et ne comptent plus dans l'activité.
+func TestSessionsExpireWhenUnused(t *testing.T) {
+	ctx := context.Background()
+	s := open(t)
+	start := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+	now := start
+	s.now = func() time.Time { return now }
+	s.SetSessionIdle(100 * 24 * time.Hour)
+	marie, err := s.CreateUser(ctx, "marie@example.org", "Marie", RoleManager, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	used, _ := s.OpenSession(ctx, marie.ID, "Pixel 6")
+	forgotten, _ := s.OpenSession(ctx, marie.ID, "Firefox")
+
+	// Le téléphone sert tous les 60 jours : sa session tient au-delà des 100 jours.
+	for day := 60; day <= 240; day += 60 {
+		now = start.AddDate(0, 0, day)
+		if _, err := s.SessionUser(ctx, used); err != nil {
+			t.Fatalf("day %d: used session: %v", day, err)
+		}
+	}
+	if _, err := s.SessionUser(ctx, forgotten); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("forgotten session: err = %v", err)
+	}
+	accounts, err := s.Accounts(ctx)
+	if err != nil || len(accounts) != 1 || accounts[0].Sessions != 1 {
+		t.Fatalf("accounts = %+v, err = %v", accounts, err)
+	}
+
+	// Une connexion efface les sessions expirées.
+	if _, err := s.OpenSession(ctx, marie.ID, "iPhone"); err != nil {
+		t.Fatal(err)
+	}
+	var rows int
+	if err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM sessions`).Scan(&rows); err != nil || rows != 2 {
+		t.Fatalf("sessions after purge = %d, err = %v", rows, err)
+	}
+
+	// Sans durée, rien n'expire.
+	s.SetSessionIdle(0)
+	now = start.AddDate(10, 0, 0)
+	if _, err := s.SessionUser(ctx, used); err != nil {
+		t.Fatalf("no expiry: %v", err)
+	}
+}
+
 func TestManageUsers(t *testing.T) {
 	ctx := context.Background()
 	s := open(t)

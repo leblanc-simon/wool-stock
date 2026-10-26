@@ -45,14 +45,19 @@ func main() {
 	}
 }
 
-// openStore ouvre la base, en créant son dossier au besoin.
+// openStore ouvre la base, en créant son dossier au besoin, avec la durée de vie des sessions.
 func openStore(ctx context.Context, cfg config.Config) (*store.Store, error) {
 	if dir := filepath.Dir(cfg.Database.Path); dir != "." {
 		if err := os.MkdirAll(dir, 0o750); err != nil {
 			return nil, fmt.Errorf("database directory: %w", err)
 		}
 	}
-	return store.Open(ctx, "file:"+cfg.Database.Path)
+	st, err := store.Open(ctx, "file:"+cfg.Database.Path)
+	if err != nil {
+		return nil, err
+	}
+	st.SetSessionIdle(time.Duration(cfg.Login.SessionIdleDays) * 24 * time.Hour)
+	return st, nil
 }
 
 // routes assemble l'API, les pages et leurs limiteurs. La feuille de style échappe

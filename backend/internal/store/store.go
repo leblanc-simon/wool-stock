@@ -29,11 +29,17 @@ var ErrNotFound = errors.New("store: not found")
 // pas un renvoi de la même saisie, et la rendre ferait croire au client qu'elle est passée.
 var ErrRequestReused = errors.New("store: request_id reused with a different content")
 
+// DefaultSessionIdle est la durée sans utilisation au-delà de laquelle une session
+// expire : celle du cookie des pages, renouvelé à chaque visite.
+const DefaultSessionIdle = 400 * 24 * time.Hour
+
 // Store est la persistance SQLite du serveur.
 type Store struct {
 	db *sql.DB
 	// now donne l'heure des écritures ; remplaçable dans les tests.
 	now func() time.Time
+	// sessionIdle est la durée sans utilisation qui fait expirer une session ; 0, jamais.
+	sessionIdle time.Duration
 }
 
 // querier est commun à *sql.DB et *sql.Tx.
@@ -60,12 +66,18 @@ func Open(ctx context.Context, dsn string) (*Store, error) {
 	// rend atomique la vérification du stock avant une sortie.
 	db.SetMaxOpenConns(1)
 
-	s := &Store{db: db, now: time.Now}
+	s := &Store{db: db, now: time.Now, sessionIdle: DefaultSessionIdle}
 	if err := s.migrate(ctx); err != nil {
 		db.Close()
 		return nil, err
 	}
 	return s, nil
+}
+
+// SetSessionIdle fixe la durée sans utilisation au-delà de laquelle une session expire
+// (DefaultSessionIdle par défaut) ; 0 ou moins, les sessions n'expirent jamais.
+func (s *Store) SetSessionIdle(idle time.Duration) {
+	s.sessionIdle = max(idle, 0)
 }
 
 // Close libère la base.

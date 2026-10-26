@@ -28,3 +28,6 @@ database:
 
 login:
   rate_limit: 5
+  # Jours sans utilisation après lesquels une session (téléphone, navigateur) expire ;
+  # 0 : jamais. 400, comme le cookie des pages, renouvelé à chaque visite.
+  session_idle_days: 400

@@ -87,7 +87,7 @@ func (a *App) loginForm(w http.ResponseWriter, r *http.Request) {
 	a.render(w, r, http.StatusOK, "login", "", "login.title", loginView{Next: next, Deleted: r.URL.Query().Has("deleted")})
 }
 
-// login ouvre une session sans fin pour une adresse autorisée, comme l'application.
+// login ouvre une session pour une adresse autorisée, comme l'application.
 func (a *App) login(w http.ResponseWriter, r *http.Request) {
 	view := loginView{Email: strings.TrimSpace(r.PostFormValue("email")), Next: localPath(r.PostFormValue("next"))}
 	email, ok := store.ParseEmail(view.Email)
