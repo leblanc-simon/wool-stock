@@ -131,7 +131,7 @@ scan : l'EAN et le bain se tapent à la main.
 
 - iPhone seulement, iOS 17 ou plus, en portrait (sinon l'App Store exigerait aussi des
   captures d'iPad) ;
-- bundle ID `eu.leblancsimon.woolstock`, le même que sur Android, version et numéro de build
+- bundle ID `io.leblanc.woolstock`, le même que sur Android, version et numéro de build
   repris d'Android (`Config.xcconfig`) ;
 - `NSCameraUsageDescription`, en anglais et en français ; sans cette clé, l'app planterait à
   l'ouverture de la caméra ;

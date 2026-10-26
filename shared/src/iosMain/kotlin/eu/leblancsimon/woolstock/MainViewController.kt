@@ -4,18 +4,22 @@ import androidx.compose.ui.window.ComposeUIViewController
 import eu.leblancsimon.woolstock.data.AppSettings
 import eu.leblancsimon.woolstock.data.iosDatabaseBuilder
 import eu.leblancsimon.woolstock.platform.UserDefaultsStore
+import platform.Foundation.NSBundle
 import platform.UIKit.UIViewController
 
 /**
  * Point d'entrée de l'app iOS, appelé une fois par iosApp (ContentView.swift). [defaultServerUrl]
  * vient de la clé WoolStockApiUrl de l'Info.plist : il sert tant qu'aucune adresse n'a été
- * enregistrée dans les réglages.
+ * enregistrée dans les réglages. Identifiant et version sont ceux du bundle (Config.xcconfig).
  */
 @Suppress("FunctionName", "unused")
 fun MainViewController(defaultServerUrl: String): UIViewController {
+    val bundle = NSBundle.mainBundle
     val container = AppContainer(
         settings = AppSettings(UserDefaultsStore(), defaultServerUrl),
         databaseBuilder = ::iosDatabaseBuilder,
+        appId = bundle.bundleIdentifier ?: "io.leblanc.woolstock",
+        appVersion = bundle.objectForInfoDictionaryKey("CFBundleShortVersionString") as? String ?: "?",
     )
     return ComposeUIViewController { WoolStockContent(container) }
 }

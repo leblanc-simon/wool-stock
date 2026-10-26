@@ -2,7 +2,9 @@ package eu.leblancsimon.woolstock.data.api
 
 import eu.leblancsimon.woolstock.platform.languageTag
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.UserAgent
 import io.ktor.client.request.header
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
@@ -30,15 +32,17 @@ sealed class ApiException(message: String, cause: Throwable? = null) : Exception
 }
 
 /**
- * Client de l'API du serveur de stock, sur Ktor (moteur Android ou Darwin selon la plateforme).
+ * Client de l'API du serveur de stock, sur Ktor (moteur OkHttp ou Darwin selon la plateforme).
  * [baseUrl] et [token] sont relus à chaque appel, pour suivre réglages et connexion ;
- * [onUnauthorized] est appelé quand le serveur ne reconnaît plus la session.
+ * [onUnauthorized] est appelé quand le serveur ne reconnaît plus la session. [userAgent]
+ * nomme l'app auprès du serveur (« io.leblanc.woolstock v0.8.0 »).
  */
 class ApiClient(
     private val baseUrl: () -> String,
     private val token: () -> String? = { null },
     private val onUnauthorized: () -> Unit = {},
-    private val http: HttpClient = defaultHttpClient(),
+    userAgent: String? = null,
+    private val http: HttpClient = HttpClient { woolStockDefaults(userAgent) },
 ) {
     /** Le même client vers une autre adresse, sans session : pour tester un serveur avant de l'enregistrer. */
     fun at(url: String): ApiClient = ApiClient(baseUrl = { url }, http = http)
@@ -159,11 +163,13 @@ class ApiClient(
         private val ENCODED_FILENAME = Regex("""filename\*=UTF-8''([^;\s]+)""", RegexOption.IGNORE_CASE)
         private val PLAIN_FILENAME = Regex("""filename="?([^";]+)"?""", RegexOption.IGNORE_CASE)
 
-        private fun defaultHttpClient() = HttpClient {
+        /** Délais et User-Agent de tous les appels ; sans [userAgent], celui du moteur. */
+        internal fun HttpClientConfig<*>.woolStockDefaults(userAgent: String?) {
             install(HttpTimeout) {
                 connectTimeoutMillis = CONNECT_TIMEOUT_MS
                 socketTimeoutMillis = READ_TIMEOUT_MS
             }
+            if (userAgent != null) install(UserAgent) { agent = userAgent }
         }
 
         /**

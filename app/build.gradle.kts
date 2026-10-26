@@ -8,11 +8,13 @@ plugins {
 }
 
 android {
+    // Paquet Kotlin et classes générées (R, BuildConfig) ; l'identifiant de l'app est applicationId.
     namespace = "eu.leblancsimon.woolstock"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "eu.leblancsimon.woolstock"
+        // Le même que le bundle ID iOS ; il figure aussi dans le User-Agent des appels au serveur.
+        applicationId = "io.leblanc.woolstock"
         minSdk = 26
         targetSdk = 36
         versionCode = 8

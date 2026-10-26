@@ -5,8 +5,9 @@
 // installer sur un iPhone, vide suffit pour le simulateur.
 TEAM_ID =
 
-// Le même identifiant que l'app Android ; à changer s'il est déjà pris sur l'App Store.
-BUNDLE_ID = eu.leblancsimon.woolstock
+// Le même identifiant que l'app Android (applicationId) ; à changer s'il est déjà pris sur
+// l'App Store. Avec MARKETING_VERSION, il forme le User-Agent : io.leblanc.woolstock v0.8.0.
+BUNDLE_ID = io.leblanc.woolstock
 
 // Nom du binaire ; le nom affiché sous l'icône vient de InfoPlist.strings.
 APP_NAME = WoolStock
