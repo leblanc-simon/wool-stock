@@ -90,6 +90,7 @@ error.last_admin: "Il doit rester au moins un administrateur."
 error.not_found: Introuvable
 error.page_not_found: Cette page n’existe pas
 error.rate_limit: Trop de requêtes, réessayez dans une minute
+error.request_reused: Cet identifiant de saisie (request_id) a déjà servi pour une autre saisie
 error.unauthorized: Reconnectez-vous
 exits.empty: Aucune pelote sortie du stock sur cette période.
 exits.form_title: Nouvelle sortie

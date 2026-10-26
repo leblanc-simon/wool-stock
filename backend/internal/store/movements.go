@@ -73,12 +73,23 @@ func (e *InsufficientStockError) Error() string {
 
 // Record applique un mouvement et renvoie le bain mis à jour. Un RequestID déjà
 // enregistré renvoie le mouvement d'origine sans rien rejouer (replayed vaut true) :
-// un client qui renvoie après une coupure réseau ne compte pas deux fois.
+// un client qui renvoie après une coupure réseau ne compte pas deux fois. Renvoyé avec
+// un autre contenu, il est refusé (ErrRequestReused).
 func (s *Store) Record(ctx context.Context, in MovementInput) (movement Movement, lot StockItem, replayed bool, err error) {
+	hash := in.hash()
 	err = s.tx(ctx, func(tx *sql.Tx) error {
 		if in.RequestID != "" {
-			previous, err := scanMovement(tx.QueryRowContext(ctx, movementQuery+` WHERE m.request_id = ?`, in.RequestID))
+			var id int64
+			var stored sql.NullString
+			err := tx.QueryRowContext(ctx, `SELECT id, request_hash FROM movements WHERE request_id = ?`, in.RequestID).Scan(&id, &stored)
 			if err == nil {
+				if !sameRequest(stored, hash) {
+					return ErrRequestReused
+				}
+				previous, err := scanMovement(tx.QueryRowContext(ctx, movementQuery+` WHERE m.id = ?`, id))
+				if err != nil {
+					return fmt.Errorf("store: replay: %w", err)
+				}
 				movement, replayed = previous, true
 				lot, err = stockItem(ctx, tx, previous.LotID)
 				return err
@@ -102,9 +113,13 @@ func (s *Store) Record(ctx context.Context, in MovementInput) (movement Movement
 			return err
 		}
 
+		var storedHash any
+		if in.RequestID != "" {
+			storedHash = hash
+		}
 		res, err := tx.ExecContext(ctx, `INSERT INTO movements
-			(request_id, lot_id, kind, quantity, recipient, author, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-			nullable(in.RequestID), lotID, in.Kind, in.Quantity, nullable(in.Recipient), nullable(in.Author), s.timestamp())
+			(request_id, request_hash, lot_id, kind, quantity, recipient, author, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			nullable(in.RequestID), storedHash, lotID, in.Kind, in.Quantity, nullable(in.Recipient), nullable(in.Author), s.timestamp())
 		if err != nil {
 			return fmt.Errorf("store: insert movement: %w", err)
 		}
@@ -119,6 +134,18 @@ func (s *Store) Record(ctx context.Context, in MovementInput) (movement Movement
 		return err
 	})
 	return movement, lot, replayed, err
+}
+
+// hash est l'empreinte de ce que le mouvement change : pas l'auteur, que le serveur pose.
+func (in MovementInput) hash() string {
+	return requestHash(struct {
+		Kind      Kind
+		EAN       string
+		DyeLot    string
+		Quantity  int
+		Recipient string
+		Reference *ReferenceFields
+	}{in.Kind, in.EAN, in.DyeLot, in.Quantity, in.Recipient, in.Reference})
 }
 
 func (s *Store) addToLot(ctx context.Context, tx *sql.Tx, in MovementInput) (int64, error) {

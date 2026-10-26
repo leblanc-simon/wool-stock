@@ -4,8 +4,11 @@ package store
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"embed"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -21,6 +24,10 @@ var migrations embed.FS
 
 // ErrNotFound signale qu'une référence demandée n'existe pas.
 var ErrNotFound = errors.New("store: not found")
+
+// ErrRequestReused signale un request_id déjà enregistré avec un autre contenu : ce n'est
+// pas un renvoi de la même saisie, et la rendre ferait croire au client qu'elle est passée.
+var ErrRequestReused = errors.New("store: request_id reused with a different content")
 
 // Store est la persistance SQLite du serveur.
 type Store struct {
@@ -134,6 +141,24 @@ func (s *Store) timestamp() string {
 func parseTime(value string) time.Time {
 	t, _ := time.Parse(time.RFC3339Nano, value)
 	return t
+}
+
+// requestHash résume le contenu d'un envoi rejouable, pour vérifier qu'un request_id
+// renvoyé porte bien la même saisie. content est une structure du store : l'encodage
+// JSON en est stable et ne peut pas échouer.
+func requestHash(content any) string {
+	body, err := json.Marshal(content)
+	if err != nil {
+		panic(fmt.Sprintf("store: request hash: %v", err))
+	}
+	sum := sha256.Sum256(body)
+	return hex.EncodeToString(sum[:])
+}
+
+// sameRequest dit si l'empreinte enregistrée correspond au contenu renvoyé ; un envoi
+// enregistré sans empreinte (avant la migration 005) se rejoue sans comparaison.
+func sameRequest(stored sql.NullString, hash string) bool {
+	return !stored.Valid || stored.String == hash
 }
 
 // nullable convertit une chaîne vide en NULL.

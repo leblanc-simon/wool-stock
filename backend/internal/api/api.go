@@ -32,6 +32,7 @@ const (
 	CodeEmailNotAllowed   = "error.email_not_allowed"
 	CodeEmailTaken        = "error.email_taken"
 	CodeLastAdmin         = "error.last_admin"
+	CodeRequestReused     = "error.request_reused"
 	CodeEANRequired       = "validation.ean_required"
 	CodeEANFormat         = "validation.ean_format"
 	CodeKind              = "validation.kind"
@@ -51,7 +52,7 @@ const (
 var Codes = []string{
 	CodeInvalidJSON, CodeNotFound, CodeInternal, CodeInsufficientStock, CodeRateLimit,
 	CodeAlreadyCounted, CodeInventoryOpen, CodeInventoryClosed,
-	CodeUnauthorized, CodeForbidden, CodeEmailNotAllowed, CodeEmailTaken, CodeLastAdmin,
+	CodeUnauthorized, CodeForbidden, CodeEmailNotAllowed, CodeEmailTaken, CodeLastAdmin, CodeRequestReused,
 	CodeEANRequired, CodeEANFormat, CodeKind, CodeQuantity, CodeRecipientRequired, CodeTooLong, CodeLimit,
 	CodeMode, CodeCount, CodeScope, CodeEmail, CodeNameRequired, CodeRole,
 }

@@ -145,7 +145,9 @@ Toutes les réponses sont en JSON. Un EAN accepte 8, 12, 13 ou 14 chiffres ; un 
   touche jamais au cache.
 - `request_id` : identifiant de la saisie, généré par le client (64 caractères au plus).
   S'il est renvoyé après une coupure réseau, le mouvement n'est pas compté deux fois : la
-  réponse est alors `200` avec `"replayed": true`, au lieu de `201`.
+  réponse est alors `200` avec `"replayed": true`, au lieu de `201`. Il est lié au contenu :
+  renvoyé avec une autre saisie (quantité corrigée, autre bain…), il est refusé en
+  `409 error.request_reused`. Le client en génère donc un nouveau dès que la saisie change.
 
 La réponse renvoie le mouvement et le bain mis à jour : `{"movement":{…},"lot":{…},"replayed":false}`.
 Une sortie supérieure au stock du bain est refusée en `409`.
@@ -173,6 +175,9 @@ Chaque comptage **fixe le stock** du bain à la quantité comptée :
   quantité déjà comptée. Le client renvoie alors le même comptage avec `add` (ajouté au
   comptage et au stock : pelotes trouvées ailleurs) ou `set` (remplace le comptage et le stock).
 - `reference` met à jour le cache, comme une entrée ; un bain inconnu est créé.
+- `request_id` suit la même règle que pour une entrée ou une sortie : un renvoi à l'identique
+  est rejoué, un autre comptage (ou un autre `mode`) sous le même identifiant est refusé en
+  `409 error.request_reused`.
 - La réponse donne le comptage (`quantity`, `previous_quantity` = stock avant le premier
   comptage) et le bain mis à jour : `{"count":{…},"lot":{…},"replayed":false}`.
 
@@ -193,7 +198,8 @@ Les codes possibles :
 - `validation.*` : `ean_required`, `ean_format`, `kind`, `quantity`, `count`, `mode`,
   `recipient_required`, `scope`, `too_long`, `limit`. Le champ fautif est indiqué dans `field`.
 - `error.*` : `invalid_json`, `not_found`, `insufficient_stock` (409), `already_counted` (409),
-  `inventory_open` (409), `inventory_closed` (409), `rate_limit` (429), `internal`.
+  `inventory_open` (409), `inventory_closed` (409), `request_reused` (409), `rate_limit` (429),
+  `internal`.
 
 ## Organisation
 

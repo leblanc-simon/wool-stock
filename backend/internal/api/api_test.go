@@ -135,6 +135,12 @@ func TestEntryExitFlow(t *testing.T) {
 	if res.status != http.StatusOK || res.body["replayed"] != true || lot["quantity"] != 3.0 {
 		t.Fatalf("replay = %+v", res)
 	}
+	// Le même identifiant avec une autre saisie n'est pas un renvoi : refusé, rien ne change.
+	changed := strings.Replace(entry, `"quantity":3`, `"quantity":5`, 1)
+	res = call(t, srv, http.MethodPost, "/api/movements", changed)
+	if res.status != http.StatusConflict || res.errorField("code") != CodeRequestReused || res.errorField("field") != "request_id" {
+		t.Fatalf("reused request_id = %+v", res)
+	}
 
 	res = call(t, srv, http.MethodGet, "/api/references/8435407948594", "")
 	if res.status != http.StatusOK || res.body["brand"] != "Katia" {
@@ -285,6 +291,10 @@ func TestInventoryFlow(t *testing.T) {
 	lot, _ := res.body["lot"].(map[string]any)
 	if res.status != http.StatusCreated || count["quantity"] != 6.0 || count["previous_quantity"] != 4.0 || lot["quantity"] != 6.0 {
 		t.Fatalf("first count = %+v", res)
+	}
+	res = call(t, srv, http.MethodPost, countPath, `{"request_id":"s1","ean":"8435407948594","dye_lot":"81784","quantity":7}`)
+	if res.status != http.StatusConflict || res.errorField("code") != CodeRequestReused {
+		t.Fatalf("reused count request_id = %+v", res)
 	}
 
 	// Rescan du même bain : le serveur demande quoi faire, en français si on le lui demande.

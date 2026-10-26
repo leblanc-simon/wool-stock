@@ -146,6 +146,12 @@ func (a *App) listMovements(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"movements": movements})
 }
 
+// requestReused refuse un request_id déjà employé pour une autre saisie : le client doit
+// en générer un nouveau dès que la saisie change.
+func requestReused() *problem {
+	return &problem{status: http.StatusConflict, code: CodeRequestReused, field: "request_id"}
+}
+
 // movementRequest est une entrée ou une sortie de pelotes.
 type movementRequest struct {
 	// RequestID, généré par le client pour chaque saisie, rend un renvoi sans effet.
@@ -223,6 +229,10 @@ func (a *App) createMovement(w http.ResponseWriter, r *http.Request) {
 	if errors.As(err, &insufficient) {
 		available := insufficient.Available
 		a.fail(w, r, &problem{status: http.StatusConflict, code: CodeInsufficientStock, field: "quantity", available: &available})
+		return
+	}
+	if errors.Is(err, store.ErrRequestReused) {
+		a.fail(w, r, requestReused())
 		return
 	}
 	if err != nil {

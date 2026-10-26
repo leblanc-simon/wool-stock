@@ -168,6 +168,9 @@ func (a *App) countInventory(w http.ResponseWriter, r *http.Request) {
 		counted := already.Counted
 		a.fail(w, r, &problem{status: http.StatusConflict, code: CodeAlreadyCounted, field: "mode", counted: &counted})
 		return
+	case errors.Is(err, store.ErrRequestReused):
+		a.fail(w, r, requestReused())
+		return
 	case errors.Is(err, store.ErrInventoryClosed):
 		a.fail(w, r, &problem{status: http.StatusConflict, code: CodeInventoryClosed})
 		return
