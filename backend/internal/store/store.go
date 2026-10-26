@@ -16,7 +16,8 @@ import (
 	"strings"
 	"time"
 
-	_ "modernc.org/sqlite" // enregistre le driver "sqlite"
+	"modernc.org/sqlite" // enregistre aussi le driver "sqlite"
+	sqlite3 "modernc.org/sqlite/lib"
 )
 
 //go:embed migrations/*.sql
@@ -129,13 +130,15 @@ func (s *Store) migrate(ctx context.Context) error {
 	return nil
 }
 
+// tx exécute fn dans une transaction, validée seulement si fn réussit. Le Rollback
+// différé (sans effet après Commit) libère aussi l'unique connexion si fn panique.
 func (s *Store) tx(ctx context.Context, fn func(*sql.Tx) error) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback()
 	if err := fn(tx); err != nil {
-		tx.Rollback()
 		return err
 	}
 	return tx.Commit()
@@ -171,6 +174,12 @@ func requestHash(content any) string {
 // enregistré sans empreinte (avant la migration 005) se rejoue sans comparaison.
 func sameRequest(stored sql.NullString, hash string) bool {
 	return !stored.Valid || stored.String == hash
+}
+
+// isUniqueViolation dit si une écriture a été refusée par une contrainte UNIQUE.
+func isUniqueViolation(err error) bool {
+	var sqliteErr *sqlite.Error
+	return errors.As(err, &sqliteErr) && sqliteErr.Code() == sqlite3.SQLITE_CONSTRAINT_UNIQUE
 }
 
 // nullable convertit une chaîne vide en NULL.

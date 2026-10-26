@@ -85,7 +85,7 @@ func (s *Store) CreateUser(ctx context.Context, email, name string, role Role, c
 	}
 	res, err := s.db.ExecContext(ctx, `INSERT INTO users (email, name, role, created_at, created_by) VALUES (?, ?, ?, ?, ?)`,
 		NormalizeEmail(email), strings.TrimSpace(name), role, s.timestamp(), by)
-	if err != nil && strings.Contains(err.Error(), "UNIQUE constraint failed") {
+	if isUniqueViolation(err) {
 		return User{}, ErrEmailTaken
 	}
 	if err != nil {
@@ -142,14 +142,19 @@ func (s *Store) User(ctx context.Context, id int64) (User, error) {
 
 // Accounts renvoie tous les comptes avec leur activité (sessions encore valides), par nom.
 func (s *Store) Accounts(ctx context.Context) ([]Account, error) {
+	return s.accounts(ctx, "")
+}
+
+// accounts lit les comptes retenus par where (vide : tous) avec leur activité.
+func (s *Store) accounts(ctx context.Context, where string, whereArgs ...any) ([]Account, error) {
 	join, args := "", []any{}
 	if cutoff, ok := s.sessionCutoff(); ok {
 		join, args = ` AND julianday(s.last_seen_at) >= julianday(?)`, append(args, cutoff)
 	}
 	rows, err := s.db.QueryContext(ctx, `SELECT u.id, u.email, u.name, u.role, u.created_at,
 			COUNT(s.token_hash), MAX(s.last_seen_at)
-		FROM users u LEFT JOIN sessions s ON s.user_id = u.id`+join+`
-		GROUP BY u.id ORDER BY u.name COLLATE NOCASE, u.email`, args...)
+		FROM users u LEFT JOIN sessions s ON s.user_id = u.id`+join+` `+where+`
+		GROUP BY u.id ORDER BY u.name COLLATE NOCASE, u.email`, append(args, whereArgs...)...)
 	if err != nil {
 		return nil, fmt.Errorf("store: accounts: %w", err)
 	}
@@ -174,6 +179,18 @@ func (s *Store) Accounts(ctx context.Context) ([]Account, error) {
 	return accounts, rows.Err()
 }
 
+// Account renvoie un compte et son activité, ou ErrNotFound.
+func (s *Store) Account(ctx context.Context, id int64) (Account, error) {
+	accounts, err := s.accounts(ctx, `WHERE u.id = ?`, id)
+	if err != nil {
+		return Account{}, err
+	}
+	if len(accounts) == 0 {
+		return Account{}, ErrNotFound
+	}
+	return accounts[0], nil
+}
+
 // UpdateUser change l'adresse, le nom et le droit d'un compte. ErrNotFound,
 // ErrEmailTaken, ou ErrLastAdmin s'il était le dernier administrateur.
 func (s *Store) UpdateUser(ctx context.Context, id int64, email, name string, role Role) (User, error) {
@@ -183,7 +200,7 @@ func (s *Store) UpdateUser(ctx context.Context, id int64, email, name string, ro
 		}
 		_, err := tx.ExecContext(ctx, `UPDATE users SET email = ?, name = ?, role = ? WHERE id = ?`,
 			NormalizeEmail(email), strings.TrimSpace(name), role, id)
-		if err != nil && strings.Contains(err.Error(), "UNIQUE constraint failed") {
+		if isUniqueViolation(err) {
 			return ErrEmailTaken
 		}
 		return err

@@ -57,15 +57,14 @@ func (a *App) startInventory(w http.ResponseWriter, r *http.Request) {
 		a.fail(w, r, p)
 		return
 	}
-	var scope store.Scope
-	switch s := store.Scope(strings.TrimSpace(req.Scope)); s {
-	case "", store.ScopePartial:
-		scope = store.ScopePartial
-	case store.ScopeFull:
-		scope = store.ScopeFull
-	default:
-		a.fail(w, r, badRequest(CodeScope, "scope"))
-		return
+	// Sans portée, un inventaire est partiel.
+	scope := store.ScopePartial
+	if strings.TrimSpace(req.Scope) != "" {
+		var ok bool
+		if scope, ok = store.ParseScope(req.Scope); !ok {
+			a.fail(w, r, badRequest(CodeScope, "scope"))
+			return
+		}
 	}
 	inv, err := a.Store.StartInventory(r.Context(), currentUser(r).Name, scope)
 	if errors.Is(err, store.ErrInventoryOpen) {
@@ -124,12 +123,8 @@ func (req countRequest) validate(inventoryID int64) (store.CountInput, *problem)
 		return in, badRequest(CodeCount, "quantity")
 	}
 	in.Quantity = *req.Quantity
-	switch mode := store.CountMode(strings.TrimSpace(req.Mode)); mode {
-	case "", store.CountNew:
-		in.Mode = store.CountNew
-	case store.CountAdd, store.CountSet:
-		in.Mode = mode
-	default:
+	var ok bool
+	if in.Mode, ok = store.ParseCountMode(req.Mode); !ok {
 		return in, badRequest(CodeMode, "mode")
 	}
 	if req.Reference != nil {

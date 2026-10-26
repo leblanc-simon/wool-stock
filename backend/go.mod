@@ -2,6 +2,8 @@ module leblanc.io/wool-stock/backend
 
 go 1.26.3
 
+toolchain go1.26.10
+
 require (
 	github.com/xuri/excelize/v2 v2.11.0
 	golang.org/x/text v0.38.0

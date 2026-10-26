@@ -6,7 +6,7 @@ ldflags     := -s -w -X 'main.version=$(version)'
 
 .DEFAULT_GOAL := help
 
-.PHONY: help debug run test vet release clean-build build-linux build-darwin build-windows
+.PHONY: help debug run test vet vuln release clean-build build-linux build-darwin build-windows
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -24,6 +24,9 @@ test: ## Run the test suite
 
 vet: ## Run go vet
 	@go vet ./...
+
+vuln: ## Check the code, its dependencies and the Go toolchain for known vulnerabilities
+	@go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
 
 release: clean-build build-linux build-darwin build-windows ## Build the release version
 	@echo "Release $(version) done"

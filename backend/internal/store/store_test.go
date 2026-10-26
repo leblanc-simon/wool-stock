@@ -508,6 +508,12 @@ func TestManageUsers(t *testing.T) {
 	if a := accounts[1]; a.Sessions != 0 || a.LastSeenAt != nil || !a.IsAdmin() {
 		t.Fatalf("simon = %+v", a)
 	}
+	if acc, err := s.Account(ctx, marie.ID); err != nil || acc.Email != "marie@example.org" || acc.Sessions != 2 {
+		t.Fatalf("account = %+v, err = %v", acc, err)
+	}
+	if _, err := s.Account(ctx, 999); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("unknown account: err = %v", err)
+	}
 
 	// Le seul administrateur ne peut ni perdre son droit ni disparaître.
 	if _, err := s.UpdateUser(ctx, simon.ID, simon.Email, simon.Name, RoleManager); !errors.Is(err, ErrLastAdmin) {

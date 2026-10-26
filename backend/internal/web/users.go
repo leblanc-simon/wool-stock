@@ -157,22 +157,13 @@ type userView struct {
 	Closed int
 }
 
-// account renvoie un compte et son activité, ou ErrNotFound.
+// account renvoie le compte de l'adresse et son activité, ou ErrNotFound.
 func (a *App) account(r *http.Request) (store.Account, error) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
 		return store.Account{}, store.ErrNotFound
 	}
-	accounts, err := a.Store.Accounts(r.Context())
-	if err != nil {
-		return store.Account{}, err
-	}
-	for _, acc := range accounts {
-		if acc.ID == id {
-			return acc, nil
-		}
-	}
-	return store.Account{}, store.ErrNotFound
+	return a.Store.Account(r.Context(), id)
 }
 
 func (a *App) user(w http.ResponseWriter, r *http.Request) {

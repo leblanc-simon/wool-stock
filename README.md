@@ -50,7 +50,8 @@ et `./gradlew :app:installDebug -Pwoolstock.apiUrl=http://127.0.0.1:8080`.
 Le rapport du parseur est écrit dans `label-parser/build/reports/label-parser/report.md`.
 
 Prérequis : JDK 17 ou plus, SDK Android avec la plateforme 37 (AGP l'installe au premier build),
-Go 1.26 ou plus pour le serveur, et un Mac avec Xcode 26 pour construire l'app iOS.
+Go 1.26 ou plus pour le serveur (`go` télécharge la version corrective fixée par `toolchain`
+dans `backend/go.mod`), et un Mac avec Xcode 26 pour construire l'app iOS.
 Versions : Gradle 9.8, AGP 9.4, Kotlin 2.4, Compose Multiplatform 1.12, minSdk 26, compileSdk 37,
 targetSdk 36, iOS 17.
 
