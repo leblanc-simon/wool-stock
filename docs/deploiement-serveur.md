@@ -229,7 +229,11 @@ cette ligne par `listen 443 ssl http2;` (et `listen [::]:443 ssl http2;`).
 curl -s https://stock-laine.carin.family/api/health
 curl -sI http://stock-laine.carin.family/stock | head -1    # 301 vers https
 curl -sI https://stock-laine.carin.family/stock | head -3   # 303 vers /login
+curl -s --http1.1 https://stock-laine.carin.family/api/health  # même réponse qu'en HTTP/2
 ```
+
+Le dernier test compte : un navigateur passe en HTTP/2, mais d'autres clients s'en tiennent à
+HTTP/1.1. Le site doit répondre aux deux.
 
 Ensuite, dans un navigateur :
 
@@ -252,6 +256,7 @@ Diagnostics courants :
 | Tout le monde reçoit 429 à la connexion | `web.trusted_proxies` manque : tous les clients partagent l'IP de nginx. |
 | Le service écoute sur `0.0.0.0` ou la base est vide | `config.yaml` est illisible pour l'utilisateur `wool-stock` (étape 4). |
 | L'app release refuse le serveur | L'adresse est en `http://` : une version release exige HTTPS. |
+| Le navigateur marche, mais `curl --http1.1` répond « Empty reply from server » | nginx coupe le HTTP/1.1 pour ce site, sans appeler le service. Chercher un autre bloc `server` du port 443 qui récupérerait ces requêtes (site par défaut, `return 444`) avec `sudo nginx -T \| grep -nE "listen\|server_name\|return 444"`, et lire `/var/log/nginx/error.log`. |
 
 ## 10. Sauvegardes
 

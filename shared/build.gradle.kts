@@ -73,7 +73,8 @@ kotlin {
             implementation(libs.mlkit.barcode.scanning)
             implementation(libs.mlkit.text.recognition)
             implementation(libs.androidx.sqlite.framework)
-            implementation(libs.ktor.client.android)
+            // OkHttp parle HTTP/2, comme le navigateur ; HttpURLConnection s'en tient à HTTP/1.1.
+            implementation(libs.ktor.client.okhttp)
         }
         iosMain.dependencies {
             implementation(libs.androidx.sqlite.bundled)
