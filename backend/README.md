@@ -45,6 +45,7 @@ d'erreur traduits selon `Accept-Language`, locales embarquées). Base SQLite
 
 ```bash
 make test                       # go test -race ./...
+make vuln                       # govulncheck : failles connues du code, des dépendances et de Go
 cp config.yaml.dist config.yaml # puis ajuster
 make run                        # go run . -c config.yaml
 make release                    # binaires autonomes dans build/
@@ -61,7 +62,8 @@ wool-stock -c config.yaml users list
 
 Sans `config.yaml`, la configuration vient des variables `WS_*` (`wool-stock --help` les
 liste). Par défaut, le serveur écoute sur `127.0.0.1:8080`. Pour que des téléphones du
-réseau local le joignent, passer `web.host` à `0.0.0.0`. En développement, avec le
+réseau local le joignent, passer `web.host` à `0.0.0.0` : en HTTP, cookie et jeton y
+circulent en clair, et seule la version debug de l'app l'accepte. En développement, avec le
 téléphone branché en USB, `adb reverse tcp:8080 tcp:8080` puis, dans les réglages de l'app,
 l'adresse `http://127.0.0.1:8080` (l'app vise `https://stock-laine.carin.family` par défaut).
 
@@ -69,7 +71,10 @@ l'adresse `http://127.0.0.1:8080` (l'app vise `https://stock-laine.carin.family`
 
 - `POST /api/auth/login` avec `{"email": "…", "device": "…"}` : si l'adresse a un compte,
   la réponse donne un jeton (`{"token","user"}`), sinon `403 error.email_not_allowed`. Pas de
-  mot de passe, et la session n'expire pas : le téléphone reste connecté.
+  mot de passe, et la session reste ouverte tant qu'elle sert : le téléphone reste connecté.
+  Une session inutilisée pendant `login.session_idle_days` jours (`WS_LOGIN_SESSION_IDLE_DAYS`,
+  400 par défaut, comme le cookie des pages ; 0 = jamais) expire, et elle est effacée à la
+  connexion suivante d'un compte : un téléphone perdu ou un navigateur oublié finit déconnecté.
 - Toutes les autres routes `/api/…` (sauf `health`) demandent `Authorization: Bearer <jeton>` ;
   sans jeton valide : `401 error.unauthorized`. `GET /api/auth/me` renvoie le compte,
   `POST /api/auth/logout` ferme la session.
@@ -145,7 +150,9 @@ Toutes les réponses sont en JSON. Un EAN accepte 8, 12, 13 ou 14 chiffres ; un 
   touche jamais au cache.
 - `request_id` : identifiant de la saisie, généré par le client (64 caractères au plus).
   S'il est renvoyé après une coupure réseau, le mouvement n'est pas compté deux fois : la
-  réponse est alors `200` avec `"replayed": true`, au lieu de `201`.
+  réponse est alors `200` avec `"replayed": true`, au lieu de `201`. Il est lié au contenu :
+  renvoyé avec une autre saisie (quantité corrigée, autre bain…), il est refusé en
+  `409 error.request_reused`. Le client en génère donc un nouveau dès que la saisie change.
 
 La réponse renvoie le mouvement et le bain mis à jour : `{"movement":{…},"lot":{…},"replayed":false}`.
 Une sortie supérieure au stock du bain est refusée en `409`.
@@ -173,6 +180,9 @@ Chaque comptage **fixe le stock** du bain à la quantité comptée :
   quantité déjà comptée. Le client renvoie alors le même comptage avec `add` (ajouté au
   comptage et au stock : pelotes trouvées ailleurs) ou `set` (remplace le comptage et le stock).
 - `reference` met à jour le cache, comme une entrée ; un bain inconnu est créé.
+- `request_id` suit la même règle que pour une entrée ou une sortie : un renvoi à l'identique
+  est rejoué, un autre comptage (ou un autre `mode`) sous le même identifiant est refusé en
+  `409 error.request_reused`.
 - La réponse donne le comptage (`quantity`, `previous_quantity` = stock avant le premier
   comptage) et le bain mis à jour : `{"count":{…},"lot":{…},"replayed":false}`.
 
@@ -193,7 +203,8 @@ Les codes possibles :
 - `validation.*` : `ean_required`, `ean_format`, `kind`, `quantity`, `count`, `mode`,
   `recipient_required`, `scope`, `too_long`, `limit`. Le champ fautif est indiqué dans `field`.
 - `error.*` : `invalid_json`, `not_found`, `insufficient_stock` (409), `already_counted` (409),
-  `inventory_open` (409), `inventory_closed` (409), `rate_limit` (429), `internal`.
+  `inventory_open` (409), `inventory_closed` (409), `request_reused` (409), `rate_limit` (429),
+  `internal`.
 
 ## Organisation
 

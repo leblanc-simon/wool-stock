@@ -43,3 +43,24 @@ func CleanText(value string, max int) (cleaned string, ok bool) {
 	}
 	return value, true
 }
+
+// ParseScope lit la portée d'un inventaire ; ok vaut false pour une valeur vide ou inconnue.
+func ParseScope(raw string) (Scope, bool) {
+	switch scope := Scope(strings.TrimSpace(raw)); scope {
+	case ScopePartial, ScopeFull:
+		return scope, true
+	}
+	return "", false
+}
+
+// ParseCountMode lit le mode d'un comptage : vide, c'est un premier comptage (CountNew) ;
+// ok vaut false pour une valeur inconnue.
+func ParseCountMode(raw string) (CountMode, bool) {
+	switch mode := CountMode(strings.TrimSpace(raw)); mode {
+	case "":
+		return CountNew, true
+	case CountNew, CountAdd, CountSet:
+		return mode, true
+	}
+	return "", false
+}

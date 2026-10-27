@@ -29,11 +29,13 @@
     <string name="validation_email">Enter a valid email address</string>
     <string name="validation_name_required">The name is required</string>
     <string name="validation_url">Address starting with http:// or https://</string>
+    <string name="validation_url_https">An https:// address is required (http:// only to 127.0.0.1)</string>
 
     <!-- Transverse: server and network errors (the server's error.* codes) -->
     <string name="error_network">Server unreachable. Check its address in Settings and the phone’s network.</string>
     <string name="error_server">Server error (HTTP %1$d)</string>
     <string name="error_unexpected">Unexpected error</string>
+    <string name="error_invalid_response">Unexpected response: this address does not look like a Wool Stock server. Check it in Settings.</string>
     <string name="error_inventory_closed">This inventory is finished.</string>
     <string name="error_email_not_allowed">This email address is not allowed. Ask an administrator to add it.</string>
     <string name="error_email_taken">This email address already has an account.</string>
@@ -195,7 +197,8 @@
     <string name="settings_delete_account_confirm">Delete</string>
     <string name="settings_server">Server</string>
     <string name="settings_server_url">Server address</string>
-    <string name="settings_server_url_help">For example http://192.168.1.10:8080</string>
+    <string name="settings_server_url_help">For example https://yarn-stock.example.org</string>
+    <string name="settings_server_signs_out">Saving another address signs you out: a sign-in only works with its own server.</string>
     <string name="settings_test">Test</string>
     <string name="settings_test_ok">Connected · server %1$s</string>
     <string name="settings_save">Save</string>

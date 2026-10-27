@@ -36,7 +36,7 @@ class LoginViewModel(private val repository: StockRepository, settings: AppSetti
 
     fun onEmailChange(value: String) = _state.update { it.copy(email = value, error = null) }
 
-    /** Une adresse autorisée ouvre une session, gardée sur le téléphone sans limite de durée. */
+    /** Une adresse autorisée ouvre une session, gardée sur le téléphone tant qu'elle sert. */
     fun login() {
         val email = _state.value.email.trim()
         if (_state.value.loading) return

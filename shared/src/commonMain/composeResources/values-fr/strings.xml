@@ -25,10 +25,12 @@
     <string name="validation_email">Saisissez une adresse email valide</string>
     <string name="validation_name_required">Le nom est obligatoire</string>
     <string name="validation_url">Adresse commençant par http:// ou https://</string>
+    <string name="validation_url_https">Adresse en https:// obligatoire (http:// seulement vers 127.0.0.1)</string>
 
     <string name="error_network">Serveur injoignable. Vérifiez son adresse dans les réglages et le réseau du téléphone.</string>
     <string name="error_server">Erreur du serveur (HTTP %1$d)</string>
     <string name="error_unexpected">Erreur inattendue</string>
+    <string name="error_invalid_response">Réponse inattendue : cette adresse ne semble pas être celle d’un serveur Wool Stock. Vérifiez-la dans les réglages.</string>
     <string name="error_inventory_closed">Cet inventaire est terminé.</string>
     <string name="error_email_not_allowed">Cette adresse n’est pas autorisée. Demandez à un administrateur de l’ajouter.</string>
     <string name="error_email_taken">Cette adresse a déjà un compte.</string>
@@ -192,7 +194,8 @@
     <string name="settings_delete_account_confirm">Supprimer</string>
     <string name="settings_server">Serveur</string>
     <string name="settings_server_url">Adresse du serveur</string>
-    <string name="settings_server_url_help">Par exemple http://192.168.1.10:8080</string>
+    <string name="settings_server_url_help">Par exemple https://stock-laine.exemple.fr</string>
+    <string name="settings_server_signs_out">Enregistrer une autre adresse vous déconnecte : une connexion ne vaut que pour son serveur.</string>
     <string name="settings_test">Tester</string>
     <string name="settings_test_ok">Connecté · serveur %1$s</string>
     <string name="settings_save">Enregistrer</string>

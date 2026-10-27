@@ -258,14 +258,20 @@ func (s *Store) InventoryCounts(ctx context.Context, id int64) ([]InventoryCount
 
 // Count enregistre un comptage et met à jour le stock du bain : un premier
 // comptage ou un remplacement fixe la quantité, un ajout l'augmente. Un RequestID
-// déjà enregistré renvoie le résultat sans rien rejouer (replayed vaut true).
+// déjà enregistré renvoie le résultat sans rien rejouer (replayed vaut true) ; renvoyé
+// avec un autre contenu, il est refusé (ErrRequestReused).
 func (s *Store) Count(ctx context.Context, in CountInput) (count InventoryCount, lot StockItem, replayed bool, err error) {
+	hash := in.hash()
 	err = s.tx(ctx, func(tx *sql.Tx) error {
 		if in.RequestID != "" {
 			var inventoryID, lotID int64
-			err := tx.QueryRowContext(ctx, `SELECT inventory_id, lot_id FROM inventory_scans WHERE request_id = ?`,
-				in.RequestID).Scan(&inventoryID, &lotID)
+			var stored sql.NullString
+			err := tx.QueryRowContext(ctx, `SELECT inventory_id, lot_id, request_hash FROM inventory_scans WHERE request_id = ?`,
+				in.RequestID).Scan(&inventoryID, &lotID, &stored)
 			if err == nil {
+				if !sameRequest(stored, hash) {
+					return ErrRequestReused
+				}
 				replayed = true
 				return s.readCount(ctx, tx, inventoryID, lotID, &count, &lot)
 			}
@@ -342,14 +348,30 @@ func (s *Store) Count(ctx context.Context, in CountInput) (count InventoryCount,
 		if !alreadyCounted {
 			mode = CountNew
 		}
+		var storedHash any
+		if in.RequestID != "" {
+			storedHash = hash
+		}
 		if _, err := tx.ExecContext(ctx, `INSERT INTO inventory_scans
-			(request_id, inventory_id, lot_id, mode, quantity, author, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-			nullable(in.RequestID), in.InventoryID, lotID, mode, in.Quantity, nullable(in.Author), now); err != nil {
+			(request_id, request_hash, inventory_id, lot_id, mode, quantity, author, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			nullable(in.RequestID), storedHash, in.InventoryID, lotID, mode, in.Quantity, nullable(in.Author), now); err != nil {
 			return fmt.Errorf("store: count scan: %w", err)
 		}
 		return s.readCount(ctx, tx, in.InventoryID, lotID, &count, &lot)
 	})
 	return count, lot, replayed, err
+}
+
+// hash est l'empreinte du comptage demandé (le mode tel qu'envoyé), sans l'auteur.
+func (in CountInput) hash() string {
+	return requestHash(struct {
+		InventoryID int64
+		EAN         string
+		DyeLot      string
+		Quantity    int
+		Mode        CountMode
+		Reference   *ReferenceFields
+	}{in.InventoryID, in.EAN, in.DyeLot, in.Quantity, in.Mode, in.Reference})
 }
 
 func (s *Store) readCount(ctx context.Context, tx *sql.Tx, inventoryID, lotID int64, count *InventoryCount, lot *StockItem) error {

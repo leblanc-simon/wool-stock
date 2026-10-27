@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12 et plus : allowBackup="false" coupe la sauvegarde dans le cloud, mais pas le
+     transfert vers un nouveau téléphone. Ni les réglages, où vit le jeton de session, ni la
+     copie du cache des références (celle d'un serveur et d'un compte) ne partent : le nouveau
+     téléphone se connecte à son tour. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="settings.xml" />
+        <exclude domain="database" path="wool-stock.db" />
+        <exclude domain="database" path="wool-stock.db-wal" />
+        <exclude domain="database" path="wool-stock.db-shm" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="settings.xml" />
+        <exclude domain="database" path="wool-stock.db" />
+        <exclude domain="database" path="wool-stock.db-wal" />
+        <exclude domain="database" path="wool-stock.db-shm" />
+    </device-transfer>
+</data-extraction-rules>

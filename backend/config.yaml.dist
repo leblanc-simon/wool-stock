@@ -5,9 +5,10 @@
 # d'environnement et les valeurs par défaut s'appliquent.
 
 web:
-  # 0.0.0.0 pour que les téléphones du réseau local joignent le serveur ;
   # 127.0.0.1 derrière un reverse proxy (ou avec `adb reverse` en développement).
-  host: 0.0.0.0
+  # 0.0.0.0 ouvre le serveur aux téléphones du réseau local, mais en HTTP : le cookie
+  # et le jeton de session y circulent en clair. Seule la version debug de l'app l'accepte.
+  host: 127.0.0.1
   port: 8080
   # Requêtes par minute et par IP cliente ; 0 désactive la limite.
   rate_limit: 100
@@ -32,3 +33,6 @@ login:
   # Tentatives de connexion par minute et par IP cliente, l'app et les pages web
   # confondues, en plus de web.rate_limit ; 0 désactive cette limite.
   rate_limit: 5
+  # Jours sans utilisation après lesquels une session (téléphone, navigateur) expire ;
+  # 0 : jamais. 400, comme le cookie des pages, renouvelé à chaque visite.
+  session_idle_days: 400

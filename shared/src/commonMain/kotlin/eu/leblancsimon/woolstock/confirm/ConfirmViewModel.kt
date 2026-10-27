@@ -44,7 +44,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
-import kotlin.uuid.Uuid
 
 enum class FieldSource(val label: StringResource) {
     BARCODE(Res.string.source_barcode),
@@ -100,14 +99,19 @@ data class ConfirmUiState(
 }
 
 class ConfirmViewModel(
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle,
     private val repository: StockRepository,
 ) : ViewModel() {
     private val route = savedStateHandle.toRoute<ConfirmRoute>()
 
-    /** Identique pour tous les essais de cette saisie : un renvoi n'est jamais compté deux fois. */
-    private val requestId: String = savedStateHandle.get<String>(KEY_REQUEST_ID)
-        ?: Uuid.random().toString().also { savedStateHandle[KEY_REQUEST_ID] = it }
+    /**
+     * Identifiant d'envoi, le même pour tous les essais d'une même saisie (un renvoi n'est jamais
+     * compté deux fois), un autre dès que la saisie est corrigée ; gardé si l'écran est recréé.
+     */
+    private val requestIds = RequestIds(
+        content = savedStateHandle.get<String>(KEY_REQUEST_CONTENT),
+        id = savedStateHandle.get<String>(KEY_REQUEST_ID),
+    )
 
     private val _state = MutableStateFlow(
         ConfirmUiState(
@@ -305,19 +309,25 @@ class ConfirmViewModel(
         } else {
             null
         }
+        val requestId = requestIdFor(
+            listOf(current.mode.name, ean, dyeLot, quantity.toString(), recipient, countMode.name) +
+                listOf(reference?.brand, reference?.colorCode, reference?.colorName),
+        )
         viewModelScope.launch {
             try {
+                // Ce que le serveur a enregistré, qui fait foi : la confirmation le reprend.
                 val saved = when (current.mode) {
                     ScanMode.ENTRY, ScanMode.EXIT -> {
                         val kind = if (current.mode == ScanMode.ENTRY) MovementKind.IN else MovementKind.OUT
                         val exitRecipient = recipient.takeIf { kind == MovementKind.OUT }
-                        repository.record(MovementInput(kind, ean, dyeLot, quantity, exitRecipient, reference), requestId)
-                        SavedScan(current.mode, quantity, dyeLot, exitRecipient)
+                        val input = MovementInput(kind, ean, dyeLot, quantity, exitRecipient, reference)
+                        val movement = repository.record(input, requestId).movement
+                        SavedScan(current.mode, movement.quantity, movement.dyeLot, movement.recipient)
                     }
                     ScanMode.INVENTORY -> {
                         val inventoryId = checkNotNull(route.inventoryId) { "inventory scan without inventory" }
                         val response = repository.count(inventoryId, CountInput(ean, dyeLot, quantity, reference), countMode, requestId)
-                        SavedScan(current.mode, response.count.quantity, dyeLot)
+                        SavedScan(current.mode, response.count.quantity, response.count.dyeLot)
                     }
                 }
                 _saved.send(saved)
@@ -342,6 +352,15 @@ class ConfirmViewModel(
         }
     }
 
+    /** L'identifiant d'envoi de ce contenu, gardé avec lui dans l'état sauvegardé de l'écran. */
+    private fun requestIdFor(content: List<String?>): String {
+        val key = content.joinToString("\u0000") { it ?: "\u0001" }
+        return requestIds.idFor(key).also {
+            savedStateHandle[KEY_REQUEST_CONTENT] = key
+            savedStateHandle[KEY_REQUEST_ID] = it
+        }
+    }
+
     private fun field(value: String?, source: FieldSource) =
         if (value.isNullOrBlank()) FieldState() else FieldState(value, source)
 
@@ -350,6 +369,7 @@ class ConfirmViewModel(
 
     companion object {
         private const val KEY_REQUEST_ID = "request_id"
+        private const val KEY_REQUEST_CONTENT = "request_content"
         private const val MAX_QUANTITY = 10_000
     }
 }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 et moins : allowBackup="false" coupe déjà toute sauvegarde ; ces règles, les
+     mêmes que data_extraction_rules.xml, le disent aussi pour les réglages (jeton de session)
+     et la copie du cache des références. -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="settings.xml" />
+    <exclude domain="database" path="wool-stock.db" />
+    <exclude domain="database" path="wool-stock.db-wal" />
+    <exclude domain="database" path="wool-stock.db-shm" />
+</full-backup-content>

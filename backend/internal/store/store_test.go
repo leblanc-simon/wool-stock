@@ -123,6 +123,44 @@ func TestReplayedRequestCountsOnce(t *testing.T) {
 	if !replayed || again.ID != first.ID || lot.Quantity != 4 {
 		t.Fatalf("replay: movement = %+v, lot = %+v, replayed = %v", again, lot, replayed)
 	}
+
+	// Un autre contenu sous le même identifiant (saisie corrigée après un délai dépassé)
+	// est refusé : le rendre ferait croire au client que sa correction est passée.
+	for _, changed := range []MovementInput{
+		{RequestID: "a1", Kind: KindIn, EAN: "4006369500144", DyeLot: "", Quantity: 5},
+		{RequestID: "a1", Kind: KindOut, EAN: "4006369500144", DyeLot: "", Quantity: 4, Recipient: "Marie"},
+		{RequestID: "a1", Kind: KindIn, EAN: "4006369500144", DyeLot: "", Quantity: 4, Reference: &ReferenceFields{Brand: ptr("Katia")}},
+	} {
+		if _, _, _, err := s.Record(ctx, changed); !errors.Is(err, ErrRequestReused) {
+			t.Fatalf("reused %+v: err = %v", changed, err)
+		}
+	}
+	// L'auteur n'en fait pas partie : c'est le serveur qui le pose.
+	in.Author = "Marie"
+	if _, _, replayed, err := s.Record(ctx, in); err != nil || !replayed {
+		t.Fatalf("replay by another author: replayed = %v, err = %v", replayed, err)
+	}
+	stock, err := s.Stock(ctx, StockFilter{EAN: "4006369500144"})
+	if err != nil || len(stock) != 1 || stock[0].Quantity != 4 {
+		t.Fatalf("stock = %+v, err = %v", stock, err)
+	}
+}
+
+// Un envoi enregistré avant l'empreinte (migration 005) se rejoue comme avant.
+func TestReplayWithoutStoredHash(t *testing.T) {
+	ctx := context.Background()
+	s := open(t)
+	in := MovementInput{RequestID: "old", Kind: KindIn, EAN: "4006369500144", Quantity: 2}
+	if _, _, _, err := s.Record(ctx, in); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.db.ExecContext(ctx, `UPDATE movements SET request_hash = NULL`); err != nil {
+		t.Fatal(err)
+	}
+	in.Quantity = 3
+	if _, lot, replayed, err := s.Record(ctx, in); err != nil || !replayed || lot.Quantity != 2 {
+		t.Fatalf("legacy replay: lot = %+v, replayed = %v, err = %v", lot, replayed, err)
+	}
 }
 
 func TestStockOrder(t *testing.T) {
@@ -217,6 +255,15 @@ func TestInventory(t *testing.T) {
 	// Rejoué : rien ne change.
 	if count, _, replayed, err := s.Count(ctx, in); err != nil || !replayed || count.Quantity != 6 {
 		t.Fatalf("replay = %+v, %v, err = %v", count, replayed, err)
+	}
+	// Le même identifiant pour un autre comptage, ou un autre mode : refusé.
+	for _, changed := range []CountInput{
+		{RequestID: "c1", InventoryID: inv.ID, EAN: "8435407948594", DyeLot: "81784", Quantity: 7, Mode: CountNew},
+		{RequestID: "c1", InventoryID: inv.ID, EAN: "8435407948594", DyeLot: "81784", Quantity: 6, Mode: CountSet},
+	} {
+		if _, _, _, err := s.Count(ctx, changed); !errors.Is(err, ErrRequestReused) {
+			t.Fatalf("reused %+v: err = %v", changed, err)
+		}
 	}
 	// Même bain rescanné sans dire quoi faire : refusé, avec le comptage existant.
 	var already *AlreadyCountedError
@@ -384,6 +431,54 @@ func TestUsersAndSessions(t *testing.T) {
 	}
 }
 
+// Une session inutilisée expire ; une session qui sert reste ouverte. Les sessions
+// expirées sont effacées à la connexion suivante et ne comptent plus dans l'activité.
+func TestSessionsExpireWhenUnused(t *testing.T) {
+	ctx := context.Background()
+	s := open(t)
+	start := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+	now := start
+	s.now = func() time.Time { return now }
+	s.SetSessionIdle(100 * 24 * time.Hour)
+	marie, err := s.CreateUser(ctx, "marie@example.org", "Marie", RoleManager, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	used, _ := s.OpenSession(ctx, marie.ID, "Pixel 6")
+	forgotten, _ := s.OpenSession(ctx, marie.ID, "Firefox")
+
+	// Le téléphone sert tous les 60 jours : sa session tient au-delà des 100 jours.
+	for day := 60; day <= 240; day += 60 {
+		now = start.AddDate(0, 0, day)
+		if _, err := s.SessionUser(ctx, used); err != nil {
+			t.Fatalf("day %d: used session: %v", day, err)
+		}
+	}
+	if _, err := s.SessionUser(ctx, forgotten); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("forgotten session: err = %v", err)
+	}
+	accounts, err := s.Accounts(ctx)
+	if err != nil || len(accounts) != 1 || accounts[0].Sessions != 1 {
+		t.Fatalf("accounts = %+v, err = %v", accounts, err)
+	}
+
+	// Une connexion efface les sessions expirées.
+	if _, err := s.OpenSession(ctx, marie.ID, "iPhone"); err != nil {
+		t.Fatal(err)
+	}
+	var rows int
+	if err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM sessions`).Scan(&rows); err != nil || rows != 2 {
+		t.Fatalf("sessions after purge = %d, err = %v", rows, err)
+	}
+
+	// Sans durée, rien n'expire.
+	s.SetSessionIdle(0)
+	now = start.AddDate(10, 0, 0)
+	if _, err := s.SessionUser(ctx, used); err != nil {
+		t.Fatalf("no expiry: %v", err)
+	}
+}
+
 func TestManageUsers(t *testing.T) {
 	ctx := context.Background()
 	s := open(t)
@@ -412,6 +507,12 @@ func TestManageUsers(t *testing.T) {
 	}
 	if a := accounts[1]; a.Sessions != 0 || a.LastSeenAt != nil || !a.IsAdmin() {
 		t.Fatalf("simon = %+v", a)
+	}
+	if acc, err := s.Account(ctx, marie.ID); err != nil || acc.Email != "marie@example.org" || acc.Sessions != 2 {
+		t.Fatalf("account = %+v, err = %v", acc, err)
+	}
+	if _, err := s.Account(ctx, 999); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("unknown account: err = %v", err)
 	}
 
 	// Le seul administrateur ne peut ni perdre son droit ni disparaître.

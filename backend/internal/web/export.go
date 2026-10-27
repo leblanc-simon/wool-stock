@@ -64,8 +64,16 @@ func (a *App) export(w http.ResponseWriter, r *http.Request) {
 // de fichier : le stock du jour, chaque bain reçu avec sa quantité (0 s'il est épuisé),
 // et toutes les sorties, regroupées par jour et par destinataire. Les pages et l'API
 // (GET /api/export) le servent tel quel ; tout est écrit en mémoire avant l'envoi, une
-// erreur laisse donc encore répondre une erreur.
+// erreur laisse donc encore répondre une erreur. Tout l'historique tient en mémoire le
+// temps de l'écrire : un seul classeur se construit à la fois, les demandes suivantes
+// attendent leur tour (ou l'abandon de la requête), au lieu de s'additionner.
 func (a *App) Workbook(ctx context.Context, loc *i18n.Localizer) ([]byte, string, error) {
+	select {
+	case a.exports <- struct{}{}:
+		defer func() { <-a.exports }()
+	case <-ctx.Done():
+		return nil, "", ctx.Err()
+	}
 	items, err := a.Store.Stock(ctx, store.StockFilter{IncludeEmpty: true})
 	if err != nil {
 		return nil, "", err

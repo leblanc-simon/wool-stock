@@ -7,6 +7,7 @@ import eu.leblancsimon.woolstock.resources.error_email_not_allowed
 import eu.leblancsimon.woolstock.resources.error_email_taken
 import eu.leblancsimon.woolstock.resources.error_forbidden
 import eu.leblancsimon.woolstock.resources.error_insufficient_stock
+import eu.leblancsimon.woolstock.resources.error_invalid_response
 import eu.leblancsimon.woolstock.resources.error_inventory_closed
 import eu.leblancsimon.woolstock.resources.error_last_admin
 import eu.leblancsimon.woolstock.resources.error_network
@@ -20,6 +21,8 @@ import eu.leblancsimon.woolstock.resources.validation_email
 import eu.leblancsimon.woolstock.resources.validation_name_required
 import eu.leblancsimon.woolstock.resources.validation_quantity
 import eu.leblancsimon.woolstock.resources.validation_recipient_required
+import eu.leblancsimon.woolstock.resources.validation_url
+import eu.leblancsimon.woolstock.resources.validation_url_https
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getPluralString
@@ -54,6 +57,9 @@ suspend fun ErrorMessage.load(): String = when (this) {
 /** Les codes d'erreur de l'API sont résolus dans les ressources de l'app quand elle les connaît. */
 fun Throwable.toErrorMessage(): ErrorMessage = when (this) {
     is ApiException.Network -> ErrorMessage.Resource(Res.string.error_network)
+    is ApiException.InvalidAddress ->
+        ErrorMessage.Resource(if (cleartext) Res.string.validation_url_https else Res.string.validation_url)
+    is ApiException.InvalidResponse -> ErrorMessage.Resource(Res.string.error_invalid_response)
     is ApiException.Server -> when (error?.code) {
         "error.insufficient_stock" -> ErrorMessage.Plural(Res.plurals.error_insufficient_stock, error.available ?: 0)
         "validation.ean_required" -> ErrorMessage.Resource(Res.string.validation_ean_required)

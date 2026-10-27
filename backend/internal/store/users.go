@@ -85,7 +85,7 @@ func (s *Store) CreateUser(ctx context.Context, email, name string, role Role, c
 	}
 	res, err := s.db.ExecContext(ctx, `INSERT INTO users (email, name, role, created_at, created_by) VALUES (?, ?, ?, ?, ?)`,
 		NormalizeEmail(email), strings.TrimSpace(name), role, s.timestamp(), by)
-	if err != nil && strings.Contains(err.Error(), "UNIQUE constraint failed") {
+	if isUniqueViolation(err) {
 		return User{}, ErrEmailTaken
 	}
 	if err != nil {
@@ -140,12 +140,21 @@ func (s *Store) User(ctx context.Context, id int64) (User, error) {
 	return u, nil
 }
 
-// Accounts renvoie tous les comptes avec leur activité, par nom.
+// Accounts renvoie tous les comptes avec leur activité (sessions encore valides), par nom.
 func (s *Store) Accounts(ctx context.Context) ([]Account, error) {
+	return s.accounts(ctx, "")
+}
+
+// accounts lit les comptes retenus par where (vide : tous) avec leur activité.
+func (s *Store) accounts(ctx context.Context, where string, whereArgs ...any) ([]Account, error) {
+	join, args := "", []any{}
+	if cutoff, ok := s.sessionCutoff(); ok {
+		join, args = ` AND julianday(s.last_seen_at) >= julianday(?)`, append(args, cutoff)
+	}
 	rows, err := s.db.QueryContext(ctx, `SELECT u.id, u.email, u.name, u.role, u.created_at,
 			COUNT(s.token_hash), MAX(s.last_seen_at)
-		FROM users u LEFT JOIN sessions s ON s.user_id = u.id
-		GROUP BY u.id ORDER BY u.name COLLATE NOCASE, u.email`)
+		FROM users u LEFT JOIN sessions s ON s.user_id = u.id`+join+` `+where+`
+		GROUP BY u.id ORDER BY u.name COLLATE NOCASE, u.email`, append(args, whereArgs...)...)
 	if err != nil {
 		return nil, fmt.Errorf("store: accounts: %w", err)
 	}
@@ -170,6 +179,18 @@ func (s *Store) Accounts(ctx context.Context) ([]Account, error) {
 	return accounts, rows.Err()
 }
 
+// Account renvoie un compte et son activité, ou ErrNotFound.
+func (s *Store) Account(ctx context.Context, id int64) (Account, error) {
+	accounts, err := s.accounts(ctx, `WHERE u.id = ?`, id)
+	if err != nil {
+		return Account{}, err
+	}
+	if len(accounts) == 0 {
+		return Account{}, ErrNotFound
+	}
+	return accounts[0], nil
+}
+
 // UpdateUser change l'adresse, le nom et le droit d'un compte. ErrNotFound,
 // ErrEmailTaken, ou ErrLastAdmin s'il était le dernier administrateur.
 func (s *Store) UpdateUser(ctx context.Context, id int64, email, name string, role Role) (User, error) {
@@ -179,7 +200,7 @@ func (s *Store) UpdateUser(ctx context.Context, id int64, email, name string, ro
 		}
 		_, err := tx.ExecContext(ctx, `UPDATE users SET email = ?, name = ?, role = ? WHERE id = ?`,
 			NormalizeEmail(email), strings.TrimSpace(name), role, id)
-		if err != nil && strings.Contains(err.Error(), "UNIQUE constraint failed") {
+		if isUniqueViolation(err) {
 			return ErrEmailTaken
 		}
 		return err
@@ -251,8 +272,18 @@ func (s *Store) CloseUserSessions(ctx context.Context, userID int64) (int, error
 	return int(n), err
 }
 
-// OpenSession crée une session sans fin pour un compte et renvoie son jeton, à
-// présenter ensuite en « Authorization: Bearer ».
+// sessionCutoff donne l'horodatage avant lequel une session inutilisée a expiré ; ok vaut
+// false quand les sessions n'expirent pas.
+func (s *Store) sessionCutoff() (cutoff string, ok bool) {
+	if s.sessionIdle <= 0 {
+		return "", false
+	}
+	return s.now().Add(-s.sessionIdle).UTC().Format(timestampLayout), true
+}
+
+// OpenSession crée une session pour un compte et renvoie son jeton, à présenter ensuite
+// en « Authorization: Bearer ». La session reste ouverte tant qu'elle sert : elle expire
+// après sessionIdle sans utilisation. Les sessions expirées sont effacées au passage.
 func (s *Store) OpenSession(ctx context.Context, userID int64, device string) (string, error) {
 	raw := make([]byte, 32)
 	if _, err := rand.Read(raw); err != nil {
@@ -264,14 +295,24 @@ func (s *Store) OpenSession(ctx context.Context, userID int64, device string) (s
 		VALUES (?, ?, ?, ?, ?)`, tokenHash(token), userID, nullable(device), now, now); err != nil {
 		return "", fmt.Errorf("store: open session: %w", err)
 	}
+	if cutoff, ok := s.sessionCutoff(); ok {
+		if _, err := s.db.ExecContext(ctx, `DELETE FROM sessions WHERE julianday(last_seen_at) < julianday(?)`, cutoff); err != nil {
+			return "", fmt.Errorf("store: purge sessions: %w", err)
+		}
+	}
 	return token, nil
 }
 
-// SessionUser renvoie le compte d'un jeton de session, ou ErrNotFound.
+// SessionUser renvoie le compte d'un jeton de session, ou ErrNotFound si la session
+// n'existe pas ou a expiré.
 func (s *Store) SessionUser(ctx context.Context, token string) (User, error) {
 	hash := tokenHash(token)
-	u, err := scanUser(s.db.QueryRowContext(ctx, `SELECT u.id, u.email, u.name, u.role, u.created_at
-		FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ?`, hash))
+	query, args := `SELECT u.id, u.email, u.name, u.role, u.created_at
+		FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ?`, []any{hash}
+	if cutoff, ok := s.sessionCutoff(); ok {
+		query, args = query+` AND julianday(s.last_seen_at) >= julianday(?)`, append(args, cutoff)
+	}
+	u, err := scanUser(s.db.QueryRowContext(ctx, query, args...))
 	if errors.Is(err, sql.ErrNoRows) {
 		return User{}, ErrNotFound
 	}

@@ -49,6 +49,7 @@ import eu.leblancsimon.woolstock.resources.settings_delete_account_title
 import eu.leblancsimon.woolstock.resources.settings_logout
 import eu.leblancsimon.woolstock.resources.settings_save
 import eu.leblancsimon.woolstock.resources.settings_server
+import eu.leblancsimon.woolstock.resources.settings_server_signs_out
 import eu.leblancsimon.woolstock.resources.settings_server_url
 import eu.leblancsimon.woolstock.resources.settings_server_url_help
 import eu.leblancsimon.woolstock.resources.settings_test
@@ -66,7 +67,7 @@ import org.jetbrains.compose.resources.stringResource
 fun SettingsScreen(
     onBack: () -> Unit,
     onOpenUsers: () -> Unit,
-    viewModel: SettingsViewModel = appViewModel { SettingsViewModel(it.settings, it.stockRepository) },
+    viewModel: SettingsViewModel = appViewModel { SettingsViewModel(it.settings, it.stockRepository, it.allowCleartext) },
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val session by viewModel.session.collectAsStateWithLifecycle()
@@ -132,6 +133,13 @@ fun SettingsScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
                 modifier = Modifier.fillMaxWidth(),
             )
+            if (session != null) {
+                Text(
+                    text = stringResource(Res.string.settings_server_signs_out),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             when (val test = state.test) {
                 is ConnectionTest.Ok -> Text(
                     text = stringResource(Res.string.settings_test_ok, test.version),
@@ -144,7 +152,7 @@ fun SettingsScreen(
                 OutlinedButton(onClick = viewModel::test, enabled = !state.testing, modifier = Modifier.weight(1f)) {
                     Text(stringResource(Res.string.settings_test))
                 }
-                Button(onClick = viewModel::save, modifier = Modifier.weight(1f)) {
+                Button(onClick = viewModel::save, enabled = !state.saving, modifier = Modifier.weight(1f)) {
                     Text(stringResource(Res.string.settings_save))
                 }
             }

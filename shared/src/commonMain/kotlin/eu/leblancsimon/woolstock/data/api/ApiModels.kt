@@ -50,8 +50,16 @@ data class MovementRequest(
     val reference: ReferenceFields? = null,
 )
 
+/** Le mouvement enregistré par le serveur, tel qu'il l'a compté. */
 @Serializable
-data class MovementResponse(val lot: StockLot, val replayed: Boolean = false)
+data class Movement(
+    val quantity: Int,
+    @SerialName("dye_lot") val dyeLot: String,
+    val recipient: String? = null,
+)
+
+@Serializable
+data class MovementResponse(val movement: Movement, val lot: StockLot, val replayed: Boolean = false)
 
 @Serializable
 data class HealthResponse(val status: String, val version: String = "")
@@ -160,7 +168,7 @@ data class User(
     val isAdmin: Boolean get() = role == UserRole.ADMIN.apiValue
 }
 
-/** Connexion gardée sur le téléphone : le jeton n'expire pas. */
+/** Connexion gardée sur le téléphone : le jeton vaut tant qu'il sert (le serveur le fait expirer après 400 jours sans usage). */
 @Serializable
 data class Session(val token: String, val user: User)
 

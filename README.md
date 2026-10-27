@@ -44,13 +44,15 @@ cd backend && make test && make run        # serveur (voir backend/README.md)
 
 Par défaut, l'app vise le serveur `https://stock-laine.carin.family`. Pour un autre serveur,
 saisir son adresse dans les réglages (roue dentée de l'onglet Stock), ou changer l'adresse par
-défaut au build. En développement, avec le téléphone en USB : `adb reverse tcp:8080 tcp:8080`
+défaut au build. Une connexion ne vaut que pour son serveur : enregistrer une autre adresse
+déconnecte, et oublie la copie du cache des références. En développement, avec le téléphone en USB : `adb reverse tcp:8080 tcp:8080`
 et `./gradlew :app:installDebug -Pwoolstock.apiUrl=http://127.0.0.1:8080`.
 
 Le rapport du parseur est écrit dans `label-parser/build/reports/label-parser/report.md`.
 
 Prérequis : JDK 17 ou plus, SDK Android avec la plateforme 37 (AGP l'installe au premier build),
-Go 1.26 ou plus pour le serveur, et un Mac avec Xcode 26 pour construire l'app iOS.
+Go 1.26 ou plus pour le serveur (`go` télécharge la version corrective fixée par `toolchain`
+dans `backend/go.mod`), et un Mac avec Xcode 26 pour construire l'app iOS.
 Versions : Gradle 9.8, AGP 9.4, Kotlin 2.4, Compose Multiplatform 1.12, minSdk 26, compileSdk 37,
 targetSdk 36, iOS 17.
 
@@ -121,9 +123,12 @@ targetSdk 36, iOS 17.
 - **Le serveur fait foi pour le stock.** Une entrée ou une sortie exige le serveur ; sans lui,
   l'app affiche le dernier stock chargé et un message d'erreur. Chaque saisie porte un
   identifiant (`request_id`) : la renvoyer après une coupure réseau ne la compte pas deux fois.
+  Corrigée, elle en reçoit un nouveau ; la confirmation reprend ce que le serveur a enregistré.
 - **Cache des références.** Le téléphone en garde une copie dans Room, recopiée à chaque
   rafraîchissement du stock. Un EAN connu préremplit donc marque et coloris instantanément,
   même hors réseau. Une entrée met à jour le cache du serveur ; une sortie n'y touche jamais.
+  La copie est oubliée à la déconnexion, à la suppression du compte, quand le serveur refuse
+  la session et quand l'adresse du serveur change.
 - **Autocomplétion.** Les champs Marque et Nom du coloris proposent les orthographes déjà
   connues : les marques du dictionnaire embarqué, puis celles du cache (donc aussi celles saisies
   sur d'autres téléphones), et les noms de coloris de la marque saisie en tête. La recherche
@@ -132,9 +137,13 @@ targetSdk 36, iOS 17.
   est supprimé par la migration Room 1 → 2. Les références locales sont transmises au serveur
   à la première synchronisation.
 - **Réseau.** L'app demande désormais la permission `INTERNET`, ce qui permet aussi à la
-  télémétrie de ML Kit de sortir ; les images, elles, ne quittent jamais le téléphone. La
-  version debug accepte HTTP en clair. La version release exige HTTPS, sauf vers
-  `127.0.0.1` (`adb reverse`).
+  télémétrie de ML Kit de sortir ; les images, elles, ne quittent jamais le téléphone. Les
+  versions de développement (debug sur Android, Debug sur iOS) acceptent HTTP en clair. Les
+  versions publiées exigent HTTPS, sauf vers `127.0.0.1` (`adb reverse`) : l'app refuse
+  d'enregistrer ou d'appeler une autre adresse en `http://`, et le jeton ne part jamais en clair.
+- **Jeton de session.** Il est gardé dans le trousseau sur iOS, et dans les réglages de l'app
+  sur Android, exclus des sauvegardes comme du transfert vers un nouveau téléphone
+  (`data_extraction_rules.xml`). Le serveur le fait expirer après 400 jours sans usage.
 - **Connexion par adresse email seule.** Le nom du compte connecté accompagne ses mouvements.
   Connaître une adresse autorisée suffit pour se connecter : voir les limites dans
   `backend/README.md`.

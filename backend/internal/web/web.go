@@ -44,6 +44,8 @@ type App struct {
 	// assets donne l'adresse de chaque fichier statique, avec une empreinte de son contenu :
 	// le cache du navigateur suit les mises à jour.
 	assets map[string]string
+	// exports n'admet qu'un classeur en construction à la fois (voir Workbook).
+	exports chan struct{}
 }
 
 // New analyse les gabarits embarqués et renvoie des pages prêtes à servir.
@@ -53,7 +55,7 @@ func New(st *store.Store, bundle *i18n.Bundle, logger *slog.Logger) (*App, error
 		return nil, err
 	}
 	a := &App{Store: st, I18n: bundle, Logger: logger, Now: time.Now, Location: time.Local,
-		pages: make(map[string]*template.Template, len(pageNames)), assets: assets}
+		pages: make(map[string]*template.Template, len(pageNames)), assets: assets, exports: make(chan struct{}, 1)}
 	// Les fonctions liées à la requête (langue) sont remplacées au rendu ; ces
 	// versions ne servent qu'à l'analyse des gabarits.
 	stubs := a.funcs(nil)

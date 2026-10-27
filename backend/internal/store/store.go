@@ -4,8 +4,11 @@ package store
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"embed"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -13,7 +16,8 @@ import (
 	"strings"
 	"time"
 
-	_ "modernc.org/sqlite" // enregistre le driver "sqlite"
+	"modernc.org/sqlite" // enregistre aussi le driver "sqlite"
+	sqlite3 "modernc.org/sqlite/lib"
 )
 
 //go:embed migrations/*.sql
@@ -22,11 +26,21 @@ var migrations embed.FS
 // ErrNotFound signale qu'une référence demandée n'existe pas.
 var ErrNotFound = errors.New("store: not found")
 
+// ErrRequestReused signale un request_id déjà enregistré avec un autre contenu : ce n'est
+// pas un renvoi de la même saisie, et la rendre ferait croire au client qu'elle est passée.
+var ErrRequestReused = errors.New("store: request_id reused with a different content")
+
+// DefaultSessionIdle est la durée sans utilisation au-delà de laquelle une session
+// expire : celle du cookie des pages, renouvelé à chaque visite.
+const DefaultSessionIdle = 400 * 24 * time.Hour
+
 // Store est la persistance SQLite du serveur.
 type Store struct {
 	db *sql.DB
 	// now donne l'heure des écritures ; remplaçable dans les tests.
 	now func() time.Time
+	// sessionIdle est la durée sans utilisation qui fait expirer une session ; 0, jamais.
+	sessionIdle time.Duration
 }
 
 // querier est commun à *sql.DB et *sql.Tx.
@@ -53,12 +67,18 @@ func Open(ctx context.Context, dsn string) (*Store, error) {
 	// rend atomique la vérification du stock avant une sortie.
 	db.SetMaxOpenConns(1)
 
-	s := &Store{db: db, now: time.Now}
+	s := &Store{db: db, now: time.Now, sessionIdle: DefaultSessionIdle}
 	if err := s.migrate(ctx); err != nil {
 		db.Close()
 		return nil, err
 	}
 	return s, nil
+}
+
+// SetSessionIdle fixe la durée sans utilisation au-delà de laquelle une session expire
+// (DefaultSessionIdle par défaut) ; 0 ou moins, les sessions n'expirent jamais.
+func (s *Store) SetSessionIdle(idle time.Duration) {
+	s.sessionIdle = max(idle, 0)
 }
 
 // Close libère la base.
@@ -110,13 +130,15 @@ func (s *Store) migrate(ctx context.Context) error {
 	return nil
 }
 
+// tx exécute fn dans une transaction, validée seulement si fn réussit. Le Rollback
+// différé (sans effet après Commit) libère aussi l'unique connexion si fn panique.
 func (s *Store) tx(ctx context.Context, fn func(*sql.Tx) error) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback()
 	if err := fn(tx); err != nil {
-		tx.Rollback()
 		return err
 	}
 	return tx.Commit()
@@ -134,6 +156,30 @@ func (s *Store) timestamp() string {
 func parseTime(value string) time.Time {
 	t, _ := time.Parse(time.RFC3339Nano, value)
 	return t
+}
+
+// requestHash résume le contenu d'un envoi rejouable, pour vérifier qu'un request_id
+// renvoyé porte bien la même saisie. content est une structure du store : l'encodage
+// JSON en est stable et ne peut pas échouer.
+func requestHash(content any) string {
+	body, err := json.Marshal(content)
+	if err != nil {
+		panic(fmt.Sprintf("store: request hash: %v", err))
+	}
+	sum := sha256.Sum256(body)
+	return hex.EncodeToString(sum[:])
+}
+
+// sameRequest dit si l'empreinte enregistrée correspond au contenu renvoyé ; un envoi
+// enregistré sans empreinte (avant la migration 005) se rejoue sans comparaison.
+func sameRequest(stored sql.NullString, hash string) bool {
+	return !stored.Valid || stored.String == hash
+}
+
+// isUniqueViolation dit si une écriture a été refusée par une contrainte UNIQUE.
+func isUniqueViolation(err error) bool {
+	var sqliteErr *sqlite.Error
+	return errors.As(err, &sqliteErr) && sqliteErr.Code() == sqlite3.SQLITE_CONSTRAINT_UNIQUE
 }
 
 // nullable convertit une chaîne vide en NULL.

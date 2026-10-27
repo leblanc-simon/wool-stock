@@ -82,6 +82,7 @@ error.last_admin: "At least one administrator must remain."
 error.not_found: Not found
 error.page_not_found: This page does not exist
 error.rate_limit: Too many requests, please try again in a minute
+error.request_reused: This request_id was already used for a different entry
 error.unauthorized: Sign in again
 exits.empty: No ball was taken out of the stock over this period.
 exits.form_title: New exit
@@ -261,7 +262,7 @@ user.self: "This is your account."
 user.sessions_closed:
   one: "{{.Count}} session closed."
   other: "{{.Count}} sessions closed."
-user.sessions_help: "Each signed-in phone or browser opens a session that never expires. Closing them signs these devices out; the address stays allowed."
+user.sessions_help: "Each signed-in phone or browser opens a session that stays open while it is used. Closing them signs these devices out; the address stays allowed."
 user.sessions_title: "Signed-in devices"
 user.title: "Account"
 users.add_title: "Add an account"

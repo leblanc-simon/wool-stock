@@ -47,8 +47,11 @@ func (a *App) renderInventories(w http.ResponseWriter, r *http.Request, status i
 // startInventory lance un inventaire, partiel ou complet, comme POST /api/inventories :
 // un seul est ouvert à la fois. Sa feuille de comptage s'ouvre ensuite.
 func (a *App) startInventory(w http.ResponseWriter, r *http.Request) {
-	form := startForm{Scope: store.Scope(r.PostFormValue("scope"))}
-	if form.Scope != store.ScopePartial && form.Scope != store.ScopeFull {
+	// À la différence de l'API, le formulaire fait choisir la portée : un inventaire
+	// complet remet des bains à 0.
+	scope, ok := store.ParseScope(r.PostFormValue("scope"))
+	form := startForm{Scope: scope}
+	if !ok {
 		form.Errors.fail("scope", "validation.scope_required", nil)
 		a.renderInventories(w, r, http.StatusUnprocessableEntity, form)
 		return
@@ -258,12 +261,7 @@ func (a *App) count(w http.ResponseWriter, r *http.Request) {
 		form.Errors.fail("form", "validation.lot_required", nil)
 	}
 	in.Quantity = formQuantity(&form.Errors, "quantity", form.Quantity, 0, "validation.count")
-	switch mode := store.CountMode(r.PostFormValue("mode")); mode {
-	case "", store.CountNew:
-		in.Mode = store.CountNew
-	case store.CountAdd, store.CountSet:
-		in.Mode = mode
-	default:
+	if in.Mode, ok = store.ParseCountMode(r.PostFormValue("mode")); !ok {
 		form.Errors.fail("form", "validation.mode", nil)
 	}
 	if len(form.Errors) > 0 {

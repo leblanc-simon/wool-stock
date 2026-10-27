@@ -2,7 +2,11 @@ package web
 
 import (
 	"context"
+	"errors"
+	"io"
+	"log/slog"
 	"net/http"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -239,5 +243,32 @@ func TestExport(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodGet, srv.URL+"/stock/export", nil)
 	if status, header, _ := send(t, req); status != http.StatusSeeOther || !strings.HasPrefix(header.Get("Location"), "/login") {
 		t.Errorf("anonymous export: %d %v", status, header)
+	}
+}
+
+// Un seul classeur se construit à la fois : une demande pendant qu'un autre s'écrit attend
+// son tour, et abandonne si sa requête est annulée.
+func TestWorkbookOneAtATime(t *testing.T) {
+	st, err := store.Open(context.Background(), "file:"+filepath.Join(t.TempDir(), "export.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { st.Close() })
+	bundle := newBundle(t)
+	site, err := New(st, bundle, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	loc := bundle.Localizer("fr", "")
+
+	site.exports <- struct{}{} // un classeur en cours
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel()
+	if _, _, err := site.Workbook(ctx, loc); !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("while busy: err = %v", err)
+	}
+	<-site.exports
+	if body, _, err := site.Workbook(context.Background(), loc); err != nil || len(body) == 0 {
+		t.Fatalf("after: %d bytes, err = %v", len(body), err)
 	}
 }

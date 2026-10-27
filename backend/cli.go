@@ -64,10 +64,19 @@ func command(cfg config.Config, args []string, out io.Writer) error {
 		if role != store.RoleAdmin && role != store.RoleManager {
 			return fmt.Errorf("role %q: admin or manager", role)
 		}
-		if !strings.Contains(args[2], "@") || strings.TrimSpace(args[3]) == "" {
-			return errors.New("usage: users add <email> <name> [admin|manager]")
+		// Les mêmes règles que l'API et les pages : une adresse simple, un nom borné.
+		email, ok := store.ParseEmail(args[2])
+		if !ok {
+			return fmt.Errorf("email %q: not a valid address", args[2])
 		}
-		u, err := st.CreateUser(ctx, args[2], args[3], role, 0)
+		name, ok := store.CleanText(args[3], store.MaxText)
+		if !ok || name == "" {
+			return fmt.Errorf("name: 1 to %d characters", store.MaxText)
+		}
+		u, err := st.CreateUser(ctx, email, name, role, 0)
+		if errors.Is(err, store.ErrEmailTaken) {
+			return fmt.Errorf("%s already has an account", email)
+		}
 		if err != nil {
 			return err
 		}

@@ -57,55 +57,32 @@ func (a *App) stock(w http.ResponseWriter, r *http.Request) {
 	a.render(w, r, http.StatusOK, "stock", "stock", "stock.title", groupStock(items))
 }
 
-// groupStock regroupe par marque puis coloris, dans l'ordre du store (marque, n°, nom,
-// EAN, bain), à ceci près que les n° de coloris se comparent comme des nombres. Les
-// bains épuisés disparaissent, pas les coloris.
+// groupStock regroupe par marque puis coloris comme groupShelf, dans l'ordre du store
+// (marque, n°, nom, EAN, bain), à ceci près que les n° de coloris se comparent comme des
+// nombres, et compte les pelotes. Les bains épuisés disparaissent, pas les coloris.
 func groupStock(items []store.StockItem) stockView {
 	var view stockView
-	brands := map[string]int{}
-	colors := map[string]int{}
-	for _, item := range items {
-		brand := strings.TrimSpace(deref(item.Brand))
-		bi, ok := brands[strings.ToLower(brand)]
-		if !ok {
-			bi = len(view.Brands)
-			brands[strings.ToLower(brand)] = bi
-			view.Brands = append(view.Brands, brandGroup{Brand: brand})
-		}
-		b := &view.Brands[bi]
-		// Même marque saisie « stylecraft » et « Stylecraft » : on garde la forme avec majuscule.
-		if brand != b.Brand && startsUpper(brand) && !startsUpper(b.Brand) {
-			b.Brand = brand
-		}
-
-		code, name := strings.TrimSpace(deref(item.ColorCode)), strings.TrimSpace(deref(item.ColorName))
-		key := strings.ToLower(brand + "\x00" + code + "\x00" + name)
-		ci, ok := colors[key]
-		if !ok {
-			ci = len(b.Colors)
-			colors[key] = ci
-			b.Colors = append(b.Colors, colorGroup{Code: code, Name: name})
-		}
-		c := &b.Colors[ci]
-		if len(c.EANs) == 0 || c.EANs[len(c.EANs)-1] != item.EAN {
-			c.EANs = append(c.EANs, item.EAN)
-		}
-		if item.Quantity > 0 {
-			c.Lots = append(c.Lots, item)
-		}
-		c.Received = append(c.Received, item)
-		c.Total += item.Quantity
-		b.Total += item.Quantity
-		view.Balls += item.Quantity
-	}
-	for _, b := range view.Brands {
-		// Le store trie les n° comme du texte (« 101 » avant « 11 »).
-		sort.SliceStable(b.Colors, func(i, j int) bool { return naturalLess(b.Colors[i].Code, b.Colors[j].Code) })
-		for _, c := range b.Colors {
+	for _, shelf := range groupShelf(items, nil) {
+		b := brandGroup{Brand: shelf.Brand}
+		for _, shade := range shelf.Shades {
+			c := colorGroup{Code: shade.Code, Name: shade.Name, EANs: shade.EANs}
+			for _, lot := range shade.Lots {
+				if lot.Quantity > 0 {
+					c.Lots = append(c.Lots, lot.StockItem)
+				}
+				c.Received = append(c.Received, lot.StockItem)
+				c.Total += lot.Quantity
+			}
 			if c.Total == 0 {
 				view.EmptyColors++
 			}
+			b.Total += c.Total
+			b.Colors = append(b.Colors, c)
 		}
+		// Le store trie les n° comme du texte (« 101 » avant « 11 »).
+		sort.SliceStable(b.Colors, func(i, j int) bool { return naturalLess(b.Colors[i].Code, b.Colors[j].Code) })
+		view.Balls += b.Total
+		view.Brands = append(view.Brands, b)
 	}
 	return view
 }

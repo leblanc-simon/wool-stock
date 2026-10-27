@@ -11,6 +11,7 @@ import eu.leblancsimon.woolstock.data.api.InventoryScope
 import eu.leblancsimon.woolstock.data.api.InventoryState
 import eu.leblancsimon.woolstock.data.api.MovementKind
 import eu.leblancsimon.woolstock.data.api.MovementRequest
+import eu.leblancsimon.woolstock.data.api.MovementResponse
 import eu.leblancsimon.woolstock.data.api.ReferenceFields
 import eu.leblancsimon.woolstock.data.api.RemoteReference
 import eu.leblancsimon.woolstock.data.api.Session
@@ -18,6 +19,7 @@ import eu.leblancsimon.woolstock.data.api.StockLot
 import eu.leblancsimon.woolstock.data.api.User
 import eu.leblancsimon.woolstock.data.api.UserRole
 import eu.leblancsimon.woolstock.platform.deviceName
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Clock
 
 /** Une entrée ou une sortie saisie sur le téléphone. */
@@ -63,19 +65,44 @@ class StockRepository(
         return session
     }
 
-    /** Se déconnecte, même si le serveur est injoignable : la session locale est oubliée. */
+    /**
+     * Se déconnecte, même si le serveur est injoignable : la session et la copie du cache sont
+     * oubliées. La session l'est en dernier : sa disparition ramène à l'écran de connexion.
+     */
     suspend fun logout() {
         try {
             api.logout()
         } catch (_: ApiException) {
         }
+        dao.clearReferences()
         settings.clearSession()
     }
 
-    /** Supprime le compte sur le serveur, puis oublie la session ; en cas d'échec, rien ne change ici. */
+    /** Supprime le compte sur le serveur, puis oublie le cache et la session ; en cas d'échec, rien ne change ici. */
     suspend fun deleteAccount() {
         api.deleteAccount()
+        dao.clearReferences()
         settings.clearSession()
+    }
+
+    /**
+     * Change d'adresse de serveur. La session et la copie du cache appartiennent à l'ancien
+     * serveur : la session y est fermée s'il répond vite, puis toutes deux sont oubliées, pour
+     * que ni le jeton ni les références ne passent d'un serveur à l'autre.
+     */
+    suspend fun changeServer(url: String) {
+        if (!settings.isCurrentServer(url)) {
+            if (settings.session.value != null) {
+                withTimeoutOrNull(LOGOUT_TIMEOUT_MS) {
+                    try {
+                        api.logout()
+                    } catch (_: ApiException) {
+                    }
+                }
+            }
+            dao.clearReferences()
+        }
+        settings.saveServerUrl(url)
     }
 
     suspend fun users(): List<User> = api.users()
@@ -118,10 +145,11 @@ class StockRepository(
     suspend fun lots(ean: String, includeEmpty: Boolean = false): List<StockLot> = api.stock(ean, includeEmpty)
 
     /**
-     * Envoie le mouvement et renvoie le bain mis à jour. [requestId] reste le même pour
-     * tous les essais d'une saisie : un renvoi après coupure réseau ne compte pas deux fois.
+     * Envoie le mouvement et renvoie le mouvement enregistré et le bain mis à jour. [requestId]
+     * reste le même pour tous les essais d'une saisie : un renvoi après coupure réseau ne compte
+     * pas deux fois.
      */
-    suspend fun record(input: MovementInput, requestId: String): StockLot {
+    suspend fun record(input: MovementInput, requestId: String): MovementResponse {
         val response = api.recordMovement(
             MovementRequest(
                 requestId = requestId,
@@ -135,7 +163,7 @@ class StockRepository(
         )
         val lot = response.lot
         if (input.kind == MovementKind.IN) cache(RemoteReference(lot.ean, lot.brand, lot.colorCode, lot.colorName))
-        return lot
+        return response
     }
 
     suspend fun currentInventory(): InventoryState? = api.currentInventory()
@@ -177,4 +205,9 @@ class StockRepository(
 
     private fun RemoteReference.toEntity(createdAt: Long?) =
         YarnReference(ean, brand, colorCode, colorName, createdAt ?: Clock.System.now().toEpochMilliseconds())
+
+    private companion object {
+        /** Fermer la session sur l'ancien serveur ne retient pas plus longtemps le changement d'adresse. */
+        const val LOGOUT_TIMEOUT_MS = 3_000L
+    }
 }

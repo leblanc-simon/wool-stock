@@ -17,7 +17,8 @@ communs (module `shared`) ; seuls quelques blocs ont une version par plateforme 
 | Parseur d'étiquettes | `label-parser`, commun | idem |
 | Appels au serveur | Ktor, moteur Android | Ktor, moteur Darwin |
 | Cache local | Room, SQLite du système | Room, SQLite embarqué |
-| Réglages, session | `SharedPreferences` | `NSUserDefaults` |
+| Réglages | `SharedPreferences` | `NSUserDefaults` |
+| Jeton de session | `SharedPreferences`, hors sauvegardes et transferts | Trousseau, réservé à l'iPhone (`KeychainStore`) |
 | Partage des exports | `FileProvider` + fenêtre de partage | `UIActivityViewController` |
 | Couleurs | dynamiques (Android 12+) | palette Material claire ou sombre |
 | Traductions | `shared/src/commonMain/composeResources`, communes | idem, plus `InfoPlist.strings` pour le nom et la demande de caméra |
@@ -104,9 +105,10 @@ scan : l'EAN et le bain se tapent à la main.
 
 ### Points connus
 
-- La session est gardée dans `NSUserDefaults`, comme dans les `SharedPreferences` d'Android.
-  Le Trousseau serait plus sûr : les `NSUserDefaults` partent dans les sauvegardes de
-  l'iPhone, alors que l'app Android exclut les siennes (`allowBackup="false"`).
+- Le jeton de session est gardé dans le Trousseau (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`) :
+  ni dans les sauvegardes de l'iPhone, ni transféré vers un autre appareil. Une session des
+  versions précédentes, dans `NSUserDefaults`, y passe au premier lancement. À vérifier sur
+  le Mac : connexion, puis redémarrage de l'app, qui doit rester connectée.
 - Après un envoi à App Store Connect, Apple peut écrire (ITMS-91053) qu'une API « à raison
   déclarée » manque au manifeste `PrivacyInfo.xcprivacy` : l'y ajouter avec la raison
   proposée.
@@ -137,7 +139,8 @@ scan : l'EAN et le bain se tapent à la main.
   l'ouverture de la caméra ;
 - `ITSAppUsesNonExemptEncryption = NO` : l'app ne chiffre que par HTTPS, via le système ;
 - `NSAllowsLocalNetworking`, pour viser un serveur de développement en HTTP sur le réseau
-  local ; le serveur de production est en HTTPS, comme l'exige iOS ;
+  local ; seule une app construite en Debug l'utilise : en Release, l'app elle-même refuse
+  toute adresse en `http://` autre que `127.0.0.1`. Le serveur de production est en HTTPS ;
 - le manifeste de confidentialité : données collectées (adresse email, nom, mouvements
   saisis), sans pistage, et API « à raison déclarée » (`UserDefaults`, horodatage des fichiers
   pour SQLite, horloge du système pour le scan) ;

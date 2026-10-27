@@ -11,6 +11,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import platform.Foundation.NSData
+import platform.Foundation.NSFileManager
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSURL
 import platform.Foundation.create
@@ -24,6 +25,8 @@ import platform.UIKit.popoverPresentationController
 /**
  * Le fichier passe par le dossier temporaire de l'app, puis la feuille de partage d'iOS
  * (Fichiers, Mail, Numbers…). iOS déduit le type de l'extension et n'affiche pas de titre.
+ * Seul le dernier fichier partagé y reste : l'export précédent, avec les noms des
+ * destinataires, est effacé.
  */
 @Composable
 actual fun rememberFileSharer(): FileSharer = remember {
@@ -39,7 +42,13 @@ actual fun rememberFileSharer(): FileSharer = remember {
 
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 private fun writeTemporary(name: String, bytes: ByteArray): NSURL {
-    val url = NSURL.fileURLWithPath(NSTemporaryDirectory() + name)
+    val folder = NSTemporaryDirectory().trimEnd('/') + "/exports/"
+    val files = NSFileManager.defaultManager
+    files.removeItemAtPath(folder, error = null)
+    if (!files.createDirectoryAtPath(folder, withIntermediateDirectories = true, attributes = null, error = null)) {
+        throw IOException("dossier impossible à créer : $folder")
+    }
+    val url = NSURL.fileURLWithPath(folder + name)
     val data = if (bytes.isEmpty()) {
         NSData()
     } else {
