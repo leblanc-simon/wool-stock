@@ -9,16 +9,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-/** Le fichier passe par le cache de l'app et le FileProvider déclaré dans le manifeste de :app. */
+/**
+ * Le fichier passe par le cache de l'app et le FileProvider déclaré dans le manifeste de :app.
+ * Seul le dernier fichier partagé y reste : l'export précédent, avec les noms des destinataires,
+ * est effacé.
+ */
 @Composable
 actual fun rememberFileSharer(): FileSharer {
     val context = LocalContext.current
     return remember(context) {
         FileSharer { name, mimeType, bytes, chooserTitle ->
             val file = withContext(Dispatchers.IO) {
-                File(context.cacheDir, "exports").apply { mkdirs() }
-                    .resolve(name)
-                    .apply { writeBytes(bytes) }
+                val folder = File(context.cacheDir, "exports")
+                folder.deleteRecursively()
+                folder.mkdirs()
+                folder.resolve(name).apply { writeBytes(bytes) }
             }
             val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
             val send = Intent(Intent.ACTION_SEND).apply {

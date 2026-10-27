@@ -5,12 +5,14 @@ import androidx.lifecycle.viewModelScope
 import eu.leblancsimon.woolstock.data.AppSettings
 import eu.leblancsimon.woolstock.data.StockRepository
 import eu.leblancsimon.woolstock.data.api.ApiException
+import eu.leblancsimon.woolstock.data.api.ServerUrlCheck
 import eu.leblancsimon.woolstock.data.api.Session
+import eu.leblancsimon.woolstock.data.api.checkServerUrl
 import eu.leblancsimon.woolstock.resources.Res
 import eu.leblancsimon.woolstock.resources.validation_url
+import eu.leblancsimon.woolstock.resources.validation_url_https
 import eu.leblancsimon.woolstock.ui.ErrorMessage
 import eu.leblancsimon.woolstock.ui.toErrorMessage
-import io.ktor.http.parseUrl
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,13 +33,20 @@ data class SettingsUiState(
     val urlError: ErrorMessage? = null,
     val testing: Boolean = false,
     val test: ConnectionTest? = null,
+    /** L'adresse s'enregistre ; connecté, la session est d'abord fermée sur l'ancien serveur. */
+    val saving: Boolean = false,
     /** Le dialogue de confirmation de « Supprimer mon compte » est ouvert. */
     val confirmingDelete: Boolean = false,
     val deleting: Boolean = false,
     val deleteError: ErrorMessage? = null,
 )
 
-class SettingsViewModel(private val settings: AppSettings, private val repository: StockRepository) : ViewModel() {
+/** [allowCleartext] : HTTP en clair accepté (versions de développement) ; sinon HTTPS exigé. */
+class SettingsViewModel(
+    private val settings: AppSettings,
+    private val repository: StockRepository,
+    private val allowCleartext: Boolean,
+) : ViewModel() {
     private val _state = MutableStateFlow(SettingsUiState(settings.serverUrl.value))
     val state: StateFlow<SettingsUiState> = _state.asStateFlow()
 
@@ -63,10 +72,20 @@ class SettingsViewModel(private val settings: AppSettings, private val repositor
         }
     }
 
+    /**
+     * Enregistre l'adresse. Connecté, une autre adresse déconnecte (une session ne vaut que pour
+     * son serveur) : la navigation revient alors d'elle-même à l'écran de connexion.
+     */
     fun save() {
+        if (_state.value.saving) return
         val url = validUrl() ?: return
-        settings.saveServerUrl(url)
-        _saved.trySend(Unit)
+        val signsOut = settings.session.value != null && !settings.isCurrentServer(url)
+        _state.update { it.copy(saving = true) }
+        viewModelScope.launch {
+            repository.changeServer(url)
+            _state.update { it.copy(saving = false) }
+            if (!signsOut) _saved.send(Unit)
+        }
     }
 
     /** La navigation revient d'elle-même à l'écran de connexion quand la session disparaît. */
@@ -92,25 +111,15 @@ class SettingsViewModel(private val settings: AppSettings, private val repositor
         }
     }
 
-    /** Adresse http(s) avec un hôte, sans barre finale ; sinon signale l'erreur. */
+    /** Adresse http(s) avec un hôte, sans barre finale, en HTTPS si cette version l'exige ; sinon signale l'erreur. */
     private fun validUrl(): String? {
         val url = _state.value.serverUrl.trim().trimEnd('/')
-        val valid = isHttpUrl(url)
-        if (!valid) {
-            _state.update { it.copy(urlError = ErrorMessage.Resource(Res.string.validation_url)) }
-            return null
+        val error = when (checkServerUrl(url, allowCleartext)) {
+            ServerUrlCheck.OK -> return url
+            ServerUrlCheck.INVALID -> Res.string.validation_url
+            ServerUrlCheck.CLEARTEXT -> Res.string.validation_url_https
         }
-        return url
+        _state.update { it.copy(urlError = ErrorMessage.Resource(error)) }
+        return null
     }
-}
-
-/** Adresse http(s) avec un hôte, que Ktor sait lire. */
-internal fun isHttpUrl(url: String): Boolean {
-    val rest = when {
-        url.startsWith("http://", ignoreCase = true) -> url.substring("http://".length)
-        url.startsWith("https://", ignoreCase = true) -> url.substring("https://".length)
-        else -> return false
-    }
-    val host = rest.substringBefore('/').substringBefore('?').substringBefore('#').substringAfterLast('@').substringBefore(':')
-    return host.isNotEmpty() && host.none(Char::isWhitespace) && parseUrl(url) != null
 }

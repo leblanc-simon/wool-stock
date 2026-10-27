@@ -19,33 +19,48 @@ import io.ktor.http.URLParserException
 import io.ktor.http.content.TextContent
 import io.ktor.http.decodeURLPart
 import io.ktor.http.encodeURLPathPart
+import io.ktor.http.parseUrl
 import io.ktor.http.withCharset
 import io.ktor.utils.io.charsets.Charsets
 import kotlinx.io.IOException
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
-/** Échec d'un appel : serveur injoignable, ou réponse en erreur. */
+/** Échec d'un appel : serveur injoignable, adresse inutilisable, réponse illisible ou en erreur. */
 sealed class ApiException(message: String, cause: Throwable? = null) : Exception(message, cause) {
     class Network(cause: Throwable) : ApiException(cause.message ?: "network error", cause)
+
+    /**
+     * Adresse du serveur inutilisable, la requête n'est pas partie : mal formée, ou en HTTP
+     * ([cleartext]) alors que cette version de l'app exige HTTPS.
+     */
+    class InvalidAddress(val cleartext: Boolean, cause: Throwable? = null) :
+        ApiException(if (cleartext) "https required" else "invalid server address", cause)
+
+    /** Réponse réussie mais illisible : l'adresse mène sans doute à un autre site que le serveur. */
+    class InvalidResponse(cause: Throwable? = null) : ApiException("unexpected response", cause)
 
     class Server(val status: Int, val error: ApiError?) : ApiException(error?.message ?: "HTTP $status")
 }
 
 /**
  * Client de l'API du serveur de stock, sur Ktor (moteur OkHttp ou Darwin selon la plateforme).
- * [baseUrl] et [token] sont relus à chaque appel, pour suivre réglages et connexion ;
- * [onUnauthorized] est appelé quand le serveur ne reconnaît plus la session. [userAgent]
- * nomme l'app auprès du serveur (« io.leblanc.woolstock v0.8.0 »).
+ * [baseUrl] est relue à chaque appel, pour suivre les réglages ; [token] donne le jeton de
+ * session à présenter à ce serveur-là (aucun pour un autre), et [onUnauthorized] est appelé
+ * quand le serveur ne reconnaît plus la session. Sans [allowCleartext] (versions publiées),
+ * seul HTTPS est permis, sauf vers le téléphone lui-même. [userAgent] nomme l'app auprès du
+ * serveur (« io.leblanc.woolstock v0.8.0 »).
  */
 class ApiClient(
     private val baseUrl: () -> String,
-    private val token: () -> String? = { null },
+    private val token: (serverUrl: String) -> String? = { null },
     private val onUnauthorized: () -> Unit = {},
+    private val allowCleartext: Boolean = false,
     userAgent: String? = null,
     private val http: HttpClient = HttpClient { woolStockDefaults(userAgent) },
 ) {
     /** Le même client vers une autre adresse, sans session : pour tester un serveur avant de l'enregistrer. */
-    fun at(url: String): ApiClient = ApiClient(baseUrl = { url }, http = http)
+    fun at(url: String): ApiClient = ApiClient(baseUrl = { url }, allowCleartext = allowCleartext, http = http)
 
     suspend fun health(): HealthResponse = get("/api/health")
 
@@ -107,21 +122,34 @@ class ApiClient(
 
     /** Classeur Excel du stock et des distributions, titré dans la langue du téléphone. */
     suspend fun export(): ExportFile = request(HttpMethod.Get, "/api/export", null, accept = ExportFile.TYPE) { response ->
+        // Un autre site répondrait 200 avec une page : ce ne serait pas un classeur.
+        if (response.headers[HttpHeaders.ContentType]?.startsWith(ExportFile.TYPE) != true) throw ApiException.InvalidResponse()
         ExportFile(
             name = attachmentName(response.headers[HttpHeaders.ContentDisposition]) ?: ExportFile.DEFAULT_NAME,
             bytes = response.bodyAsBytes(),
         )
     }
 
-    private suspend inline fun <reified T> get(path: String): T = json.decodeFromString(execute(HttpMethod.Get, path, null))
+    private suspend inline fun <reified T> get(path: String): T = decode(execute(HttpMethod.Get, path, null))
 
     private suspend inline fun <reified T> send(method: HttpMethod, path: String, body: String): T =
-        json.decodeFromString(execute(method, path, body))
+        decode(execute(method, path, body))
+
+    /** Lit une réponse JSON ; illisible, ce n'est sans doute pas le serveur de stock qui répond. */
+    private inline fun <reified T> decode(text: String): T = try {
+        json.decodeFromString(text)
+    } catch (e: SerializationException) {
+        throw ApiException.InvalidResponse(e)
+    }
 
     private suspend fun execute(method: HttpMethod, path: String, body: String?): String =
         request(method, path, body, accept = "application/json") { it.bodyAsText() }
 
-    /** Envoie une requête et lit une réponse réussie avec [read] ; une erreur reste au format JSON de l'API. */
+    /**
+     * Envoie une requête et lit une réponse réussie avec [read] ; une erreur reste au format JSON
+     * de l'API. L'adresse est vérifiée avant l'envoi : le jeton ne part ni en clair (hors
+     * développement) ni vers une adresse mal formée.
+     */
     private suspend fun <T> request(
         method: HttpMethod,
         path: String,
@@ -129,15 +157,28 @@ class ApiClient(
         accept: String,
         read: suspend (HttpResponse) -> T,
     ): T {
-        try {
-            val response = http.request(baseUrl().trim().trimEnd('/') + path) {
+        val serverUrl = baseUrl().trim().trimEnd('/')
+        val url = parseUrl(serverUrl + path)?.takeIf { isHttpUrl(serverUrl) }
+            ?: throw ApiException.InvalidAddress(cleartext = false)
+        if (!cleartextAllowed(url, allowCleartext)) throw ApiException.InvalidAddress(cleartext = true)
+        val response = try {
+            http.request(url) {
                 this.method = method
                 header(HttpHeaders.Accept, accept)
                 // Le serveur traduit ses messages d'erreur (et l'export) dans la langue du téléphone.
                 header(HttpHeaders.AcceptLanguage, languageTag())
-                token()?.let { header(HttpHeaders.Authorization, "Bearer $it") }
+                token(serverUrl)?.let { header(HttpHeaders.Authorization, "Bearer $it") }
                 if (body != null) setBody(TextContent(body, ContentType.Application.Json.withCharset(Charsets.UTF_8)))
             }
+        } catch (e: IOException) {
+            throw ApiException.Network(e)
+        } catch (e: URLParserException) {
+            throw ApiException.InvalidAddress(cleartext = false, cause = e)
+        } catch (e: IllegalArgumentException) {
+            // Adresse lue par Ktor mais refusée par le moteur HTTP.
+            throw ApiException.InvalidAddress(cleartext = false, cause = e)
+        }
+        try {
             val status = response.status.value
             if (status !in 200..299) {
                 val text = runCatching { response.bodyAsText() }.getOrDefault("")
@@ -147,11 +188,6 @@ class ApiClient(
             }
             return read(response)
         } catch (e: IOException) {
-            throw ApiException.Network(e)
-        } catch (e: URLParserException) {
-            // Adresse du serveur mal formée dans les réglages.
-            throw ApiException.Network(e)
-        } catch (e: IllegalArgumentException) {
             throw ApiException.Network(e)
         }
     }

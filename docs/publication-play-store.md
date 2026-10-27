@@ -131,12 +131,15 @@ adb uninstall io.leblanc.woolstock           # retire la version debug
 adb install app/build/outputs/apk/release/app-release.apk
 ```
 
-Points à vérifier sur le téléphone :
+Points à vérifier sur le téléphone ; la version release passe par R8, qui retire et renomme
+du code : un oubli dans ses règles (`app/proguard-rules.pro`) ne se voit qu'ici.
 
-- connexion au serveur de production ;
+- connexion au serveur de production, puis redémarrage de l'app (elle reste connectée) ;
 - scan d'une étiquette ;
 - une entrée et une sortie ;
-- l'export Excel.
+- un inventaire : un comptage ;
+- l'export Excel ;
+- les réglages : tester l'adresse du serveur.
 
 ## 6. Créer l'app dans la Play Console
 

@@ -4,7 +4,7 @@ import platform.Foundation.NSUserDefaults
 
 /**
  * Réglages dans les NSUserDefaults de l'app (raison CA92.1 du manifeste de confidentialité).
- * Le jeton de session y est gardé comme sur Android, dans le bac à sable de l'app.
+ * Le jeton de session n'y est plus : il vit dans le trousseau (KeychainStore).
  */
 internal class UserDefaultsStore(private val defaults: NSUserDefaults = NSUserDefaults.standardUserDefaults) : KeyValueStore {
     override fun getString(key: String): String? = defaults.stringForKey(key)

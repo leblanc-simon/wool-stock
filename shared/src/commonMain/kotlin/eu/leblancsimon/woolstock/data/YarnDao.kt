@@ -29,4 +29,8 @@ interface YarnDao {
 
     @Upsert
     suspend fun upsertReferences(references: List<YarnReference>)
+
+    /** Oublie la copie du cache : elle appartient au serveur et au compte qui l'ont remplie. */
+    @Query("DELETE FROM yarn_reference")
+    suspend fun clearReferences()
 }

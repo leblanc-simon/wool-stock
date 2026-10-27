@@ -28,7 +28,12 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8 retire le code inutilisé des bibliothèques (Ktor, Compose, ML Kit…) et le
+            // renomme ; le fichier de correspondance part avec l'AAB pour lire les plantages
+            // dans la Play Console. À essayer sur un téléphone avant chaque publication.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
