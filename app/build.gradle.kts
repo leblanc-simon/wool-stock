@@ -9,7 +9,7 @@ plugins {
 
 android {
     // Paquet Kotlin et classes générées (R, BuildConfig) ; l'identifiant de l'app est applicationId.
-    namespace = "eu.leblancsimon.woolstock"
+    namespace = "io.leblanc.woolstock"
     compileSdk = 37
 
     defaultConfig {

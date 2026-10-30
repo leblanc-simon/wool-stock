@@ -20,7 +20,7 @@ kotlin {
     }
 
     android {
-        namespace = "eu.leblancsimon.woolstock.shared"
+        namespace = "io.leblanc.woolstock.shared"
         compileSdk = 37
         minSdk = 26
         compilerOptions {
@@ -86,7 +86,7 @@ kotlin {
 }
 
 compose.resources {
-    packageOfResClass = "eu.leblancsimon.woolstock.resources"
+    packageOfResClass = "io.leblanc.woolstock.resources"
 }
 
 room {

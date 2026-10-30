@@ -16,11 +16,11 @@ val generateBrands = tasks.register("generateBrands") {
     outputs.dir(output)
     doLast {
         val json = input.asFile.readText().replace("$", "\${'$'}")
-        val file = output.get().file("eu/leblancsimon/woolstock/parser/BrandsJson.kt").asFile
+        val file = output.get().file("io/leblanc/woolstock/parser/BrandsJson.kt").asFile
         file.parentFile.mkdirs()
         file.writeText(
             "// Généré depuis label-parser/brands.json : ne pas modifier.\n" +
-                "package eu.leblancsimon.woolstock.parser\n\n" +
+                "package io.leblanc.woolstock.parser\n\n" +
                 "internal const val BRANDS_JSON: String = \"\"\"" + json + "\"\"\"\n",
         )
     }

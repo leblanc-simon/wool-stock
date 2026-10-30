@@ -5,11 +5,11 @@
 
 -keepattributes RuntimeVisibleAnnotations,AnnotationDefault,InnerClasses,Signature
 
--keep,includedescriptorclasses class eu.leblancsimon.woolstock.**$$serializer { *; }
--keepclassmembers class eu.leblancsimon.woolstock.** {
+-keep,includedescriptorclasses class io.leblanc.woolstock.**$$serializer { *; }
+-keepclassmembers class io.leblanc.woolstock.** {
     *** Companion;
 }
--keepclasseswithmembers class eu.leblancsimon.woolstock.** {
+-keepclasseswithmembers class io.leblanc.woolstock.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
 

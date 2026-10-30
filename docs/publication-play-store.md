@@ -38,8 +38,8 @@ La suite décrit le test interne, puis ce qu'ajoute la production.
 ## 3. Préparer l'app
 
 **Identifiant.** `applicationId = "io.leblanc.woolstock"` ne pourra plus changer après le
-premier envoi. Le paquet Kotlin (`namespace`, `eu.leblancsimon.woolstock`) peut rester
-différent : il ne sort pas de l'app.
+premier envoi. Le paquet Kotlin (`namespace`) porte le même nom, mais pourrait en changer :
+il ne sort pas de l'app.
 
 **Versions.** Chaque envoi doit porter un `versionCode` plus grand que le précédent. Le
 `versionName` est celui qu'on voit (aujourd'hui 8 et 0.8.0, dans
