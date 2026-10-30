@@ -1,0 +1,81 @@
+{{/* Règles de confidentialité : page publique, déclarée aux stores et ouverte depuis l'app. */}}
+{{define "content"}}
+<div class="page__head">
+  <h1 class="page__title">{{T "privacy.title"}}</h1>
+  <p class="page__lead">{{T "privacy.lead"}}</p>
+  <p class="page__lead">{{T "privacy.updated" (dict "Date" (date .Updated))}}</p>
+</div>
+<div class="policy">
+  <section class="policy__section" aria-labelledby="privacy-controller">
+    <h2 class="section-title" id="privacy-controller">{{T "privacy.controller_title"}}</h2>
+    {{if .Controller}}<p>{{T "privacy.controller" (dict "Name" .Controller "Host" .Host)}}</p>
+    {{else}}<p>{{T "privacy.controller_admins" (dict "Host" .Host)}}</p>{{end}}
+    {{if .Contact}}<p>{{T "privacy.contact"}}<br><a href="mailto:{{.Contact}}">{{.Contact}}</a></p>
+    {{else}}<p>{{T "privacy.contact_admins"}}</p>{{end}}
+  </section>
+
+  <section class="policy__section" aria-labelledby="privacy-server">
+    <h2 class="section-title" id="privacy-server">{{T "privacy.server_title"}}</h2>
+    <ul class="policy__list">
+      <li>{{T "privacy.server_account"}}</li>
+      <li>{{T "privacy.server_devices"}}</li>
+      <li>{{T "privacy.server_history"}}</li>
+      <li>{{T "privacy.server_recipients"}}</li>
+      <li>{{T "privacy.server_logs"}}</li>
+    </ul>
+  </section>
+
+  <section class="policy__section" aria-labelledby="privacy-phone">
+    <h2 class="section-title" id="privacy-phone">{{T "privacy.phone_title"}}</h2>
+    <ul class="policy__list">
+      <li>{{T "privacy.phone_camera"}}</li>
+      <li>{{T "privacy.phone_mlkit"}}<br><a href="https://developers.google.com/ml-kit/android-data-disclosure" hreflang="en">{{T "privacy.phone_mlkit_link"}}</a></li>
+      <li>{{T "privacy.phone_vision"}}</li>
+      <li>{{T "privacy.phone_storage"}}</li>
+    </ul>
+  </section>
+
+  <section class="policy__section" aria-labelledby="privacy-purposes">
+    <h2 class="section-title" id="privacy-purposes">{{T "privacy.purposes_title"}}</h2>
+    <p>{{T "privacy.purposes"}}</p>
+    <p>{{T "privacy.purposes_basis"}}</p>
+  </section>
+
+  <section class="policy__section" aria-labelledby="privacy-sharing">
+    <h2 class="section-title" id="privacy-sharing">{{T "privacy.sharing_title"}}</h2>
+    <ul class="policy__list">
+      <li>{{T "privacy.sharing_members"}}</li>
+      <li>{{T "privacy.sharing_admins"}}</li>
+      <li>{{T "privacy.sharing_none"}}</li>
+      <li>{{T "privacy.sharing_cookie"}}</li>
+    </ul>
+  </section>
+
+  <section class="policy__section" aria-labelledby="privacy-retention">
+    <h2 class="section-title" id="privacy-retention">{{T "privacy.retention_title"}}</h2>
+    <ul class="policy__list">
+      <li>{{T "privacy.retention_account"}}</li>
+      <li>{{if .SessionIdleDays}}{{Tn "privacy.retention_sessions" .SessionIdleDays}}{{else}}{{T "privacy.retention_sessions_open"}}{{end}}</li>
+      <li>{{T "privacy.retention_history"}}</li>
+      {{if .BackupDays}}<li>{{Tn "privacy.retention_backups" .BackupDays}}</li>{{end}}
+      {{if .LogDays}}<li>{{Tn "privacy.retention_logs" .LogDays}}</li>{{end}}
+    </ul>
+  </section>
+
+  <section class="policy__section" aria-labelledby="privacy-rights">
+    <h2 class="section-title" id="privacy-rights">{{T "privacy.rights_title"}}</h2>
+    <p>{{T "privacy.rights"}}</p>
+    <ul class="policy__list">
+      <li>{{T "privacy.rights_delete_app"}}</li>
+      <li><a href="/account">{{T "privacy.rights_delete_web"}}</a></li>
+      <li>{{T "privacy.rights_other"}}</li>
+    </ul>
+    <p>{{T "privacy.rights_complaint"}}<br><a href="https://www.cnil.fr/fr/plaintes" hreflang="fr">{{T "privacy.rights_complaint_link"}}</a></p>
+  </section>
+
+  <section class="policy__section" aria-labelledby="privacy-changes">
+    <h2 class="section-title" id="privacy-changes">{{T "privacy.changes_title"}}</h2>
+    <p>{{T "privacy.changes"}}</p>
+  </section>
+</div>
+{{end}}

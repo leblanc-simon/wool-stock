@@ -26,13 +26,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.leblanc.woolstock.resources.Res
+import io.leblanc.woolstock.data.api.privacyPolicyUrl
 import io.leblanc.woolstock.resources.app_name
+import io.leblanc.woolstock.resources.common_privacy
 import io.leblanc.woolstock.resources.login_change_server
 import io.leblanc.woolstock.resources.login_email
 import io.leblanc.woolstock.resources.login_intro
@@ -44,7 +47,10 @@ import io.leblanc.woolstock.ui.text
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-/** Connexion par adresse email seule : une adresse autorisée par un admin suffit. */
+/**
+ * Connexion par adresse email seule : une adresse autorisée par un admin suffit. Les règles
+ * de confidentialité du serveur s'ouvrent avant toute connexion, comme l'exigent les stores.
+ */
 @Composable
 fun LoginScreen(
     onLoggedIn: () -> Unit,
@@ -54,6 +60,7 @@ fun LoginScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val serverUrl by viewModel.serverUrl.collectAsStateWithLifecycle()
     val currentOnLoggedIn by rememberUpdatedState(onLoggedIn)
+    val uriHandler = LocalUriHandler.current
     LaunchedEffect(viewModel) { viewModel.loggedIn.collect { currentOnLoggedIn() } }
 
     Column(
@@ -98,5 +105,8 @@ fun LoginScreen(
             textAlign = TextAlign.Center,
         )
         TextButton(onClick = onOpenSettings) { Text(stringResource(Res.string.login_change_server)) }
+        TextButton(onClick = { uriHandler.openUri(privacyPolicyUrl(serverUrl)) }) {
+            Text(stringResource(Res.string.common_privacy))
+        }
     }
 }

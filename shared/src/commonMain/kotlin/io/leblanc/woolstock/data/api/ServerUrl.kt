@@ -35,6 +35,9 @@ internal fun isHttpUrl(url: String): Boolean {
 internal fun cleartextAllowed(url: Url, allowCleartext: Boolean): Boolean =
     allowCleartext || !url.protocol.name.equals("http", ignoreCase = true) || url.host.lowercase() in LOOPBACK
 
+/** Les règles de confidentialité du serveur [serverUrl] : chaque serveur publie les siennes. */
+fun privacyPolicyUrl(serverUrl: String): String = serverUrl.trim().trimEnd('/') + "/privacy"
+
 /** Vérifie une adresse saisie : bien formée, et en HTTPS si cette version de l'app l'exige. */
 fun checkServerUrl(url: String, allowCleartext: Boolean): ServerUrlCheck {
     if (!isHttpUrl(url)) return ServerUrlCheck.INVALID

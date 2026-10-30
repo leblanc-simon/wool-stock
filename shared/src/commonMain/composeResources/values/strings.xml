@@ -6,6 +6,7 @@
     <!-- Transverse: navigation and actions -->
     <string name="common_back">Back</string>
     <string name="common_cancel">Cancel</string>
+    <string name="common_privacy">Privacy policy</string>
     <string name="common_retry">Retry</string>
     <string name="nav_stock">Stock</string>
     <string name="nav_entry">Entry</string>

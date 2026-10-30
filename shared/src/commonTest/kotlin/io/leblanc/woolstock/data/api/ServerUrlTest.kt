@@ -37,4 +37,10 @@ class ServerUrlTest {
     fun debugBuildsAcceptHttpOnTheLocalNetwork() {
         assertEquals(ServerUrlCheck.OK, checkServerUrl("http://192.168.1.10:8080", allowCleartext = true))
     }
+
+    @Test
+    fun privacyPolicyIsServedByTheServerItself() {
+        assertEquals("https://stock-laine.carin.family/privacy", privacyPolicyUrl("https://stock-laine.carin.family"))
+        assertEquals("http://127.0.0.1:8080/privacy", privacyPolicyUrl(" http://127.0.0.1:8080/ "))
+    }
 }

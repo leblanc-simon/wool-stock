@@ -1,5 +1,6 @@
 // Package web sert les pages HTML, réservées aux comptes connectés : le stock, les
-// entrées, les sorties et les inventaires, à consulter comme à saisir. Les pages marchent
+// entrées, les sorties et les inventaires, à consulter comme à saisir. Seules la connexion
+// et les règles de confidentialité sont publiques. Les pages marchent
 // sans JavaScript ; un script d'appoint (static/entries.js) remplit la marque et le coloris
 // d'un EAN connu. Les textes passent par les traductions du serveur.
 package web
@@ -29,7 +30,7 @@ var templateFiles embed.FS
 var staticFiles embed.FS
 
 // pageNames liste les pages rendues dans la mise en page commune.
-var pageNames = []string{"login", "stock", "entries", "exits", "inventories", "inventory", "count", "users", "user", "my_account", "error"}
+var pageNames = []string{"login", "stock", "entries", "exits", "inventories", "inventory", "count", "users", "user", "my_account", "privacy", "error"}
 
 // App porte les dépendances des pages.
 type App struct {
@@ -39,6 +40,8 @@ type App struct {
 	// Now et Location décident de « aujourd'hui » et du jour affiché d'un mouvement.
 	Now      func() time.Time
 	Location *time.Location
+	// Privacy est ce que la page /privacy dit du déploiement.
+	Privacy Privacy
 
 	pages map[string]*template.Template
 	// assets donne l'adresse de chaque fichier statique, avec une empreinte de son contenu :
@@ -70,13 +73,14 @@ func New(st *store.Store, bundle *i18n.Bundle, logger *slog.Logger) (*App, error
 	return a, nil
 }
 
-// Handler renvoie les routes des pages. Seule la connexion est ouverte ; les
-// formulaires venus d'un autre site sont refusés.
+// Handler renvoie les routes des pages. Seules la connexion et les règles de
+// confidentialité sont ouvertes ; les formulaires venus d'un autre site sont refusés.
 func (a *App) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /login", a.loginForm)
 	mux.HandleFunc("POST /login", a.login)
 	mux.HandleFunc("POST /logout", a.logout)
+	mux.HandleFunc("GET /privacy", a.withUser(a.privacy))
 	mux.HandleFunc("GET /{$}", a.signedIn(func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, defaultPage, http.StatusSeeOther)
 	}))
@@ -172,7 +176,7 @@ type page struct {
 	// User est le compte connecté ; nil sur la page de connexion.
 	User *store.User
 	// Nav désigne l'onglet courant : stock, entries, exits, inventories ou users ;
-	// account pour la page du compte connecté.
+	// account pour la page du compte connecté, privacy pour les règles de confidentialité.
 	Nav string
 	// Title est une clé de traduction.
 	Title string

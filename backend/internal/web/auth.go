@@ -69,6 +69,17 @@ func (a *App) signedIn(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// withUser pose le compte connecté sur une page publique, sans exiger de session : qui est
+// connecté garde l'en-tête et ses onglets.
+func (a *App) withUser(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if user, _, err := a.sessionUser(r); err == nil {
+			r = r.WithContext(context.WithValue(r.Context(), userKey{}, user))
+		}
+		next(w, r)
+	}
+}
+
 // loginView est le formulaire de connexion ; Error est une clé de traduction.
 type loginView struct {
 	Email string

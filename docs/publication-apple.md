@@ -213,7 +213,8 @@ Champs de la fiche :
 - **Captures d'iPhone 6,9 pouces** (1 320 × 2 868 px), de 1 à 10 : stock, scan, saisie,
   inventaire.
 - **URL d'assistance et URL de règles de confidentialité**, toutes deux obligatoires. La
-  page de confidentialité peut être la même que pour Google Play.
+  page de confidentialité est celle du serveur, la même que pour Google Play :
+  `https://stock-laine.carin.family/privacy`.
 - **Confidentialité de l'app** (« étiquette nutritionnelle ») :
   - adresse email, nom et mouvements saisis (« autres contenus de l'utilisateur »), collectés,
     liés à la personne, pour le fonctionnement de l'app, comme dans le manifeste ;

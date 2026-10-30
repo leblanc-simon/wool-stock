@@ -4,6 +4,7 @@
 
     <string name="common_back">Retour</string>
     <string name="common_cancel">Annuler</string>
+    <string name="common_privacy">Règles de confidentialité</string>
     <string name="common_retry">Réessayer</string>
     <string name="nav_stock">Stock</string>
     <string name="nav_entry">Entrée</string>

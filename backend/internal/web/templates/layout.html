@@ -30,6 +30,9 @@
 <main class="page">
 {{template "content" .Data}}
 </main>
+<footer class="colophon">
+  <a class="colophon__link" href="/privacy"{{if eq .Nav "privacy"}} aria-current="page"{{end}}>{{T "layout.privacy"}}</a>
+</footer>
 </body>
 </html>
 {{end}}

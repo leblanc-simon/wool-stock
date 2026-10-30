@@ -87,6 +87,11 @@ Points de [`config.yaml`](../backend/deploy/config.yaml) à connaître :
   nginx, et 5 connexions par minute bloqueraient tout le monde.
 - `database.path: /var/lib/wool-stock/wool-stock.db` : le dossier que systemd crée pour le
   service.
+- `privacy.controller` et `privacy.contact` : qui tient le serveur, et l'adresse où écrire pour
+  ses données. La page publique `/privacy`, les règles de confidentialité déclarées aux stores,
+  les affiche ; vides, elle renvoie aux administrateurs. `privacy.backup_days` (30) et
+  `privacy.log_days` (14) y annoncent combien de temps vivent les sauvegardes et les journaux :
+  ils doivent suivre `wool-stock-backup.service` (étape 10) et la rotation des journaux (étape 6).
 
 Toute clé peut aussi venir d'une variable `WS_*` (`wool-stock --help` les liste), à poser
 avec `Environment=` dans le service.
@@ -145,6 +150,17 @@ Les journaux vont dans journald :
 
 ```bash
 journalctl -u wool-stock -f
+```
+
+Ils notent l'adresse email de chaque connexion et de chaque compte modifié ; ceux de nginx,
+l'IP de chaque requête. La page `/privacy` annonce `privacy.log_days` jours. nginx s'y tient
+déjà sous Debian et Ubuntu (`rotate 14` dans `/etc/logrotate.d/nginx`) ; journald garde, lui,
+tant que la place le permet. Pour l'aligner, sur toute la machine :
+
+```bash
+sudo install -d /etc/systemd/journald.conf.d
+printf '[Journal]\nMaxRetentionSec=14day\n' | sudo tee /etc/systemd/journald.conf.d/retention.conf
+sudo systemctl restart systemd-journald
 ```
 
 ## 7. Premier administrateur (base vide seulement)

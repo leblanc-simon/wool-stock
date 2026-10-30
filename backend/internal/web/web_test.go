@@ -1193,3 +1193,82 @@ func TestMyAccount(t *testing.T) {
 		t.Errorf("deleted notice missing")
 	}
 }
+
+func TestPrivacy(t *testing.T) {
+	ctx := context.Background()
+	st, err := store.Open(ctx, "file:"+filepath.Join(t.TempDir(), "web.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { st.Close() })
+	site, err := New(st, newBundle(t), slog.New(slog.NewTextHandler(io.Discard, nil)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	site.Location = time.UTC
+	site.Privacy = Privacy{Controller: "Association Tricot", Contact: "rgpd@example.com", SessionIdleDays: 400, BackupDays: 30, LogDays: 1}
+	srv := httptest.NewServer(site.Handler())
+	t.Cleanup(srv.Close)
+	user, err := st.CreateUser(ctx, "simon@example.com", "Simon", store.RoleAdmin, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	token, err := st.OpenSession(ctx, user.ID, "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	read := func(path, lang, token string) (int, string) {
+		t.Helper()
+		req, _ := http.NewRequest(http.MethodGet, srv.URL+path, nil)
+		req.Header.Set("Accept-Language", lang)
+		if token != "" {
+			req.AddCookie(&http.Cookie{Name: sessionCookie, Value: token})
+		}
+		status, _, body := send(t, req)
+		return status, body
+	}
+	host := strings.TrimPrefix(srv.URL, "http://")
+
+	// Publique : les stores et l'app l'ouvrent sans session.
+	status, body := read("/privacy", "fr", "")
+	if status != http.StatusOK {
+		t.Fatalf("privacy without session: %d", status)
+	}
+	for _, want := range []string{"Règles de confidentialité", "Mise à jour le 30/10/2026.",
+		"Ce serveur, " + host + ", est tenu par Association Tricot", `<a href="mailto:rgpd@example.com">rgpd@example.com</a>`,
+		"après 400 jours sans utilisation", "Les sauvegardes de la base\u00a0: 30 jours.", "Les journaux techniques\u00a0: 1 jour.",
+		`<a href="/account">`, `<a class="colophon__link" href="/privacy" aria-current="page">Confidentialité</a>`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("privacy: %q missing", want)
+		}
+	}
+	if strings.Contains(body, `class="masthead"`) {
+		t.Errorf("privacy without session: masthead shown")
+	}
+
+	// Connecté, on garde l'en-tête et ses onglets.
+	if _, body := read("/privacy", "en", token); !strings.Contains(body, `class="masthead"`) || !strings.Contains(body, "Privacy policy") ||
+		!strings.Contains(body, "after 400 days without use") {
+		t.Errorf("privacy signed in: masthead or english text missing")
+	}
+
+	// Sans responsable ni contact, la page renvoie aux administrateurs ; sans sauvegarde, elle n'en parle pas.
+	site.Privacy = Privacy{}
+	_, body = read("/privacy", "fr", "")
+	for _, want := range []string{"est tenu par ses administrateurs", "adressez-vous à l’administrateur qui a créé votre compte",
+		"jusqu’à la déconnexion, ou la suppression du compte"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("privacy without settings: %q missing", want)
+		}
+	}
+	for _, gone := range []string{"mailto:", "Les sauvegardes de la base", "Les journaux techniques"} {
+		if strings.Contains(body, gone) {
+			t.Errorf("privacy without settings: %q shown", gone)
+		}
+	}
+
+	// Le pied de page y mène depuis toutes les pages, connexion comprise.
+	if _, body := read("/login", "fr", ""); !strings.Contains(body, `<a class="colophon__link" href="/privacy">Confidentialité</a>`) {
+		t.Errorf("login: privacy link missing")
+	}
+}

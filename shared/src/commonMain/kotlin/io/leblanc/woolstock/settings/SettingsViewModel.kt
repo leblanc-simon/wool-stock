@@ -53,6 +53,9 @@ class SettingsViewModel(
     /** Compte connecté sur ce téléphone, ou null. */
     val session: StateFlow<Session?> = settings.session
 
+    /** Adresse enregistrée, celle dont les règles de confidentialité s'appliquent (pas celle en cours de saisie). */
+    val savedServerUrl: StateFlow<String> = settings.serverUrl
+
     private val _saved = Channel<Unit>(Channel.CONFLATED)
     val saved: Flow<Unit> = _saved.receiveAsFlow()
 

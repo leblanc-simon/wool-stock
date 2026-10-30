@@ -17,6 +17,9 @@ type Config struct {
 	Database Database `yaml:"database" env-prefix:"WS_"`
 	// Login expose WS_LOGIN_RATE_LIMIT et WS_LOGIN_SESSION_IDLE_DAYS.
 	Login Login `yaml:"login" env-prefix:"WS_"`
+	// Privacy expose WS_PRIVACY_CONTROLLER, WS_PRIVACY_CONTACT, WS_PRIVACY_BACKUP_DAYS et
+	// WS_PRIVACY_LOG_DAYS.
+	Privacy Privacy `yaml:"privacy" env-prefix:"WS_"`
 }
 
 // Database désigne le fichier SQLite qui porte le cache des codes-barres et le stock.
@@ -31,4 +34,14 @@ type Database struct {
 type Login struct {
 	RateLimit       int `yaml:"rate_limit" env:"LOGIN_RATE_LIMIT" env-default:"5" env-description:"Max sign-in attempts per minute per client, app and web pages together"`
 	SessionIdleDays int `yaml:"session_idle_days" env:"LOGIN_SESSION_IDLE_DAYS" env-default:"400" env-description:"Days without use after which a session expires; 0 never expires"`
+}
+
+// Privacy complète la page /privacy de ce que seul le déploiement connaît : qui tient le
+// serveur, comment le joindre, et combien de temps vivent les sauvegardes de la base et les
+// journaux (nginx, journald). Ces durées doivent suivre la configuration de la machine.
+type Privacy struct {
+	Controller string `yaml:"controller" env:"PRIVACY_CONTROLLER" env-description:"Person or organisation responsible for the data, named on /privacy"`
+	Contact    string `yaml:"contact" env:"PRIVACY_CONTACT" env-description:"Email address for privacy requests, shown on /privacy"`
+	BackupDays int    `yaml:"backup_days" env:"PRIVACY_BACKUP_DAYS" env-default:"30" env-description:"Days database backups are kept, stated on /privacy; 0 without backups"`
+	LogDays    int    `yaml:"log_days" env:"PRIVACY_LOG_DAYS" env-default:"14" env-description:"Days web server and service logs are kept, stated on /privacy"`
 }

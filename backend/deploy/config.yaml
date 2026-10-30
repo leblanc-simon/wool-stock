@@ -31,3 +31,13 @@ login:
   # Jours sans utilisation après lesquels une session (téléphone, navigateur) expire ;
   # 0 : jamais. 400, comme le cookie des pages, renouvelé à chaque visite.
   session_idle_days: 400
+
+privacy:
+  # Affichés sur https://stock-laine.carin.family/privacy, l'URL déclarée aux stores : qui
+  # tient ce serveur, et l'adresse où écrire pour ses données. À renseigner avant de publier.
+  controller: ""
+  contact: ""
+  # 30 : la durée de wool-stock-backup.service. 14 : la rotation de nginx sous Debian, et
+  # MaxRetentionSec de journald (voir docs/deploiement-serveur.md).
+  backup_days: 30
+  log_days: 14

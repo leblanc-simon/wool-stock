@@ -155,16 +155,27 @@ Ces déclarations sont requises avant la production. Mieux vaut les remplir dès
 interne.
 
 **Règles de confidentialité.** Une URL publique est obligatoire, car l'app utilise la caméra
-et des adresses email. La publier sur le serveur, par exemple
-`https://stock-laine.carin.family/confidentialite`, ou sur une page à part. Elle doit dire :
+et des adresses email. Le serveur la publie : `https://stock-laine.carin.family/privacy`, en
+français ou en anglais selon le navigateur. Google demande aussi un accès depuis l'app : elle
+l'ouvre depuis l'écran de connexion et depuis les réglages. La page dit :
 
-- les données gardées sur le serveur : l'adresse email et le nom de chaque compte, le modèle
-  du téléphone noté à la connexion, et les mouvements, signés du nom du compte ;
-- que les images de la caméra sont analysées sur le téléphone et jamais envoyées ;
-- que les données restent sur ce serveur, sans revente ni partage ;
-- combien de temps les données sont gardées, et comment supprimer son compte (Réglages →
-  Supprimer mon compte, ou la page `/account`), le nom restant sur les mouvements déjà saisis ;
-- un contact.
+- les données gardées sur le serveur : l'adresse email, le nom et le droit de chaque compte,
+  le modèle du téléphone ou le navigateur de chaque session, les mouvements signés du nom du
+  compte, le nom des destinataires des sorties, et les journaux techniques ;
+- que les images de la caméra sont analysées sur le téléphone, jamais enregistrées ni
+  envoyées, et ce que ML Kit envoie à Google pour son diagnostic ;
+- que les données restent sur ce serveur, sans revente ni partage, et qui les voit ;
+- combien de temps elles sont gardées (comptes, sessions, historique, sauvegardes, journaux) ;
+- les droits de chacun, la suppression du compte (Réglages → Supprimer mon compte, ou la page
+  `/account`), le nom restant sur les mouvements déjà saisis, et le recours à la CNIL ;
+- le responsable et son contact.
+
+Avant de déclarer l'URL, renseigner le responsable et le contact dans
+`/etc/wool-stock/config.yaml` (`privacy.controller`, `privacy.contact`), et vérifier que
+`privacy.backup_days` et `privacy.log_days` suivent la machine (voir
+[`deploiement-serveur.md`](deploiement-serveur.md)). Le texte vit dans
+`backend/internal/web/templates/privacy.html` et dans les traductions `privacy.*` ; s'il
+change, avancer `privacyUpdated` (`backend/internal/web/privacy.go`), la date affichée.
 
 **Accès à l'application.** Toutes les fonctions demandent une connexion. Donner aux
 vérificateurs de Google une adresse autorisée, avec la marche à suivre : « saisir l'adresse,

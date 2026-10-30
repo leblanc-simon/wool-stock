@@ -6,7 +6,7 @@ et sorties, inventaires. Pas d'emplacement ni d'entrepôt : un seul stock. L'app
 web se connectent par **adresse email seule** ; chaque mouvement porte le nom du compte connecté.
 
 Il sert une API JSON (pour l'app) et des pages web, utilisables sans JavaScript, réservées aux comptes
-connectés. Admin comme gestionnaire y consultent le stock et y saisissent entrées, sorties et
+connectés, sauf la connexion et les règles de confidentialité. Admin comme gestionnaire y consultent le stock et y saisissent entrées, sorties et
 inventaires, comme depuis l'app :
 
 | Page | Contenu |
@@ -19,6 +19,7 @@ inventaires, comme depuis l'app :
 | `/inventories/{id}` | anomalies d'un inventaire : stock connu, quantité comptée, écart ; bains conformes repliés |
 | `/inventories/{id}/count` | feuille de comptage de l'inventaire en cours : chaque bain par marque puis coloris, son stock connu, « Valider le stock » ou une autre quantité, ajouter ou remplacer un comptage déjà fait ; terminer l'inventaire |
 | `/account` | le compte connecté (lien sur son nom, dans l'en-tête) : se déconnecter, supprimer son compte. C'est l'adresse à déclarer aux stores pour la suppression de compte |
+| `/privacy` | règles de confidentialité, publiques : ce que le serveur et l'app enregistrent, pourquoi, combien de temps, qui les voit, les droits de chacun. C'est l'adresse à déclarer aux stores ; un lien y mène depuis le pied de chaque page, et depuis l'app (connexion, réglages). Responsable, contact et durées des sauvegardes et des journaux viennent de `privacy.*` dans la configuration |
 | `/users` | admin seulement : comptes, droit, sessions ouvertes et dernière activité ; ajout d'un compte |
 | `/users/{id}` | admin seulement : modifier l'adresse, le nom et le droit, fermer les sessions, retirer l'accès |
 
@@ -93,7 +94,7 @@ l'adresse `http://127.0.0.1:8080` (l'app vise `https://stock-laine.carin.family`
 - L'auteur des entrées, sorties, comptages et inventaires est le nom du compte connecté ; un
   champ `author` envoyé par le client est ignoré.
 - Seule l'empreinte SHA-256 des jetons est enregistrée (table `sessions`).
-- **Pages web** : sans session, toute page renvoie vers `/login?next=…`, qui y ramène après
+- **Pages web** : sans session, toute page (sauf `/privacy`) renvoie vers `/login?next=…`, qui y ramène après
   la connexion (seules les adresses de ce site sont suivies). La session vit dans le cookie
   `ws_session` (`HttpOnly`, `SameSite=Lax`, `Secure` quand la requête arrive en HTTPS ou avec
   `X-Forwarded-Proto: https`), renouvelé pour 400 jours à chaque page : le navigateur reste

@@ -30,13 +30,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.leblanc.woolstock.data.api.Session
+import io.leblanc.woolstock.data.api.privacyPolicyUrl
 import io.leblanc.woolstock.resources.Res
 import io.leblanc.woolstock.resources.common_back
 import io.leblanc.woolstock.resources.common_cancel
+import io.leblanc.woolstock.resources.common_privacy
 import io.leblanc.woolstock.resources.role_admin
 import io.leblanc.woolstock.resources.role_manager
 import io.leblanc.woolstock.resources.settings_account
@@ -61,7 +64,10 @@ import io.leblanc.woolstock.ui.appViewModel
 import io.leblanc.woolstock.ui.text
 import org.jetbrains.compose.resources.stringResource
 
-/** Réglages : le compte connecté (avec la gestion des comptes pour un admin), puis le serveur. */
+/**
+ * Réglages : le compte connecté (avec la gestion des comptes pour un admin), le serveur, puis
+ * ses règles de confidentialité.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -71,6 +77,8 @@ fun SettingsScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val session by viewModel.session.collectAsStateWithLifecycle()
+    val savedServerUrl by viewModel.savedServerUrl.collectAsStateWithLifecycle()
+    val uriHandler = LocalUriHandler.current
     val currentOnBack by rememberUpdatedState(onBack)
     LaunchedEffect(viewModel) { viewModel.saved.collect { currentOnBack() } }
 
@@ -155,6 +163,10 @@ fun SettingsScreen(
                 Button(onClick = viewModel::save, enabled = !state.saving, modifier = Modifier.weight(1f)) {
                     Text(stringResource(Res.string.settings_save))
                 }
+            }
+            HorizontalDivider(Modifier.padding(vertical = 16.dp))
+            TextButton(onClick = { uriHandler.openUri(privacyPolicyUrl(savedServerUrl)) }, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(Res.string.common_privacy))
             }
         }
     }

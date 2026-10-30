@@ -107,6 +107,8 @@ func run(cfg config.Config) error {
 	}
 	// L'app télécharge le même classeur que les pages.
 	app.Export = site.Workbook
+	site.Privacy = web.Privacy{Controller: cfg.Privacy.Controller, Contact: cfg.Privacy.Contact,
+		SessionIdleDays: cfg.Login.SessionIdleDays, BackupDays: cfg.Privacy.BackupDays, LogDays: cfg.Privacy.LogDays}
 	onLimit := limited(app, site)
 	general, err := ratelimit.New(cfg.Web.RateLimit, cfg.Web.TrustedProxies, ratelimit.WithLimitHandler(onLimit))
 	if err != nil {

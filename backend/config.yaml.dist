@@ -36,3 +36,14 @@ login:
   # Jours sans utilisation après lesquels une session (téléphone, navigateur) expire ;
   # 0 : jamais. 400, comme le cookie des pages, renouvelé à chaque visite.
   session_idle_days: 400
+
+privacy:
+  # Affichés sur la page publique /privacy (règles de confidentialité, à déclarer aux
+  # stores) : qui tient ce serveur et l'adresse où écrire pour ses données. Vides, la page
+  # renvoie aux administrateurs.
+  controller: ""
+  contact: ""
+  # Durées annoncées sur /privacy : elles doivent suivre la machine. Sauvegardes de la base
+  # (0 sans sauvegarde) et journaux de nginx et du service.
+  backup_days: 30
+  log_days: 14
