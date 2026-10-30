@@ -13,5 +13,10 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
+# La navigation retrouve l'enum d'un argument de route (ScanMode de ConfirmRoute) par son nom
+# complet, avec Class.forName, puis ses constantes : renommé, il fait planter l'app au lancement.
+# Tous les enums de l'app sont gardés, pour qu'un futur argument de route ne casse pas qu'en release.
+-keep enum io.leblanc.woolstock.** { *; }
+
 # Ktor choisit son moteur (OkHttp) par ServiceLoader.
 -keep class io.ktor.client.engine.okhttp.OkHttpEngineContainer
