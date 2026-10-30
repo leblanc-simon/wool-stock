@@ -26,6 +26,18 @@ android {
         buildConfigField("String", "DEFAULT_API_URL", "\"$apiUrl\"")
     }
 
+    signingConfigs {
+        create("upload") {
+            val storeFile = providers.gradleProperty("woolstock.upload.storeFile").orNull
+            if (storeFile != null) {
+                this.storeFile = file(storeFile)
+                storePassword = providers.gradleProperty("woolstock.upload.storePassword").get()
+                keyAlias = providers.gradleProperty("woolstock.upload.keyAlias").get()
+                keyPassword = providers.gradleProperty("woolstock.upload.keyPassword").get()
+            }
+        }
+    }
+
     buildTypes {
         release {
             // R8 retire le code inutilisé des bibliothèques (Ktor, Compose, ML Kit…) et le
@@ -34,6 +46,9 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (providers.gradleProperty("woolstock.upload.storeFile").isPresent) {
+                signingConfig = signingConfigs.getByName("upload")
+            }
         }
     }
 
