@@ -6,15 +6,15 @@
 TEAM_ID =
 
 // Le même identifiant que l'app Android (applicationId) ; à changer s'il est déjà pris sur
-// l'App Store. Avec MARKETING_VERSION, il forme le User-Agent : io.leblanc.woolstock v0.10.0.
+// l'App Store. Avec MARKETING_VERSION, il forme le User-Agent : io.leblanc.woolstock v0.11.0.
 BUNDLE_ID = io.leblanc.woolstock
 
 // Nom du binaire ; le nom affiché sous l'icône vient de InfoPlist.strings.
 APP_NAME = WoolStock
 
 // Les mêmes numéros que versionName et versionCode d'Android (app/build.gradle.kts).
-MARKETING_VERSION = 0.10.0
-CURRENT_PROJECT_VERSION = 10
+MARKETING_VERSION = 0.11.0
+CURRENT_PROJECT_VERSION = 11
 
 // Serveur par défaut, tant qu'aucune adresse n'est enregistrée dans les réglages de l'app.
 // « // » ouvre un commentaire dans un .xcconfig : $() le coupe. Sur le simulateur, le Mac

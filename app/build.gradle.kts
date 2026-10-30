@@ -17,8 +17,8 @@ android {
         applicationId = "io.leblanc.woolstock"
         minSdk = 26
         targetSdk = 36
-        versionCode = 10
-        versionName = "0.10.0"
+        versionCode = 11
+        versionName = "0.11.0"
 
         // Serveur par défaut : celui de production. Modifiable dans les réglages de l'app, ou au
         // build avec -Pwoolstock.apiUrl=http://127.0.0.1:8080 (poste de dev joint par `adb reverse`).

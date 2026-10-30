@@ -42,7 +42,7 @@ premier envoi. Le paquet Kotlin (`namespace`) porte le même nom, mais pourrait 
 il ne sort pas de l'app.
 
 **Versions.** Chaque envoi doit porter un `versionCode` plus grand que le précédent. Le
-`versionName` est celui qu'on voit (aujourd'hui 10 et 0.10.0, dans
+`versionName` est celui qu'on voit (aujourd'hui 11 et 0.11.0, dans
 [`app/build.gradle.kts`](../app/build.gradle.kts)).
 
 **API cible.** Depuis le 31 août 2026, toute nouvelle app et toute mise à jour doivent viser
